@@ -3120,11 +3120,8 @@ void MyModule::step() {
         fillFamilyArray();
         SET_GATEA;
         SET_GATEB;
-        SET_DRUM_MODE_ON;
         SET_RGB_ON;
-        SET_AMP_ON;
-        SET_MORPH_ON;
-        SET_PITCH_ON;
+
     }
     
     
@@ -3145,17 +3142,23 @@ void MyModule::step() {
         }
     }
     
-    trigButton.process(params[TRIGBUTTON_PARAM].value);
-    trigInput.process(inputs[TRIG_INPUT].value);
-    triggerState = (trigInput.state == SchmittTrigger::HIGH) || (trigButton.state == SchmittTrigger::HIGH);
+    //trigButton.process(params[TRIGBUTTON_PARAM].value);
+    //trigInput.process(inputs[TRIG_INPUT].value);
+    if ((inputs[TRIG_INPUT].value >= 1.0) || (params[TRIG_PARAM].value >= 1.0)) {
+        triggerState = 1;
+    } else {
+        triggerState = 0;
+    }
     
     
 
     if(triggerState > lastTriggerState) {
         risingEdgeHandler();
+        LEDC_ON;
     }
     else if (triggerState < lastTriggerState) {
         fallingEdgeHandler();
+        LEDC_OFF;
     }
         
 
@@ -3163,8 +3166,8 @@ void MyModule::step() {
      
 
 
-    freezeInput.process(inputs[FREEZE_INPUT].value);
-    if (trigInput.state == SchmittTrigger::LOW) {
+
+    if (inputs[FREEZE_INPUT].value < 1.0) {
         dacISR();
     }
 
@@ -3234,6 +3237,8 @@ void MyModule::risingEdgeHandler(void) {
                 break;
                 
             case 3:
+                
+                SET_GATE_ON;
                 
                 if (!(PHASE_STATE) && switchARTimes) {
                     switchARTimes = 0;
