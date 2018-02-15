@@ -3048,6 +3048,57 @@ struct MyModule : Module {
     
     int oneTime = 0;
     
+    json_t *toJson() override {
+        json_t *rootJ = json_object();
+        
+        // freq
+        json_object_set_new(rootJ, "freq", json_integer(freqMode));
+        
+        // loop
+        json_object_set_new(rootJ, "loop", json_integer(loopMode));
+        
+        // trig
+        json_object_set_new(rootJ, "trig", json_integer(trigMode));
+        
+        // SH
+        json_object_set_new(rootJ, "sampleHold", json_integer(sampleHoldMode));
+        
+        // familyIndicator
+        json_object_set_new(rootJ, "family", json_integer(familyIndicator));
+        
+        // flagWord
+        json_object_set_new(rootJ, "flagWord", json_integer(flagHolder));
+        
+        // flagWord
+        json_object_set_new(rootJ, "position", json_integer(position));
+        
+        return rootJ;
+    }
+    
+    void fromJson(json_t *rootJ) override {
+        json_t *freqJ = json_object_get(rootJ, "freq");
+        freqMode = json_integer_value(freqJ);
+        
+        json_t *loopJ = json_object_get(rootJ, "loop");
+        loopMode = json_integer_value(loopJ);
+        
+        json_t *trigJ = json_object_get(rootJ, "trig");
+        trigMode = json_integer_value(trigJ);
+        
+        json_t *sampleHoldJ = json_object_get(rootJ, "sampleHold");
+        sampleHoldMode = json_integer_value(sampleHoldJ);
+        
+        json_t *familyJ = json_object_get(rootJ, "family");
+        familyIndicator = json_integer_value(familyJ);
+        
+        json_t *flagWordJ = json_object_get(rootJ, "flagWord");
+        flagHolder = json_integer_value(flagWordJ);
+        
+        json_t *positionJ = json_object_get(rootJ, "position");
+        position = json_integer_value(positionJ);
+
+    }
+    
 
     
     
@@ -3356,7 +3407,7 @@ void MyModule::dacISR(void) {
                     
                 } else if (DRUM_RELEASE_ON) {
 
-                    releaseCount = releaseCount - (.01 + (1 - params[T2_PARAM].value) * (2 - .5 * inputs[T2_PARAM].value));
+                    releaseCount = releaseCount - (.01 + (1 - params[T2_PARAM].value) * (.5 + .1 * inputs[T2_INPUT].value));
                     if (releaseCount <= 0) {
                         
                         releaseCount = 0;
@@ -4641,14 +4692,14 @@ void MyModule::fillFamilyArray(void) {
     
     familyArray[seq][0] = bounce;
     familyArray[seq][1] = exciteBike;
-    familyArray[seq][2] = bounce;
+    familyArray[seq][2] = doubleLump2ndDegLinAtk;
     familyArray[seq][3] = sawBend;
     familyArray[seq][4] = triOdd;
     familyArray[seq][5] = moogSquare;
     familyArray[seq][6] = impevens;
     familyArray[seq][7] = steps;
     
-    currentFamily = familyArray[0][0];
+    currentFamily = familyArray[freqMode][familyIndicator];
     switchFamily();
     
 }

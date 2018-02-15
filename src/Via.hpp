@@ -180,17 +180,7 @@ extern "C"
 
 
 
-enum freqTypes {audio, env, seq};
 
-enum loopTypes {noloop, looping};
-
-enum trigModeTypes {noretrigger, hardsync, nongatedretrigger, gated, pendulum};
-
-enum sampleHoldModeTypes {nosampleandhold, a, b, ab, antidecimate, decimate};
-
-enum logicOutATypes {triggerA, gateA, deltaA};
-
-enum logicOutBTypes {triggerB, gateB, deltaB};
 
 #define time1Knob ((int) (params[T1_PARAM].value * 4095))
 #define time2Knob ((int) (params[T2_PARAM].value * 4095))
@@ -227,10 +217,7 @@ enum logicOutBTypes {triggerB, gateB, deltaB};
 #define LEDD_ON lights[LED4_LIGHT].value = 1;
 #define LEDD_OFF lights[LED4_LIGHT].value = 0;
 
-#define SH_A_TRACK
-#define SH_B_TRACK
-#define SH_A_SAMPLE
-#define SH_B_SAMPLE
+
 
 
 
