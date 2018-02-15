@@ -18,49 +18,49 @@ struct MyModuleWidget : ModuleWidget {
 
 struct SH_Button : SVGSwitch, MomentarySwitch {
     SH_Button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/S+H_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin, "res/S+H_button.svg")));
     }
 };
 
 
 struct Trig_Button : SVGSwitch, MomentarySwitch {
     Trig_Button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/trig_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/trig_button.svg")));
     }
 };
 
 
 struct Freq_Button : SVGSwitch, MomentarySwitch {
     Freq_Button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/freq_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/freq_button.svg")));
     }
 };
 
 
 struct Loop_Button : SVGSwitch, MomentarySwitch {
     Loop_Button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/loop_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/loop_button.svg")));
     }
 };
 
 
 struct Up_Button : SVGSwitch, MomentarySwitch {
     Up_Button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/up_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/up_button.svg")));
     }
 };
 
 
 struct Down_Button : SVGSwitch, MomentarySwitch {
     Down_Button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/down_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/down_button.svg")));
     }
 };
 
 struct VIA_manual_button : SVGSwitch, MomentarySwitch {
     VIA_manual_button() {
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/manual_trig.svg")));
-        addFrame(SVG::load(assetGlobal("res/ComponentLibrary/manual_trig_down.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/manual_trig.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/manual_trig_down.svg")));
     }
 };
 
