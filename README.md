@@ -1,10 +1,9 @@
 
-# VCV Template plugin
+# VCVia
 
-The VCV Template plugin is a starting point for developing your own plugins for VCV Rack.
-It implements a simple sine VCO, demonstrating inputs, outputs, parameters, and other concepts.
+Repository for the VCVRack version of the VIA, a multipurpose function generator and amplitude processor.
 
-See https://vcvrack.com/manual/PluginDevelopmentTutorial.html for a development tutorial.
+Manual draft can be found here: http://liquidcitymotors.com/manualcopy.html
 
 ## Contributing
 
