@@ -64,6 +64,12 @@ struct VIA_manual_button : SVGSwitch, MomentarySwitch {
     }
 };
 
+struct WhiteLight : ModuleLightWidget {
+    WhiteLight() {
+        addBaseColor(COLOR_WHITE);
+    }
+};
+
 
 #ifndef __libfixmath_int64_h__
 #define __libfixmath_int64_h__

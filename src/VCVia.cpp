@@ -3144,7 +3144,7 @@ void MyModule::step() {
     
     //trigButton.process(params[TRIGBUTTON_PARAM].value);
     //trigInput.process(inputs[TRIG_INPUT].value);
-    if ((inputs[TRIG_INPUT].value >= 1.0) || (params[TRIG_PARAM].value >= 1.0)) {
+    if ((inputs[TRIG_INPUT].value >= 1.0) || (params[TRIGBUTTON_PARAM].value >= 1.0)) {
         triggerState = 1;
     } else {
         triggerState = 0;
@@ -3154,11 +3154,9 @@ void MyModule::step() {
 
     if(triggerState > lastTriggerState) {
         risingEdgeHandler();
-        LEDC_ON;
     }
     else if (triggerState < lastTriggerState) {
         fallingEdgeHandler();
-        LEDC_OFF;
     }
         
 
