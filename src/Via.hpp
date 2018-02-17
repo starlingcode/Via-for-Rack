@@ -243,9 +243,9 @@ extern "C"
 #define morphKnob ((int) (params[MORPH_PARAM].value * 4095))
 #define BKnob params[B_PARAM].value
 #define AKnob params[A_PARAM].value
-#define time1CV ((int) (((inputs[T1_INPUT].value/10) + .5) * 4095))
-#define time2CV ((int)((((inputs[T2_INPUT].value * params[T2AMT_PARAM].value)/10) + .5) * 4095))
-#define morphCV ((int)((((inputs[MORPH_INPUT].value * params[MORPHAMT_PARAM].value)/10) + .5) * 4095))
+#define time1CV ((int) (((clampf(inputs[T1_INPUT].value, -5.0, 5.0)/10) + .5) * 4095))
+#define time2CV ((int)((((clampf(inputs[T2_INPUT].value, -5.0, 5.0) * params[T2AMT_PARAM].value)/10) + .5) * 4095))
+#define morphCV ((int)((((clampf(inputs[MORPH_INPUT].value, -5.0, 5.0) * params[MORPHAMT_PARAM].value)/10) + .5) * 4095))
 
 
 
