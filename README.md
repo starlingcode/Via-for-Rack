@@ -10,4 +10,3 @@ Manual draft can be found here: http://liquidcitymotors.com/manualcopy.html
 I welcome Issues and Pull Requests to this repository if you have suggestions for improvement.
 
 
-# Via for VCVRack
