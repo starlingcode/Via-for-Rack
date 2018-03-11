@@ -1,8 +1,8 @@
-SLUG = VCVia
-VERSION = 0.5.0
+SLUG = CompanyName_Via
+VERSION = 0.6.0
 
 # FLAGS will be passed to both the C and C++ compiler
-FLAGS +=
+FLAGS += 
 CFLAGS +=
 CXXFLAGS +=
 
@@ -13,9 +13,12 @@ LDFLAGS +=
 # Add .cpp and .c files to the build
 SOURCES += $(wildcard src/*.cpp)
 
+
+
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 
 # Include the VCV plugin Makefile framework
 include ../../plugin.mk
+

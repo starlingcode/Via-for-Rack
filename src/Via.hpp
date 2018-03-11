@@ -1,20 +1,76 @@
-#include "rack.hpp"
+#include "CompanyName.hpp"
+#include "util/color.hpp"
 
-
-using namespace rack;
-
-
-extern Plugin *plugin;
-
-////////////////////
-// module widgets
-////////////////////
-
-struct MyModuleWidget : ModuleWidget {
-	MyModuleWidget();
+struct WhiteLight : ModuleLightWidget {
+    WhiteLight() {
+        addBaseColor(COLOR_WHITE);
+    }
 };
 
+struct RGBTriangle : ModuleLightWidget {
+    RGBTriangle() {
+        addBaseColor(COLOR_RED);
+        addBaseColor(COLOR_GREEN);
+        addBaseColor(COLOR_BLUE);
+        addBaseColor(nvgRGBf(1.0, 0, 1.0));
+    }
+    
+    void drawLight(NVGcontext *vg) {
+        float r = box.size.x / 0.7;
+        float ax,ay, bx,by;
+        
+        nvgRotate(vg, nvgDegToRad(30));
+        //nvgTransform(vg, 1.0, 1.1, 1.0, 1.0, 1.0, 1.0);
+        ax = cosf(120.0f/180.0f*NVG_PI) * r;
+        ay = sinf(120.0f/180.0f*NVG_PI) * r;
+        bx = cosf(-120.0f/180.0f*NVG_PI) * r;
+        by = sinf(-120.0f/180.0f*NVG_PI) * r;
+        nvgBeginPath(vg);
+        nvgMoveTo(vg, r,0);
+        nvgLineTo(vg, ax,ay);
+        nvgLineTo(vg, bx,by);
+        nvgClosePath(vg);
+        
+        
+        // Solid color
 
+        nvgFillColor(vg, color);
+        nvgTransRGBAf(color, 1.0);
+        nvgFill(vg);
+        
+        // Border
+        nvgStrokeWidth(vg, 0.5);
+        nvgStrokeColor(vg, borderColor);
+        nvgStroke(vg);
+        nvgRotate(vg, (30.0/120.0)*NVG_PI*2);
+    }
+    
+    void drawHalo(NVGcontext *vg) {
+        float radius = box.size.x / 0.7;
+        float oradius = radius + 15.0;
+        
+        nvgBeginPath(vg);
+        nvgRect(vg, radius - oradius, radius - oradius, 2*oradius, 2*oradius);
+        
+        NVGpaint paint;
+        NVGcolor icol = colorMult(color, 0.15);
+        NVGcolor ocol = nvgRGB(0, 0, 0);
+        paint = nvgRadialGradient(vg, radius, radius, radius, oradius, icol, ocol);
+        nvgFillPaint(vg, paint);
+        nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
+        nvgFill(vg);
+    }
+};
+
+struct Davies1900hvia : SVGKnob {
+    Davies1900hvia() {
+        minAngle = -0.83*M_PI;
+        maxAngle = 0.83*M_PI;
+        sw->svg = SVG::load(assetPlugin(plugin, "res/Davies1900hvia.svg"));
+        sw->wrap();
+        box.size = sw->box.size;
+    }
+};
 
 struct SH_Button : SVGSwitch, MomentarySwitch {
     SH_Button() {
@@ -64,178 +120,6 @@ struct VIA_manual_button : SVGSwitch, MomentarySwitch {
     }
 };
 
-struct WhiteLight : ModuleLightWidget {
-    WhiteLight() {
-        addBaseColor(COLOR_WHITE);
-    }
-};
-
-
-#ifndef __libfixmath_int64_h__
-#define __libfixmath_int64_h__
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-    
-#ifndef FIXMATH_NO_64BIT
-    static inline  int64_t int64_const(int32_t hi, uint32_t lo) { return (((int64_t)hi << 32) | lo); }
-    static inline  int64_t int64_from_int32(int32_t x) { return (int64_t)x; }
-    static inline  int32_t int64_hi(int64_t x) { return (x >> 32); }
-    static inline uint32_t int64_lo(int64_t x) { return (x & ((1ULL << 32) - 1)); }
-    
-    static inline int64_t int64_add(int64_t x, int64_t y)   { return (x + y);  }
-    static inline int64_t int64_neg(int64_t x)              { return (-x);     }
-    static inline int64_t int64_sub(int64_t x, int64_t y)   { return (x - y);  }
-    static inline int64_t int64_shift(int64_t x, int8_t y)  { return (y < 0 ? (x >> -y) : (x << y)); }
-    
-    static inline int64_t int64_mul_i32_i32(int32_t x, int32_t y) { return (x * y);  }
-    static inline int64_t int64_mul_i64_i32(int64_t x, int32_t y) { return (x * y);  }
-    
-    static inline int64_t int64_div_i64_i32(int64_t x, int32_t y) { return (x / y);  }
-    
-    static inline int int64_cmp_eq(int64_t x, int64_t y) { return (x == y); }
-    static inline int int64_cmp_ne(int64_t x, int64_t y) { return (x != y); }
-    static inline int int64_cmp_gt(int64_t x, int64_t y) { return (x >  y); }
-    static inline int int64_cmp_ge(int64_t x, int64_t y) { return (x >= y); }
-    static inline int int64_cmp_lt(int64_t x, int64_t y) { return (x <  y); }
-    static inline int int64_cmp_le(int64_t x, int64_t y) { return (x <= y); }
-#else
-    
-    typedef struct {
-        int32_t hi;
-        uint32_t lo;
-    } __int64_t;
-    
-    static inline __int64_t int64_const(int32_t hi, uint32_t lo) { return (__int64_t){ hi, lo }; }
-    static inline __int64_t int64_from_int32(int32_t x) { return (__int64_t){ (x < 0 ? -1 : 0), x }; }
-    static inline   int32_t int64_hi(__int64_t x) { return x.hi; }
-    static inline  uint32_t int64_lo(__int64_t x) { return x.lo; }
-    
-    static inline int int64_cmp_eq(__int64_t x, __int64_t y) { return ((x.hi == y.hi) && (x.lo == y.lo)); }
-    static inline int int64_cmp_ne(__int64_t x, __int64_t y) { return ((x.hi != y.hi) || (x.lo != y.lo)); }
-    static inline int int64_cmp_gt(__int64_t x, __int64_t y) { return ((x.hi > y.hi) || ((x.hi == y.hi) && (x.lo >  y.lo))); }
-    static inline int int64_cmp_ge(__int64_t x, __int64_t y) { return ((x.hi > y.hi) || ((x.hi == y.hi) && (x.lo >= y.lo))); }
-    static inline int int64_cmp_lt(__int64_t x, __int64_t y) { return ((x.hi < y.hi) || ((x.hi == y.hi) && (x.lo <  y.lo))); }
-    static inline int int64_cmp_le(__int64_t x, __int64_t y) { return ((x.hi < y.hi) || ((x.hi == y.hi) && (x.lo <= y.lo))); }
-    
-    static inline __int64_t int64_add(__int64_t x, __int64_t y) {
-        __int64_t ret;
-        ret.hi = x.hi + y.hi;
-        ret.lo = x.lo + y.lo;
-        if((ret.lo < x.lo) || (ret.hi < y.hi))
-            ret.hi++;
-        return ret;
-    }
-    
-    static inline __int64_t int64_neg(__int64_t x) {
-        __int64_t ret;
-        ret.hi = ~x.hi;
-        ret.lo = ~x.lo + 1;
-        if(ret.lo == 0)
-            ret.hi++;
-        return ret;
-    }
-    
-    static inline __int64_t int64_sub(__int64_t x, __int64_t y) {
-        return int64_add(x, int64_neg(y));
-    }
-    
-    static inline __int64_t int64_shift(__int64_t x, int8_t y) {
-        __int64_t ret;
-        if(y > 0) {
-            if(y >= 32)
-                return (__int64_t){ 0, 0 };
-            ret.hi = (x.hi << y) | (x.lo >> (32 - y));
-            ret.lo = (x.lo << y);
-        } else {
-            y = -y;
-            if(y >= 32)
-                return (__int64_t){ 0, 0 };
-            ret.lo = (x.lo >> y) | (x.hi << (32 - y));
-            ret.hi = (x.hi >> y);
-        }
-        return ret;
-    }
-    
-    static inline __int64_t int64_mul_i32_i32(int32_t x, int32_t y) {
-        int16_t hi[2] = { (x >> 16), (y >> 16) };
-        uint16_t lo[2] = { (x & 0xFFFF), (y & 0xFFFF) };
-        
-        int32_t r_hi = hi[0] * hi[1];
-        int32_t r_md = (hi[0] * lo[1]) + (hi[1] * lo[0]);
-        uint32_t r_lo = lo[0] * lo[1];
-        
-        r_hi += (r_md >> 16);
-        r_lo += (r_md << 16);
-        
-        return (__int64_t){ r_hi, r_lo };
-    }
-    
-    static inline __int64_t int64_mul_i64_i32(__int64_t x, int32_t y) {
-        int neg = ((x.hi ^ y) < 0);
-        if(x.hi < 0)
-            x = int64_neg(x);
-        if(y < 0)
-            y = -y;
-        
-        uint32_t _x[4] = { (x.hi >> 16), (x.hi & 0xFFFF), (x.lo >> 16), (x.lo & 0xFFFF) };
-        uint32_t _y[2] = { (y >> 16), (y & 0xFFFF) };
-        
-        uint32_t r[4];
-        r[0] = (_x[0] * _y[0]);
-        r[1] = (_x[1] * _y[0]) + (_x[0] * _y[1]);
-        r[2] = (_x[1] * _y[1]) + (_x[2] * _y[0]);
-        r[3] = (_x[2] * _y[0]) + (_x[1] * _y[1]);
-        
-        __int64_t ret;
-        ret.lo = r[0] + (r[1] << 16);
-        ret.hi = (r[3] << 16) + r[2] + (r[1] >> 16);
-        return (neg ? int64_neg(ret) : ret);
-    }
-    
-    static inline __int64_t int64_div_i64_i32(__int64_t x, int32_t y) {
-        int neg = ((x.hi ^ y) < 0);
-        if(x.hi < 0)
-            x = int64_neg(x);
-        if(y < 0)
-            y = -y;
-        
-        __int64_t ret = { (x.hi / y) , (x.lo / y) };
-        x.hi = x.hi % y;
-        x.lo = x.lo % y;
-        
-        __int64_t _y = int64_from_int32(y);
-        
-        __int64_t i;
-        for(i = int64_from_int32(1); int64_cmp_lt(_y, x); _y = int64_shift(_y, 1), i = int64_shift(i, 1));
-        
-        while(x.hi) {
-            _y = int64_shift(_y, -1);
-            i = int64_shift(i, -1);
-            if(int64_cmp_ge(x, _y)) {
-                x = int64_sub(x, _y);
-                ret = int64_add(ret, i);
-            }
-        }
-        
-        ret = int64_add(ret, int64_from_int32(x.lo / y));
-        return (neg ? int64_neg(ret) : ret);
-    }
-    
-#define int64_t __int64_t
-    
-#endif
-    
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
-
-
 
 
 #define time1Knob ((int) (params[T1_PARAM].value * 4095))
@@ -243,9 +127,9 @@ extern "C"
 #define morphKnob ((int) (params[MORPH_PARAM].value * 4095))
 #define BKnob params[B_PARAM].value
 #define AKnob params[A_PARAM].value
-#define time1CV ((int) (((clampf(inputs[T1_INPUT].value, -5.0, 5.0)/10) + .5) * 4095))
-#define time2CV ((int)((((clampf(inputs[T2_INPUT].value, -5.0, 5.0) * params[T2AMT_PARAM].value)/10) + .5) * 4095))
-#define morphCV ((int)((((clampf(inputs[MORPH_INPUT].value, -5.0, 5.0) * params[MORPHAMT_PARAM].value)/10) + .5) * 4095))
+#define time1CV ((int) (((clamp(inputs[T1_INPUT].value, -5.0, 5.0)/10) + .5) * 4095))
+#define time2CV ((int)((((clamp(inputs[T2_INPUT].value, -5.0, 5.0) * params[T2AMT_PARAM].value)/10) + .5) * 4095))
+#define morphCV ((int)((((clamp(inputs[MORPH_INPUT].value, -5.0, 5.0) * params[MORPHAMT_PARAM].value)/10) + .5) * 4095))
 
 
 
@@ -261,24 +145,17 @@ extern "C"
 
 
 
-#define LEDA_ON lights[LED1_LIGHT].value = 1;
+#define LEDA_ON lights[LED1_LIGHT].setBrightnessSmooth(1.0);
 #define LEDA_OFF lights[LED1_LIGHT].value = 0;
 
-#define LEDB_ON lights[LED3_LIGHT].value = 1;
+#define LEDB_ON lights[LED3_LIGHT].setBrightnessSmooth(1.0);
 #define LEDB_OFF lights[LED3_LIGHT].value = 0;
 
-#define LEDC_ON lights[LED2_LIGHT].value = 1;
+#define LEDC_ON lights[LED2_LIGHT].setBrightnessSmooth(1.0);
 #define LEDC_OFF lights[LED2_LIGHT].value = 0;
 
-#define LEDD_ON lights[LED4_LIGHT].value = 1;
+#define LEDD_ON lights[LED4_LIGHT].setBrightnessSmooth(1.0);
 #define LEDD_OFF lights[LED4_LIGHT].value = 0;
-
-
-
-
-
-
-
 
 
 
