@@ -3787,8 +3787,8 @@ void Via::getSample(uint32_t phase) {
                 lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
                 lights[PURPLE_LIGHT].value = 0;
             } else {
-                lights[PURPLE_LIGHT].value = ((inc >> 5)/65535.0) + .7;
-                lights[GREEN_LIGHT].value = fixMorph/4095.0;
+                lights[PURPLE_LIGHT].setBrightnessSmooth(((inc >> 5)/65535.0) + .7);
+                lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
             }
         }
 
@@ -3862,7 +3862,7 @@ void Via::getSample(uint32_t phase) {
                 lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
                 lights[PURPLE_LIGHT].value = 0;
             } else {
-                lights[PURPLE_LIGHT].value = ((inc >> 5)/65535.0) + .7;
+                lights[PURPLE_LIGHT].setBrightnessSmooth(((inc >> 5)/65535.0) + .7);
                 lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
             }
         }
