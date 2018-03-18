@@ -13,7 +13,7 @@ void init(rack::Plugin *p) {
 	p->slug = TOSTRING(SLUG);
 	p->version = TOSTRING(VERSION);
 	p->website = "https://github.com/liquidcitymotors/Via-for-VCVRack";
-	p->manual = "https://github.com/VCVRack/Template/blob/master/README.md";
+	p->manual = "http://liquidcitymotors.com/manualcopy.html";
 
 	// For each module, specify the ModuleWidget subclass, manufacturer slug (for saving in patches), manufacturer human-readable name, module slug, and module name
     p->addModel(modelVia);
