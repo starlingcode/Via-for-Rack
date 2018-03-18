@@ -481,14 +481,10 @@ void Via::getSample(uint32_t phase) {
         }
         
         if (RGB_ON) {
-            if (std::abs(inc) < 4000) {
                 lights[BLUE_LIGHT].setBrightnessSmooth(out/4095.0);
                 lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
-                lights[PURPLE_LIGHT].value = 0;
-            } else {
-                lights[PURPLE_LIGHT].setBrightnessSmooth(((inc >> 5)/65535.0) + .7);
-                lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
-            }
+
+
         }
         
     }
@@ -556,14 +552,9 @@ void Via::getSample(uint32_t phase) {
         
         //if the runtime display is on, show the current value of our contour generator in blue and morph in green
         if (RGB_ON) {
-            if (std::abs(inc) < 4000) {
                 lights[RED_LIGHT].setBrightnessSmooth(out/4095.0);
                 lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
-                lights[PURPLE_LIGHT].value = 0;
-            } else {
-                lights[PURPLE_LIGHT].setBrightnessSmooth(((inc >> 5)/65535.0) + .7);
-                lights[GREEN_LIGHT].setBrightnessSmooth(fixMorph/4095.0);
-            }
+
         }
     }
     
