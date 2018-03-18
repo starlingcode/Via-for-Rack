@@ -12,27 +12,20 @@ struct WhiteLight : ModuleLightWidget {
 
 struct RGBTriangle : ModuleLightWidget {
     RGBTriangle() {
-        addBaseColor(COLOR_RED);
-        addBaseColor(COLOR_GREEN);
-        addBaseColor(COLOR_BLUE);
-        addBaseColor(nvgRGBf(1.0, 0, 1.0));
+        addBaseColor(nvgRGBAf(1.0, 0.0, 0.0, 1.0));
+        addBaseColor(nvgRGBAf(0.0, 1.0, 0.0, 1.0));
+        addBaseColor(nvgRGBAf(0.0, 0.0, 1.0, 1.0));
+        addBaseColor(nvgRGBAf(1.0, 0, 1.0, 1.0));
     }
     
     void drawLight(NVGcontext *vg) {
-        float r = box.size.x / 0.7;
-        float ax,ay, bx,by;
-        
-        nvgRotate(vg, nvgDegToRad(30));
-        //nvgTransform(vg, 1.0, 1.1, 1.0, 1.0, 1.0, 1.0);
-        ax = cosf(120.0f/180.0f*NVG_PI) * r;
-        ay = sinf(120.0f/180.0f*NVG_PI) * r;
-        bx = cosf(-120.0f/180.0f*NVG_PI) * r;
-        by = sinf(-120.0f/180.0f*NVG_PI) * r;
+
         nvgBeginPath(vg);
-        nvgMoveTo(vg, r,0);
-        nvgLineTo(vg, ax,ay);
-        nvgLineTo(vg, bx,by);
+        nvgMoveTo(vg, .4,-22.3);
+        nvgLineTo(vg, -17.3,11.7);
+        nvgLineTo(vg, 16.9,11.7);
         nvgClosePath(vg);
+
         
         
         // Solid color
@@ -49,16 +42,16 @@ struct RGBTriangle : ModuleLightWidget {
     }
     
     void drawHalo(NVGcontext *vg) {
-        float radius = box.size.x / 0.7;
-        float oradius = radius + 15.0;
+        float radius = 14;
+        float oradius = radius + 13;
         
         nvgBeginPath(vg);
-        nvgRect(vg, radius - oradius, radius - oradius, 2*oradius, 2*oradius);
+        nvgRect(vg, -25, -25, 50, 50);
         
         NVGpaint paint;
-        NVGcolor icol = colorMult(color, 0.15);
+        NVGcolor icol = colorMult(color, 0.40);
         NVGcolor ocol = nvgRGB(0, 0, 0);
-        paint = nvgRadialGradient(vg, radius, radius, radius, oradius, icol, ocol);
+        paint = nvgRadialGradient(vg, 0, 0, radius, oradius, icol, ocol);
         nvgFillPaint(vg, paint);
         nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
         nvgFill(vg);
@@ -3003,7 +2996,7 @@ struct Via : Module {
         .tableLength = 256,
         .familySize = 5};
     
-    Family familyArray[3][10000] = {{tenor257, sawPWM, impevens, linwavefold_257, filterbank_48, sinwavefold_257, impevens, additive_tri_to_pulse},
+    Family familyArray[3][8*34*260] = {{tenor257, sawPWM, impevens, linwavefold_257, filterbank_48, sinwavefold_257, impevens, additive_tri_to_pulse},
         {superEllipse1Sym, superEllipse1Asym, doubleLump2ndDegLinAtk, lump2ndDegLinAtk, steps, sawBendLinAtk, newBounce, threeBounceLinAtk},
         {tenor257, impevens, newBounce, sawBend, triOdd, moogSquare, newBounce, sinwavefold_257}};
 

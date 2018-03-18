@@ -14,7 +14,7 @@
    viewBox="0 0 18615.406 39583.371"
    id="svg1136"
    sodipodi:docname="via_freerunning_no_margin.svg"
-   inkscape:version="0.91 r13725">
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06">
   <metadata
      id="metadata1142">
     <rdf:RDF>
@@ -311,20 +311,20 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1873"
-     inkscape:window-height="1056"
+     inkscape:window-width="1440"
+     inkscape:window-height="816"
      id="namedview1138"
      showgrid="false"
      inkscape:snap-center="true"
      inkscape:snap-object-midpoints="true"
      inkscape:object-paths="true"
-     inkscape:zoom="8"
-     inkscape:cx="-4.3443161"
-     inkscape:cy="164.25327"
-     inkscape:window-x="47"
-     inkscape:window-y="24"
+     inkscape:zoom="33.502032"
+     inkscape:cx="57.590457"
+     inkscape:cy="178.25271"
+     inkscape:window-x="0"
+     inkscape:window-y="1"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g556"
+     inkscape:current-layer="svg1136"
      showguides="true"
      inkscape:guide-bbox="true"
      fit-margin-top="0"
@@ -1943,5 +1943,10 @@
      style="fill:none;fill-rule:evenodd;stroke:#282828;stroke-width:208.33352555;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
      d="m 12415.093,44.671873 0,39560.269127"
      id="path4662"
+     inkscape:connector-curvature="0" />
+  <path
+     style="fill:#63694f;fill-opacity:1;stroke:none;stroke-width:100.22195435px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="M 4339.7573,24250.266 H 7958.8227 L 6151.4222,20639.534 Z"
+     id="path1202"
      inkscape:connector-curvature="0" />
 </svg>
