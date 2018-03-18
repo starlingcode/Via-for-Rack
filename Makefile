@@ -19,6 +19,8 @@ SOURCES += $(wildcard src/*.cpp)
 # The compiled plugin is automatically added.
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 
+RACK_DIR ?= ../..
+
 # Include the VCV plugin Makefile framework
 include ../../plugin.mk
 
