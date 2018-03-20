@@ -136,10 +136,10 @@ ViaWidget::ViaWidget(Via *module) : ModuleWidget(module) {
     addOutput(createOutput<PJ301MPort>(Vec(84.8, 326), module, Via::MAIN_OUTPUT));
     addOutput(createOutput<PJ301MPort>(Vec(135.5, 242), module, Via::DELTA_OUTPUT));
 
-	addChild(createLight<MediumLight<WhiteLight>>(Vec(35, 270), module, Via::LED1_LIGHT));
-    addChild(createLight<MediumLight<WhiteLight>>(Vec(75, 270), module, Via::LED2_LIGHT));
-    addChild(createLight<MediumLight<WhiteLight>>(Vec(35, 314), module, Via::LED3_LIGHT));
-    addChild(createLight<MediumLight<WhiteLight>>(Vec(75, 314), module, Via::LED4_LIGHT));
+	addChild(createLight<MediumLight<WhiteLight>>(Vec(35.3, 269.2), module, Via::LED1_LIGHT));
+    addChild(createLight<MediumLight<WhiteLight>>(Vec(74.8, 269.2), module, Via::LED2_LIGHT));
+    addChild(createLight<MediumLight<WhiteLight>>(Vec(35.3, 310.7), module, Via::LED3_LIGHT));
+    addChild(createLight<MediumLight<WhiteLight>>(Vec(74.8, 310.7), module, Via::LED4_LIGHT));
     addChild(createLight<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via::RED_LIGHT));
 }
 

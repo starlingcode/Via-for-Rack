@@ -15,15 +15,14 @@ struct RGBTriangle : ModuleLightWidget {
         addBaseColor(nvgRGBAf(1.0, 0.0, 0.0, 1.0));
         addBaseColor(nvgRGBAf(0.0, 1.0, 0.0, 1.0));
         addBaseColor(nvgRGBAf(0.0, 0.0, 1.0, 1.0));
-        addBaseColor(nvgRGBAf(1.0, 0, 1.0, 1.0));
     }
     
     void drawLight(NVGcontext *vg) {
 
         nvgBeginPath(vg);
         nvgMoveTo(vg, .4,-22.3);
-        nvgLineTo(vg, -17.3,11.7);
-        nvgLineTo(vg, 16.9,11.7);
+        nvgLineTo(vg, -17.1,11.7);
+        nvgLineTo(vg, 17.1,11.7);
         nvgClosePath(vg);
 
         
