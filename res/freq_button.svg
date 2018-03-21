@@ -6,11 +6,35 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg1136"
    viewBox="0 0 2513.609 2513.6097"
    height="24.13063"
    width="24.13063"
-   version="1.1">
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="freq_button.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1873"
+     inkscape:window-height="1056"
+     id="namedview10699"
+     showgrid="false"
+     inkscape:zoom="39.120403"
+     inkscape:cx="9.7186417"
+     inkscape:cy="10.94687"
+     inkscape:window-x="47"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1136" />
   <metadata
      id="metadata1142">
     <rdf:RDF>
@@ -196,7 +220,8 @@
        x1="6438.394"
        gradientUnits="userSpaceOnUse"
        id="linearGradient2704"
-       xlink:href="#linearGradient2530-8" />
+       xlink:href="#linearGradient2530-8"
+       gradientTransform="matrix(0.78153603,0,0,0.78153603,-5004.7136,-29743.133)" />
     <linearGradient
        id="linearGradient2530-8">
       <stop
@@ -289,17 +314,12 @@
      transform="matrix(0.78153617,0,0,0.78153617,-13004.668,-29743.139)"
      id="g124"
      style="fill:#840000;fill-opacity:1;stroke:#840000;stroke-width:1260;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-  <g
-     id="g144-3"
-     style="fill:url(#linearGradient2708);fill-opacity:1;stroke:#282828;stroke-width:66.6423111;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     transform="matrix(0.78153603,0,0,0.78153603,-5004.7136,-29743.133)">
-    <circle
-       style="fill:url(#linearGradient2704);fill-opacity:1;stroke:#282828;stroke-width:66.6423111;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="circle142-74"
-       r="1574.8"
-       cy="39665.398"
-       cx="8011.8101" />
-  </g>
+  <circle
+     cx="1256.8046"
+     cy="1256.8051"
+     r="1230.7629"
+     id="circle142-74"
+     style="fill:#000000;fill-opacity:1;stroke:#282828;stroke-width:52.08336639;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   <g
      transform="matrix(0.78153617,0,0,0.78153617,-13004.668,-29743.139)"
      id="g134"
