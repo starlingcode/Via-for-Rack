@@ -64,13 +64,9 @@ struct RGBTriangle : ModuleLightWidget {
 // Davies knob for contrast against the black background, adapted from Rack component library
 // Thanks Grayscale http://grayscale.info/ !
 
-struct Davies1900hvia : SVGKnob {
+struct Davies1900hvia : Davies1900hKnob {
     Davies1900hvia() {
-        minAngle = -0.83*M_PI;
-        maxAngle = 0.83*M_PI;
-        sw->svg = SVG::load(assetPlugin(plugin, "res/Davies1900hvia.svg"));
-        sw->wrap();
-        box.size = sw->box.size;
+        setSVG(SVG::load(assetPlugin(plugin, "res/Davies1900hvia.svg")));
     }
 };
 
