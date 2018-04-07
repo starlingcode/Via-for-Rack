@@ -10,8 +10,6 @@
 
 ///////////// USER INTERFACE SECTION /////////////////
 
-
-
 void Via::readDetect() {
     
     //check to see if any of our touch sensors have gone into detect state
@@ -519,11 +517,9 @@ void Via::clearLEDs(void) {
 // this sets the flags to be used in the interrupt and also fills the holding array on the heap
 
 void Via::switchFamily(void) {
-    currentFamily = familyArray[freqMode][familyIndicator];
     
     currentFamily = familyArray[freqMode][familyIndicator];
-    //loadSampleArray(currentFamily);
-    
+
     span = (currentFamily.tableLength) << 16;
     spanx2 = (currentFamily.tableLength) << 17;
     switch (currentFamily.familySize) {
@@ -591,6 +587,8 @@ void Via::switchFamily(void) {
             break;
             
     }
+    
+    loadSampleArray(currentFamily);
 }
 
 
