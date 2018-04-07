@@ -129,11 +129,9 @@ void Via::EXTI15_10_IRQHandler(void) {
              }*/
         }
         
-        EOA_GATE_LOW
         
         
-        
-        EOR_JACK_HIGH
+        ALOGIC_HIGH
         if (RGB_ON) {
             if (std::abs(inc) < 4000) {
                 LEDC_ON
@@ -142,7 +140,7 @@ void Via::EXTI15_10_IRQHandler(void) {
             }
         }
         
-        EOA_JACK_LOW
+        BLOGIC_LOW
         if (RGB_ON) {
             if (std::abs(inc) < 4000) {
                 LEDD_OFF
@@ -165,12 +163,7 @@ void Via::EXTI15_10_IRQHandler(void) {
         
     } else {
         
-        EOA_GATE_HIGH
-        
-        
-        
-        
-        EOA_JACK_HIGH
+        ALOGIC_LOW
         if (RGB_ON) {
             if (std::abs(inc) < 4000) {
                 LEDD_ON
@@ -179,7 +172,7 @@ void Via::EXTI15_10_IRQHandler(void) {
             }
         }
         
-        EOR_JACK_LOW
+        BLOGIC_HIGH
         if (RGB_ON) {
             if (std::abs(inc) < 4000) {
                 LEDC_OFF
@@ -187,10 +180,6 @@ void Via::EXTI15_10_IRQHandler(void) {
                 lights[LED2_LIGHT].value = ((inc >> 5)/65535.0) + .7;
             }
         }
-        
-        
-        
-        
         
         if (inc < 0) {
             sampHoldA();
@@ -201,7 +190,7 @@ void Via::EXTI15_10_IRQHandler(void) {
         if (RGB_ON && (std::abs(inc) < 4000)) {
             lights[BLUE_LIGHT].value = 0;
         }
-        
+
     }
     
 }
