@@ -59,8 +59,7 @@ void Via::getPhaseDrum(void) {
     // calculate the product of exponential lookup functions
     // the lookup functions are scaled with the CV input circuit to yield 1vOct at the T1 CV
     // T2 is omitted from this calculation and determines drum decay time
-    inc = fix16_mul(
-                      fix16_mul(300000, lookupTable[4095 - time1CV] >> 6), lookupTable[(time1Knob >> 1) + 2047] >> 10) >> tableSizeCompensation;
+    inc = fix16_mul(fix16_mul(300000, lookupTable[4095 - time1CV] >> 6), lookupTable[(time1Knob >> 1) + 2047] >> 10) >> tableSizeCompensation;
     
     // scale with the drum envelope when specified by the trig control
     if (PITCH_ON) {inc = fix16_mul(expoScale + 30000, inc);}
@@ -85,6 +84,7 @@ void Via::getPhaseDrum(void) {
             // this is the logic maintenance needed to properly put the contour generator to rest
             // this keeps behavior on the next trigger predictable
             RESET_LAST_CYCLE;
+            RESET_DRUM_RELEASE_ON;
             RESET_OSCILLATOR_ACTIVE;
             incSign = 1;
             position = 0;
@@ -110,6 +110,7 @@ void Via::getPhaseDrum(void) {
             
             RESET_LAST_CYCLE;
             RESET_OSCILLATOR_ACTIVE;
+            RESET_DRUM_RELEASE_ON;
             incSign = 1;
             position = 0;
             RESET_PHASE_STATE;

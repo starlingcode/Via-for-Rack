@@ -14,7 +14,7 @@ void Via::risingEdgeHandler(void) {
         SET_OSCILLATOR_ACTIVE;      // set the flag that our contour generator is active
         if (DRUM_MODE_ON) {         // perform the operations needed to initiate a drum sound
             SET_DRUM_ATTACK_ON;     //set global flag indicating we are using the timer to generate "attack"
-            SET_UPDATE_PRESCALER;   // logic to be used in the timer interrupt so we pass through and just load prescaler to shadow register
+            // logic to be used in the timer interrupt so we pass through and just load prescaler to shadow register
         }
         if (freqMode == env) {
             attackTime = &Via::calcTime1Env;  // set the function pointers for attack and release to the envelope time scale
