@@ -193,7 +193,7 @@ struct Via : Module {
     
     enum loopTypes {noloop, looping};
     
-    enum trigModeTypes {noretrigger, hardsync, nongatedretrigger, gated, pendulum};
+    enum trigModeTypes {noretrigger, hardsync, nongatedretrigger, gated, pendulum, pendulum2};
     
     enum sampleHoldModeTypes {nosampleandhold, a, b, ab, antidecimate, decimate};
     
@@ -221,6 +221,7 @@ struct Via : Module {
     int expoScale;
     
     int position;
+    int holdPosition;
     int inc;
     int incSign;
     
@@ -288,12 +289,22 @@ struct Via : Module {
     
     void dacISR(void);
     void getSampleQuinticSpline(void);
-    void getPhase(void);
     void generateDrumEnvelope(void);
+    
+    void (Via::*getPhase) (void);
+    void getPhaseOsc(void);
+    void getPhaseDrum(void);
+    void getPhaseSimpleEnv(void);
+    void getPhaseSimpleLFO(void);
+    void getPhaseComplexEnv(void);
+    void getPhaseComplexLFO(void);
+    int (Via::*attackTime) (void);
+    int (Via::*releaseTime) (void);
     int calcTime1Env(void);
     int calcTime2Env(void);
     int calcTime1Seq(void);
     int calcTime2Seq(void);
+    
     int fix16_mul(int, int);
     int fix24_mul(int, int);
     int fix16_lerp(int, int, uint16_t);

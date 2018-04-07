@@ -5,6 +5,36 @@
 void Via::step() {
     
     if (oneTime == 0) {
+        
+        if (loopMode == noloop) {
+            switch (freqMode) {
+                case audio:
+                    getPhase = &Via::getPhaseDrum;
+                    break;
+                case env:
+                    getPhase = &Via::getPhaseSimpleEnv;
+                    break;
+                case seq:
+                    getPhase = &Via::getPhaseComplexEnv;
+                    break;
+            }
+        } else {
+            switch (freqMode) {
+                case audio:
+                    getPhase = &Via::getPhaseOsc;
+                    break;
+                case env:
+                    getPhase = &Via::getPhaseSimpleLFO;
+                    break;
+                case seq:
+                    getPhase = &Via::getPhaseComplexLFO;
+                    break;
+            }
+        }
+        
+        attackTime = &Via::calcTime1Env;
+        releaseTime = &Via::calcTime2Env;
+        
         incSign = 1;
         oneTime = 1;
         currentFamily = familyArray[0][0];

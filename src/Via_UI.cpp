@@ -192,6 +192,9 @@ void Via::changeMode(uint32_t mode) {
         
         if (freqMode == 0 && loopMode == noloop) {
             //since this parameter can throw us into drum mode, initialize the proper modulation flags per trigger mode
+            
+            getPhase = &Via::getPhaseDrum;
+            
             SET_DRUM_MODE_ON;
             
             switch (trigMode) {
@@ -220,22 +223,42 @@ void Via::changeMode(uint32_t mode) {
                     SET_PITCH_ON;
                     SET_MORPH_ON;
                     break;
+                case 5:
+                    RESET_AMP_ON;
+                    RESET_PITCH_ON;
+                    SET_MORPH_ON;
+                    break;
             }
             
         } else {
+            
+            if (freqMode == audio) {
+                getPhase = &Via::getPhaseOsc;
+            } else if (freqMode == env) {
+                if (loopMode == noloop) {
+                    getPhase = &Via::getPhaseSimpleEnv;
+                } else {
+                    getPhase = &Via::getPhaseSimpleLFO;
+                }
+            } else if (freqMode == seq) {
+                if (loopMode == noloop) {
+                    getPhase = &Via::getPhaseComplexEnv;
+                } else {
+                    getPhase = &Via::getPhaseComplexLFO;
+                }
+            }
+            
             // if we didnt just go into drum mode, make sure drum mode is off
             RESET_DRUM_MODE_ON;
             RESET_AMP_ON;
             RESET_PITCH_ON;
             RESET_MORPH_ON;
             
-            // set the appropriate time calculation functions
-            
         }
     }
     else if (mode == 2) {
         modeHolder = trigMode;
-        modeHolder = (modeHolder + 1) % 5;
+        modeHolder = (modeHolder + 1) % 6;
         trigMode = modeHolder;
         //initialize some essential retrigger variables
         
@@ -270,6 +293,11 @@ void Via::changeMode(uint32_t mode) {
                 SET_PITCH_ON;
                 SET_MORPH_ON;
                 break;
+            case 5:
+                RESET_AMP_ON;
+                RESET_PITCH_ON;
+                SET_MORPH_ON;
+                break;
                 
         }
     }
@@ -284,6 +312,19 @@ void Via::changeMode(uint32_t mode) {
             // switching to no loop when freqMode is at audio activates drum mode
             // this is about the same as what we do in the freqMode mode case above
             if (freqMode == 0) {
+                
+                switch (freqMode) {
+                    case audio:
+                        getPhase = &Via::getPhaseDrum;
+                        break;
+                    case env:
+                        getPhase = &Via::getPhaseSimpleEnv;
+                        break;
+                    case seq:
+                        getPhase = &Via::getPhaseComplexEnv;
+                        break;
+                }
+                
                 SET_DRUM_MODE_ON;
                 switch (trigMode) {
                     case 0:
@@ -311,6 +352,11 @@ void Via::changeMode(uint32_t mode) {
                         SET_PITCH_ON;
                         SET_MORPH_ON;
                         break;
+                    case 5:
+                        RESET_AMP_ON;
+                        RESET_PITCH_ON;
+                        SET_MORPH_ON;
+                        break;
                         
                 }
             } else {
@@ -320,14 +366,28 @@ void Via::changeMode(uint32_t mode) {
                 RESET_MORPH_ON;
             }
         } else {
+            
+            switch (freqMode) {
+                case audio:
+                    getPhase = &Via::getPhaseOsc;
+                    break;
+                case env:
+                    getPhase = &Via::getPhaseSimpleLFO;
+                    break;
+                case seq:
+                    getPhase = &Via::getPhaseComplexLFO;
+                    break;
+            }
+            
             RESET_LAST_CYCLE;
             RESET_DRUM_MODE_ON;
             RESET_AMP_ON;
             RESET_PITCH_ON;
             RESET_MORPH_ON;
             //set our oscillator active flag so enabling loop starts playback
-            //SET_OSCILLATOR_ACTIVE;
+            SET_OSCILLATOR_ACTIVE;
         }
+
         
     }
     else if (mode == 4) {

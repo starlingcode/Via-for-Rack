@@ -24,7 +24,7 @@ void Via::dacISR(void) {
         storePhase = PHASE_STATE;
         
         //call the function to advance the phase of the contour generator
-        getPhase();
+        (this->*getPhase)();
         
         //call the function that generates our next sample based upon the phase value "position"
         getSampleQuinticSpline();
