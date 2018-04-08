@@ -130,47 +130,47 @@ ViaWidget::ViaWidget(Via *module) : ModuleWidget(module) {
 		addChild(panel);
 	}
 
-	addChild(createScrew<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-	addChild(createScrew<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-	addChild(createScrew<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+	addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-	addParam(createParam<Davies1900hvia>(Vec(11.5, 33), module, Via::T1_PARAM, 0, 1.0, 0.0));
-    addParam(createParam<Davies1900hvia>(Vec(70.5, 33), module, Via::T2_PARAM, 0, 1.0, 0.0));
-    addParam(createParam<Davies1900hvia>(Vec(70.5, 173), module, Via::MORPH_PARAM, 0, 1.0, 0.0));
-    addParam(createParam<Davies1900hvia>(Vec(11.5, 173), module, Via::B_PARAM, -1.0, 1.0, 0.0));
-    addParam(createParam<Davies1900hvia>(Vec(132.5, 33), module, Via::T2AMT_PARAM, 0, 1.0, 0.0));
-    addParam(createParam<Davies1900hvia>(Vec(132.5, 104), module, Via::A_PARAM, -5.0, 5.0, 0.0));
-    addParam(createParam<Davies1900hvia>(Vec(132.5, 173), module, Via::MORPHAMT_PARAM, 0, 1.0, 0.0));
+	addParam(ParamWidget::create<Davies1900hvia>(Vec(11.5, 33), module, Via::T1_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<Davies1900hvia>(Vec(70.5, 33), module, Via::T2_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<Davies1900hvia>(Vec(70.5, 173), module, Via::MORPH_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<Davies1900hvia>(Vec(11.5, 173), module, Via::B_PARAM, -1.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Davies1900hvia>(Vec(132.5, 33), module, Via::T2AMT_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<Davies1900hvia>(Vec(132.5, 104), module, Via::A_PARAM, -5.0, 5.0, 0.0));
+    addParam(ParamWidget::create<Davies1900hvia>(Vec(132.5, 173), module, Via::MORPHAMT_PARAM, 0, 1.0, 0.0));
     
-    addParam(createParam<SH_Button>(Vec(8.5, 86), module, Via::SH_PARAM, 0.0, 1.0, 0.0));
-    addParam(createParam<Up_Button>(Vec(47, 82.5), module, Via::UP_PARAM, 0.0, 1.0, 0.0));
-    addParam(createParam<Freq_Button>(Vec(85, 86), module, Via::FREQ_PARAM, 0.0, 1.0, 0.0));
-    addParam(createParam<Trig_Button>(Vec(8.5, 137), module, Via::TRIG_PARAM, 0.0, 1.0, 0.0));
-    addParam(createParam<Down_Button>(Vec(46, 138), module, Via::DOWN_PARAM, 0.0, 1.0, 0.0));
-    addParam(createParam<Loop_Button>(Vec(85, 137), module, Via::LOOP_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<SH_Button>(Vec(8.5, 86), module, Via::SH_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Up_Button>(Vec(47, 82.5), module, Via::UP_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Freq_Button>(Vec(85, 86), module, Via::FREQ_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Trig_Button>(Vec(8.5, 137), module, Via::TRIG_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Down_Button>(Vec(46, 138), module, Via::DOWN_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Loop_Button>(Vec(85, 137), module, Via::LOOP_PARAM, 0.0, 1.0, 0.0));
     
-    addParam(createParam<VIA_manual_button>(Vec(133.5, 320), module, Via::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+    addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5, 320), module, Via::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
 
-	addInput(createInput<PJ301MPort>(Vec(9, 242), module, Via::A_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(9, 283.5), module, Via::B_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(9, 326), module, Via::TRIG_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(47.0, 242), module, Via::T1_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(47.0, 283.5), module, Via::T2_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(47.0, 326), module, Via::MORPH_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(135.5, 283.5), module, Via::FREEZE_INPUT));
+	addInput(Port::create<PJ301MPort>(Vec(9, 242), Port::INPUT, module, Via::A_INPUT));
+    addInput(Port::create<PJ301MPort>(Vec(9, 283.5), Port::INPUT, module, Via::B_INPUT));
+    addInput(Port::create<PJ301MPort>(Vec(9, 326), Port::INPUT, module, Via::TRIG_INPUT));
+    addInput(Port::create<PJ301MPort>(Vec(47.0, 242), Port::INPUT, module, Via::T1_INPUT));
+    addInput(Port::create<PJ301MPort>(Vec(47.0, 283.5), Port::INPUT, module, Via::T2_INPUT));
+    addInput(Port::create<PJ301MPort>(Vec(47.0, 326), Port::INPUT, module, Via::MORPH_INPUT));
+    addInput(Port::create<PJ301MPort>(Vec(135.5, 283.5), Port::INPUT, module, Via::FREEZE_INPUT));
 
-	addOutput(createOutput<PJ301MPort>(Vec(84.8, 242), module, Via::LOGICA_OUTPUT));
-    addOutput(createOutput<PJ301MPort>(Vec(84.8, 283.5), module, Via::LOGICB_OUTPUT));
-    addOutput(createOutput<PJ301MPort>(Vec(84.8, 326), module, Via::MAIN_OUTPUT));
-    addOutput(createOutput<PJ301MPort>(Vec(135.5, 242), module, Via::DELTA_OUTPUT));
+	addOutput(Port::create<PJ301MPort>(Vec(84.8, 242), Port::OUTPUT, module, Via::LOGICA_OUTPUT));
+    addOutput(Port::create<PJ301MPort>(Vec(84.8, 283.5), Port::OUTPUT, module, Via::LOGICB_OUTPUT));
+    addOutput(Port::create<PJ301MPort>(Vec(84.8, 326), Port::OUTPUT, module, Via::MAIN_OUTPUT));
+    addOutput(Port::create<PJ301MPort>(Vec(135.5, 242), Port::OUTPUT, module, Via::DELTA_OUTPUT));
 
-	addChild(createLight<MediumLight<WhiteLight>>(Vec(35.3, 269.2), module, Via::LED1_LIGHT));
-    addChild(createLight<MediumLight<WhiteLight>>(Vec(74.8, 269.2), module, Via::LED2_LIGHT));
-    addChild(createLight<MediumLight<WhiteLight>>(Vec(35.3, 310.7), module, Via::LED3_LIGHT));
-    addChild(createLight<MediumLight<WhiteLight>>(Vec(74.8, 310.7), module, Via::LED4_LIGHT));
-    addChild(createLight<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via::RED_LIGHT));
+	addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.3, 269.2), module, Via::LED1_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(74.8, 269.2), module, Via::LED2_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.3, 310.7), module, Via::LED3_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(74.8, 310.7), module, Via::LED4_LIGHT));
+    addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via::RED_LIGHT));
 }
 
 

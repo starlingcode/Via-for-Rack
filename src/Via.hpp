@@ -52,7 +52,7 @@ struct RGBTriangle : ModuleLightWidget {
         nvgRect(vg, -25, -25, 50, 50);
         
         NVGpaint paint;
-        NVGcolor icol = colorMult(color, 0.40);
+        NVGcolor icol = colorMult(color, 0.10);
         NVGcolor ocol = nvgRGB(0, 0, 0);
         paint = nvgRadialGradient(vg, 0, 0, radius, oradius, icol, ocol);
         nvgFillPaint(vg, paint);
