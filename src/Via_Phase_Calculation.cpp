@@ -13,7 +13,7 @@ void Via::getPhaseOsc(void) {
     
     // calculate the product of the linar FM CV with a product of exponential lookup functions
     // the lookup functions are scaled with the CV input circuit to yield 1vOct at the T1 CV
-    inc = fix16_mul(fix16_mul(fix16_mul((2100 - time2CV) << 9, lookupTable[4095 - time1CV] >> 5), lookupTable[time1Knob] >> 4), lookupTable[time2Knob >> 4]) >> tableSizeCompensation;
+    inc = fix16_mul(fix16_mul(fix16_mul((2100 - (4095 -time2CV)) << 9, lookupTable[time1CV] >> 5), lookupTable[time1Knob] >> 4), lookupTable[time2Knob >> 4]) >> tableSizeCompensation;
     
     //this keeps us from asking the contour generator to jump all the way through the wavetable
     if (inc >= span) {
@@ -59,7 +59,7 @@ void Via::getPhaseDrum(void) {
     // calculate the product of exponential lookup functions
     // the lookup functions are scaled with the CV input circuit to yield 1vOct at the T1 CV
     // T2 is omitted from this calculation and determines drum decay time
-    inc = fix16_mul(fix16_mul(300000, lookupTable[4095 - time1CV] >> 6), lookupTable[(time1Knob >> 1) + 2047] >> 10) >> tableSizeCompensation;
+    inc = fix16_mul(fix16_mul(300000, lookupTable[time1CV] >> 6), lookupTable[(time1Knob >> 1) + 2047] >> 10) >> tableSizeCompensation;
     
     // scale with the drum envelope when specified by the trig control
     if (PITCH_ON) {inc = fix16_mul(expoScale + 30000, inc);}
@@ -321,13 +321,13 @@ void Via::getPhaseComplexEnv(void) {
     
     //combine the T2 CV and knob analogous to the morph knob
     
-    if ((4095 - time2CV) >= 2047) {
+    if ((time2CV) >= 2047) {
         // this first does the aforementioned interpolation between the knob value and full scale then scales back the value according to frequency
-        skewMod = fix16_lerp(time2Knob, 4095, ((4095 - time2CV) - 2048) << 4);
+        skewMod = fix16_lerp(time2Knob, 4095, ((time2CV) - 2048) << 4);
     }
     else {
         // analogous to above except in this case, morphCV is less than halfway
-        skewMod = fix16_lerp(0, time2Knob, (4095 - time2CV) << 4);
+        skewMod = fix16_lerp(0, time2Knob, (time2CV) << 4);
     }
     
     if (holdPosition < (fix16_mul(spanx2, (4095 - skewMod) << 4))) {
@@ -420,11 +420,11 @@ void Via::getPhaseComplexLFO(void) {
     
     if ((4095 - time2CV) >= 2047) {
         // this first does the aforementioned interpolation between the knob value and full scale then scales back the value according to frequency
-        skewMod = fix16_lerp(time2Knob, 4095, ((4095 - time2CV) - 2048) << 4);
+        skewMod = fix16_lerp(time2Knob, 4095, ((time2CV) - 2048) << 4);
     }
     else {
         // analogous to above except in this case, morphCV is less than halfway
-        skewMod = fix16_lerp(0, time2Knob, (4095 - time2CV) << 4);
+        skewMod = fix16_lerp(0, time2Knob, (time2CV) << 4);
     }
     
     if (holdPosition < (fix16_mul(spanx2, (4095 - skewMod) << 4))) {

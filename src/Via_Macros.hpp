@@ -6,7 +6,7 @@
 #define morphKnob ((int) (params[MORPH_PARAM].value * 4095))
 #define BKnob params[B_PARAM].value
 #define AKnob params[A_PARAM].value
-#define time1CV ((int) (((clamp(inputs[T1_INPUT].value, -5.0, 5.0)/10) + .5) * 4095))
+#define time1CV ((int) (clamp((((inputs[T1_INPUT].value/10.66666666) + .5) * 4095), 0, 4095)))
 #define time2CV ((int)((((clamp(inputs[T2_INPUT].value, -5.0, 5.0) * params[T2AMT_PARAM].value)/10) + .5) * 4095))
 #define morphCV ((int)((((clamp(inputs[MORPH_INPUT].value, -5.0, 5.0) * params[MORPHAMT_PARAM].value)/10) + .5) * 4095))
 
