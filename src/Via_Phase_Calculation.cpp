@@ -255,6 +255,7 @@ void Via::getPhaseSimpleLFO(void) {
         
         position = position - spanx2;
         
+        
     }
     // same as above but for when we are backtracking through the attack phase aka negative increment
     else if (position < 0) {
@@ -298,6 +299,7 @@ void Via::getPhaseComplexEnv(void) {
             LEDC_OFF;
             LEDD_OFF;
         }
+        EXTI15_10_IRQHandler();
     }
     
     if (holdPosition < 0) {
@@ -317,18 +319,22 @@ void Via::getPhaseComplexEnv(void) {
             LEDC_OFF;
             LEDD_OFF;
         }
+        EXTI15_10_IRQHandler();
     }
     
     //combine the T2 CV and knob analogous to the morph knob
-    
+
     if ((time2CV) >= 2047) {
         // this first does the aforementioned interpolation between the knob value and full scale then scales back the value according to frequency
-        skewMod = fix16_lerp(time2Knob, 4095, ((time2CV) - 2048) << 4);
+        skewMod = fix16_lerp(time2Knob, 4096, (time2CV - 2047) << 5);
     }
     else {
         // analogous to above except in this case, morphCV is less than halfway
-        skewMod = fix16_lerp(0, time2Knob, (time2CV) << 4);
+        skewMod = fix16_lerp(0, time2Knob, (time2CV) << 5);
     }
+    
+    if (skewMod > 4090) {skewMod = 4090;}
+    if (skewMod < 5) {skewMod = 5;}
     
     if (holdPosition < (fix16_mul(spanx2, (4095 - skewMod) << 4))) {
         attackTransferHolder = (65535 << 11)/(4095 - skewMod); // 1/(T2*2)
@@ -354,6 +360,7 @@ void Via::getPhaseComplexEnv(void) {
     // if we have incremented outside of our table, wrap back around to the other side and stop/reset if we are in LF 1 shot mode
     if (position >= spanx2) {
         position = position - spanx2;
+        holdPosition = holdPosition - spanx2;
         
         RESET_OSCILLATOR_ACTIVE;
         if (trigMode == pendulum && !(DRUM_MODE_ON))  {
@@ -380,6 +387,8 @@ void Via::getPhaseComplexEnv(void) {
     else if (position < 0) {
         
         position = position + spanx2;
+        holdPosition = holdPosition + spanx2;
+
         
         RESET_OSCILLATOR_ACTIVE;
         incSign = 1;
@@ -412,28 +421,33 @@ void Via::getPhaseComplexLFO(void) {
     }
     if (holdPosition >= spanx2) {
         holdPosition = holdPosition - spanx2;
+        EXTI15_10_IRQHandler();
     }
     
     if (holdPosition < 0) {
         holdPosition = holdPosition + spanx2;
+        EXTI15_10_IRQHandler();
     }
     
     if ((4095 - time2CV) >= 2047) {
         // this first does the aforementioned interpolation between the knob value and full scale then scales back the value according to frequency
-        skewMod = fix16_lerp(time2Knob, 4095, ((time2CV) - 2048) << 4);
+        skewMod = fix16_lerp(time2Knob, 4095, ((time2CV) - 2047) << 5);
     }
     else {
         // analogous to above except in this case, morphCV is less than halfway
-        skewMod = fix16_lerp(0, time2Knob, (time2CV) << 4);
+        skewMod = fix16_lerp(0, time2Knob, (time2CV) << 5);
     }
     
-    if (holdPosition < (fix16_mul(spanx2, (4095 - skewMod) << 4))) {
-        attackTransferHolder = (65535 << 11)/(4095 - skewMod); // 1/(T2*2)
+    if (skewMod > 4090) {skewMod = 4090;}
+    if (skewMod < 5) {skewMod = 5;}
+    
+    if (holdPosition < (fix16_mul(spanx2, skewMod << 4))) {
+        attackTransferHolder = (65535 << 11)/skewMod; // 1/(T2*2)
         position = fix16_mul(holdPosition, attackTransferHolder);
         
     }
     else if (!(HOLD_AT_B)) {
-        releaseTransferHolder = (65535 << 11)/(skewMod); // 1/((1-T2)*2)
+        releaseTransferHolder = (65535 << 11)/(4095 - skewMod); // 1/((1-T2)*2)
         position = fix16_mul(holdPosition, releaseTransferHolder) + spanx2 - fix16_mul(spanx2, releaseTransferHolder);
         
     }
@@ -450,10 +464,14 @@ void Via::getPhaseComplexLFO(void) {
     // if we have incremented outside of our table, wrap back around to the other side and stop/reset if we are in LF 1 shot mode
     if (position >= spanx2) {
         position = position - spanx2;
+        holdPosition = holdPosition - spanx2;
+
     }
     // same as above but for when we are backtracking through the attack phase aka negative increment
     else if (position < 0) {
         position = position + spanx2;
+        holdPosition = holdPosition + spanx2;
+
     }
     
 }
@@ -462,7 +480,7 @@ void Via::getPhaseComplexLFO(void) {
 
 int Via::calcTime1Env(void) {
     
-    time1 = ((lookupTable[4095 - time1CV] >> 13) * (lookupTable[(4095 - time1Knob)] >> 13)) >> (5 + tableSizeCompensation);
+    time1 = ((lookupTable[4095 - time1CV] >> 13) * (lookupTable[(4095 - time1Knob)] >> 13)) >> (6 + tableSizeCompensation);
     return time1;
     
 }
