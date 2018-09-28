@@ -69,9 +69,15 @@ struct Davies1900hvia : Davies1900hKnob {
     }
 };
 
-struct ViaSifam : Davies1900hKnob {
-    ViaSifam() {
+struct ViaSifamBlack : Davies1900hKnob {
+    ViaSifamBlack() {
         setSVG(SVG::load(assetPlugin(plugin, "res/knob_sifam_blkcap.svg")));
+    }
+};
+
+struct ViaSifamGrey : Davies1900hKnob {
+    ViaSifamGrey() {
+        setSVG(SVG::load(assetPlugin(plugin, "res/knob_sifam_grycap.svg")));
     }
 };
 
@@ -85,42 +91,42 @@ struct ViaJack : PJ301MPort {
 
 struct SH_Button : SVGSwitch, MomentarySwitch {
     SH_Button() {
-        addFrame(SVG::load(assetPlugin(plugin, "res/S+H_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin, "res/transparent_button.svg")));
     }
 };
 
 
 struct Trig_Button : SVGSwitch, MomentarySwitch {
     Trig_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/trig_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
     }
 };
 
 
 struct Freq_Button : SVGSwitch, MomentarySwitch {
     Freq_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/freq_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
     }
 };
 
 
 struct Loop_Button : SVGSwitch, MomentarySwitch {
     Loop_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/loop_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
     }
 };
 
 
 struct Up_Button : SVGSwitch, MomentarySwitch {
     Up_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/up_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
     }
 };
 
 
 struct Down_Button : SVGSwitch, MomentarySwitch {
     Down_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/down_button.svg")));
+        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
     }
 };
 
