@@ -10,5 +10,5 @@ extern Plugin *plugin;
 // module widgets
 ////////////////////
 
-extern Model *modelVia;
+extern Model *modelVia_Meta;
 
