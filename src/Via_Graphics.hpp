@@ -1,7 +1,6 @@
 #include "Starling.hpp"
 #include "util/color.hpp"
 #include "dsp/digital.hpp"
-#include "Via_Macros.hpp"
 
 // Modified light widget for the white LED
 
@@ -23,9 +22,9 @@ struct RGBTriangle : ModuleLightWidget {
     void drawLight(NVGcontext *vg) {
         
         nvgBeginPath(vg);
-        nvgMoveTo(vg, .4,-22.3);
-        nvgLineTo(vg, -17.1,11.7);
-        nvgLineTo(vg, 17.1,11.7);
+        nvgMoveTo(vg, .6,-17.8);
+        nvgLineTo(vg, -11.5,9.5);
+        nvgLineTo(vg, 11.9,9.5);
         nvgClosePath(vg);
         
         

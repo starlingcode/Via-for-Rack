@@ -11,4 +11,7 @@ extern Plugin *plugin;
 ////////////////////
 
 extern Model *modelVia_Meta;
+extern Model *modelVia_Gateseq;
+extern Model *modelVia_Scanner;
+extern Model *modelVia_Sync;
 

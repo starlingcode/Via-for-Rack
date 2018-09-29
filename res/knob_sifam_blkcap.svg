@@ -14,7 +14,7 @@
    viewBox="0 0 49.960625 49.960624"
    id="svg28857"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
    sodipodi:docname="knob_sifam_blkcap.svg">
   <defs
      id="defs28859" />
@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.2"
-     inkscape:cx="20.862886"
-     inkscape:cy="21.364144"
+     inkscape:cx="4.7914574"
+     inkscape:cy="28.507001"
      inkscape:document-units="px"
      inkscape:current-layer="layer10"
      showgrid="false"
@@ -35,11 +35,23 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1873"
-     inkscape:window-height="1056"
-     inkscape:window-x="47"
-     inkscape:window-y="24"
-     inkscape:window-maximized="1" />
+     inkscape:window-width="1440"
+     inkscape:window-height="818"
+     inkscape:window-x="0"
+     inkscape:window-y="1"
+     inkscape:window-maximized="1"
+     inkscape:object-paths="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-center="false"
+     inkscape:snap-object-midpoints="true"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <sodipodi:guide
+       position="24.980242,24.980337"
+       orientation="1,0"
+       id="guide819"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
   <metadata
      id="metadata28862">
     <rdf:RDF>
@@ -48,7 +60,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -82,7 +94,7 @@
     <path
        transform="translate(-337.87683,-464.52475)"
        style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:2.79999995;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 353.86297,502.9419 9.22841,-11.92004"
+       d="m 363.8988,473.89989 0,16.2365"
        id="path12299-4-4-3-0-0-9-4-8-8"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />

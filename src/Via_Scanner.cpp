@@ -1,8 +1,8 @@
-#include "meta.hpp"
+#include "scanner.hpp"
 #include "Via_Graphics.hpp"
 
 
-struct Via_Meta : Module {
+struct Via_Scanner : Module {
     
     
     enum ParamIds {
@@ -53,10 +53,10 @@ struct Via_Meta : Module {
         NUM_LIGHTS
     };
     
-    Via_Meta() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+    Via_Scanner() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
     void step() override;
 
-    ViaMeta virtualModule;
+    ViaScanner virtualModule;
     
     int32_t lastTrigInput;
     int32_t lastAuxTrigInput;
@@ -197,7 +197,7 @@ struct Via_Meta : Module {
     
 };
 
-void Via_Meta::step() {
+void Via_Scanner::step() {
 
     // update the "slow IO" (not audio rate) every 16 samples
     // needs to scale with sample rate somehow
@@ -207,7 +207,7 @@ void Via_Meta::step() {
         updateSlowIO();
         virtualModule.slowConversionCallback();
         virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
-        virtualModule.metaUI.incrementTimer();
+        virtualModule.scannerUI.incrementTimer();
         // trigger handling
         int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
         if (trigButton > lastTrigButton) {
@@ -227,8 +227,8 @@ void Via_Meta::step() {
     int16_t cv3Conversion = (int16_t) cv3Scale;
 
     // no ADC buffer for now..
-    virtualModule.inputs.cv2Samples[0] = cv2Conversion;
-    virtualModule.inputs.cv3Samples[0] = cv3Conversion;
+    virtualModule.inputs.cv2Samples[dacReadIndex] = cv2Conversion;
+    virtualModule.inputs.cv3Samples[dacReadIndex] = cv3Conversion;
 
     // trigger handling
 
@@ -246,16 +246,28 @@ void Via_Meta::step() {
     } else if (auxTrigInput < lastAuxTrigInput) {
         virtualModule.auxFallingEdgeCallback();
     }
-    lastAuxTrigInput = auxTrigInput; 
+    lastAuxTrigInput = auxTrigInput;
 
+    virtualModule.ioProcessCallback();
 
-
-    // buffer length of 1 ..
-    float dac1Sample = (float) virtualModule.outputs.dac1Samples[0];
-    float dac2Sample = (float) virtualModule.outputs.dac2Samples[0];
-    float dac3Sample = (float) virtualModule.outputs.dac3Samples[0];
+    float dac1Sample = (float) virtualModule.outputs.dac1Samples[dacReadIndex];
+    float dac2Sample = (float) virtualModule.outputs.dac2Samples[dacReadIndex];
+    float dac3Sample = (float) virtualModule.outputs.dac3Samples[dacReadIndex];
     updateLogicOutputs();
-    virtualModule.halfTransferCallback();
+
+    // dacReadIndex++;
+
+    // if (dacReadIndex == 8) {
+    //     virtualModule.cv2HalfTransferCallback();
+    //     virtualModule.cv3HalfTransferCallback();
+    //     virtualModule.halfTransferCallback();
+    // };
+    // if (dacReadIndex > 15) {
+    //     virtualModule.cv2TransferCompleteCallback();
+    //     virtualModule.cv3TransferCompleteCallback();
+    //     virtualModule.transferCompleteCallback();
+    //     dacReadIndex = 0;
+    // }
 
 
     // "model" the circuit
@@ -291,18 +303,18 @@ void Via_Meta::step() {
 }
 
 
-struct Via_Meta_Widget : ModuleWidget {
-    Via_Meta_Widget(Via_Meta *module);
+struct Via_Scanner_Widget : ModuleWidget {
+    Via_Scanner_Widget(Via_Scanner *module);
 };
 
 
-Via_Meta_Widget::Via_Meta_Widget(Via_Meta *module) : ModuleWidget(module) {
+Via_Scanner_Widget::Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(module) {
 	box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
 	{
 		SVGPanel *panel = new SVGPanel();
 		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/meta.svg")));
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/scanner.svg")));
 		addChild(panel);
 	}
 
@@ -311,48 +323,48 @@ Via_Meta_Widget::Via_Meta_Widget(Via_Meta *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-	addParam(ParamWidget::create<ViaSifamBlack>(Vec(11.5, 33), module, Via_Meta::KNOB1_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 33), module, Via_Meta::KNOB2_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 173), module, Via_Meta::KNOB3_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(11.5, 173), module, Via_Meta::B_PARAM, -1.0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 33), module, Via_Meta::CV2AMT_PARAM, 0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(132.5, 104), module, Via_Meta::A_PARAM, -5.0, 5.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 173), module, Via_Meta::CV3AMT_PARAM, 0, 1.0, 0.0));
+	addParam(ParamWidget::create<ViaSifamBlack>(Vec(11.5, 33), module, Via_Scanner::KNOB1_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 33), module, Via_Scanner::KNOB2_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 173), module, Via_Scanner::KNOB3_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(11.5, 173), module, Via_Scanner::B_PARAM, -1.0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 33), module, Via_Scanner::CV2AMT_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(132.5, 104), module, Via_Scanner::A_PARAM, -5.0, 5.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 173), module, Via_Scanner::CV3AMT_PARAM, 0, 1.0, 0.0));
     
-    addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Meta::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Meta::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Freq_Button>(Vec(85, 80), module, Via_Meta::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Trig_Button>(Vec(10.5, 129), module, Via_Meta::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Down_Button>(Vec(46, 131.5), module, Via_Meta::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Loop_Button>(Vec(85, 129), module, Via_Meta::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Scanner::BUTTON1_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Scanner::BUTTON2_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Freq_Button>(Vec(85, 80), module, Via_Scanner::BUTTON3_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Trig_Button>(Vec(10.5, 129), module, Via_Scanner::BUTTON4_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Down_Button>(Vec(46, 131.5), module, Via_Scanner::BUTTON5_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Loop_Button>(Vec(85, 129), module, Via_Scanner::BUTTON6_PARAM, 0.0, 1.0, 0.0));
     
-    addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5, 320), module, Via_Meta::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+    addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5, 320), module, Via_Scanner::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
 
-	addInput(Port::create<ViaJack>(Vec(9, 242), Port::INPUT, module, Via_Meta::A_INPUT));
-    addInput(Port::create<ViaJack>(Vec(9, 283.5), Port::INPUT, module, Via_Meta::B_INPUT));
-    addInput(Port::create<ViaJack>(Vec(9, 326), Port::INPUT, module, Via_Meta::MAIN_LOGIC_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 242), Port::INPUT, module, Via_Meta::CV1_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 283.5), Port::INPUT, module, Via_Meta::CV2_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 326), Port::INPUT, module, Via_Meta::CV3_INPUT));
-    addInput(Port::create<ViaJack>(Vec(135.5, 283.5), Port::INPUT, module, Via_Meta::AUX_LOGIC_INPUT));
+	addInput(Port::create<ViaJack>(Vec(9, 242), Port::INPUT, module, Via_Scanner::A_INPUT));
+    addInput(Port::create<ViaJack>(Vec(9, 283.5), Port::INPUT, module, Via_Scanner::B_INPUT));
+    addInput(Port::create<ViaJack>(Vec(9, 326), Port::INPUT, module, Via_Scanner::MAIN_LOGIC_INPUT));
+    addInput(Port::create<ViaJack>(Vec(47.0, 242), Port::INPUT, module, Via_Scanner::CV1_INPUT));
+    addInput(Port::create<ViaJack>(Vec(47.0, 283.5), Port::INPUT, module, Via_Scanner::CV2_INPUT));
+    addInput(Port::create<ViaJack>(Vec(47.0, 326), Port::INPUT, module, Via_Scanner::CV3_INPUT));
+    addInput(Port::create<ViaJack>(Vec(135.5, 283.5), Port::INPUT, module, Via_Scanner::AUX_LOGIC_INPUT));
 
-	addOutput(Port::create<ViaJack>(Vec(84.8, 242), Port::OUTPUT, module, Via_Meta::LOGICA_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(84.8, 283.5), Port::OUTPUT, module, Via_Meta::AUX_DAC_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(84.8, 326), Port::OUTPUT, module, Via_Meta::MAIN_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(135.5, 242), Port::OUTPUT, module, Via_Meta::AUX_LOGIC_OUTPUT));
+	addOutput(Port::create<ViaJack>(Vec(84.8, 242), Port::OUTPUT, module, Via_Scanner::LOGICA_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(84.8, 283.5), Port::OUTPUT, module, Via_Scanner::AUX_DAC_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(84.8, 326), Port::OUTPUT, module, Via_Scanner::MAIN_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(135.5, 242), Port::OUTPUT, module, Via_Scanner::AUX_LOGIC_OUTPUT));
 
-	addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7, 268.6), module, Via_Meta::LED1_LIGHT));
-    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 268.6), module, Via_Meta::LED2_LIGHT));
-    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7, 309.9), module, Via_Meta::LED3_LIGHT));
-    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 309.9), module, Via_Meta::LED4_LIGHT));
-    addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8, 179.6), module, Via_Meta::OUTPUT_GREEN_LIGHT));
-    addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via_Meta::RED_LIGHT));
+	addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7, 268.6), module, Via_Scanner::LED1_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 268.6), module, Via_Scanner::LED2_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7, 309.9), module, Via_Scanner::LED3_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 309.9), module, Via_Scanner::LED4_LIGHT));
+    addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8, 179.6), module, Via_Scanner::OUTPUT_GREEN_LIGHT));
+    addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via_Scanner::RED_LIGHT));
 }
 
 
-Model *modelVia_Meta = Model::create<Via_Meta, Via_Meta_Widget>(
-        "Starling", "Via_Meta", "Via_Meta", OSCILLATOR_TAG);
+Model *modelVia_Scanner = Model::create<Via_Scanner, Via_Scanner_Widget>(
+        "Starling", "Via_Scanner", "Via_Scanner", OSCILLATOR_TAG);
 
 
 
