@@ -4,10 +4,10 @@ VERSION = 0.6.0
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS += \
 	-DBUILD_VIRTUAL \
-	-I./Via/via_cplusplus/modules/inc \
-	-I./Via/via_cplusplus/synthesis/inc \
-	-I./Via/via_cplusplus/io/inc \
-	-I./Via/via_cplusplus/ui/inc 
+	-I./Via/modules/inc \
+	-I./Via/synthesis/inc \
+	-I./Via/io/inc \
+	-I./Via/ui/inc 
 CFLAGS +=
 CXXFLAGS +=
 
@@ -18,19 +18,19 @@ LDFLAGS +=
 # Add .cpp and .c files to the build
 SOURCES += $(wildcard src/*.cpp)
 
-SOURCES += $(wildcard Via/via_cplusplus/synthesis/oscillators/*.cpp)
-SOURCES += $(wildcard Via/via_cplusplus/synthesis/cmsis_dsp/*.cpp)
-SOURCES += $(wildcard Via/via_cplusplus/synthesis/sequencers/*.cpp)
-SOURCES += $(wildcard Via/via_cplusplus/synthesis/signal_processors/*.cpp)
+SOURCES += $(wildcard Via/synthesis/oscillators/*.cpp)
+SOURCES += $(wildcard Via/synthesis/cmsis_dsp/*.cpp)
+SOURCES += $(wildcard Via/synthesis/sequencers/*.cpp)
+SOURCES += $(wildcard Via/synthesis/signal_processors/*.cpp)
 
-SOURCES += $(wildcard Via/via_cplusplus/io/src/*.cpp)
+SOURCES += $(wildcard Via/io/src/*.cpp)
 
-SOURCES += $(wildcard Via/via_cplusplus/ui/src/*.cpp)
+SOURCES += $(wildcard Via/ui/src/*.cpp)
 
-SOURCES += $(wildcard Via/via_cplusplus/modules/meta/*.cpp)
-SOURCES += $(wildcard Via/via_cplusplus/modules/scanner/*.cpp)
-SOURCES += $(wildcard Via/via_cplusplus/modules/sync/*.cpp)
-SOURCES += $(wildcard Via/via_cplusplus/modules/trigseq/*.cpp)
+SOURCES += $(wildcard Via/modules/meta/*.cpp)
+SOURCES += $(wildcard Via/modules/scanner/*.cpp)
+SOURCES += $(wildcard Via/modules/sync/*.cpp)
+SOURCES += $(wildcard Via/modules/trigseq/*.cpp)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.

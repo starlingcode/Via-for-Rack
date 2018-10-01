@@ -227,8 +227,8 @@ void Via_Scanner::step() {
     int16_t cv3Conversion = (int16_t) cv3Scale;
 
     // no ADC buffer for now..
-    virtualModule.inputs.cv2Samples[dacReadIndex] = cv2Conversion;
-    virtualModule.inputs.cv3Samples[dacReadIndex] = cv3Conversion;
+    virtualModule.inputs.cv2Samples[2*dacReadIndex] = cv2Conversion;
+    virtualModule.inputs.cv3Samples[2*dacReadIndex] = cv3Conversion;
 
     // trigger handling
 
@@ -253,21 +253,23 @@ void Via_Scanner::step() {
     float dac1Sample = (float) virtualModule.outputs.dac1Samples[dacReadIndex];
     float dac2Sample = (float) virtualModule.outputs.dac2Samples[dacReadIndex];
     float dac3Sample = (float) virtualModule.outputs.dac3Samples[dacReadIndex];
+
     updateLogicOutputs();
 
-    // dacReadIndex++;
+    dacReadIndex++;
 
-    // if (dacReadIndex == 8) {
-    //     virtualModule.cv2HalfTransferCallback();
-    //     virtualModule.cv3HalfTransferCallback();
-    //     virtualModule.halfTransferCallback();
-    // };
-    // if (dacReadIndex > 15) {
-    //     virtualModule.cv2TransferCompleteCallback();
-    //     virtualModule.cv3TransferCompleteCallback();
-    //     virtualModule.transferCompleteCallback();
-    //     dacReadIndex = 0;
-    // }
+    if (dacReadIndex == 8) {
+        virtualModule.cv2HalfTransferCallback();
+        virtualModule.cv3HalfTransferCallback();
+        virtualModule.halfTransferCallback();
+        dacReadIndex = 0;
+    };
+    if (dacReadIndex > 15) {
+        virtualModule.cv2TransferCompleteCallback();
+        virtualModule.cv3TransferCompleteCallback();
+        virtualModule.transferCompleteCallback();
+        dacReadIndex = 0;
+    }
 
 
     // "model" the circuit

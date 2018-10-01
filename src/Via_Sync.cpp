@@ -287,6 +287,8 @@ void Via_Sync::step() {
     outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
 
     updateLEDs();
+
+    virtualModule.incrementVirtualTimer();
     
 }
 
