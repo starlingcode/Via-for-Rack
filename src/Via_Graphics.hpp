@@ -19,7 +19,7 @@ struct RGBTriangle : ModuleLightWidget {
         addBaseColor(nvgRGBAf(0.0, 0.0, 1.0, 1.0));
     }
     
-    void drawLight(NVGcontext *vg) {
+    void drawLight(NVGcontext *vg) override {
         
         nvgBeginPath(vg);
         nvgMoveTo(vg, .6,-17.8);
@@ -42,7 +42,7 @@ struct RGBTriangle : ModuleLightWidget {
         nvgRotate(vg, (30.0/120.0)*NVG_PI*2);
     }
     
-    void drawHalo(NVGcontext *vg) {
+    void drawHalo(NVGcontext *vg) override {
         float radius = 14;
         float oradius = radius + 13;
         
