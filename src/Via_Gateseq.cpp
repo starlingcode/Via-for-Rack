@@ -306,18 +306,13 @@ Via_Gateseq_Widget::Via_Gateseq_Widget(Via_Gateseq *module) : ModuleWidget(modul
 		addChild(panel);
 	}
 
-    addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-    addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-    addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-    addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(11.5, 33), module, Via_Gateseq::KNOB1_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 33), module, Via_Gateseq::KNOB2_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 173), module, Via_Gateseq::KNOB3_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(11.5, 173), module, Via_Gateseq::B_PARAM, -1.0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 33), module, Via_Gateseq::CV2AMT_PARAM, 0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(132.5, 104), module, Via_Gateseq::A_PARAM, -5.0, 5.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 173), module, Via_Gateseq::CV3AMT_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Gateseq::KNOB1_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Gateseq::KNOB2_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Gateseq::KNOB3_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Gateseq::B_PARAM, -1.0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Gateseq::CV2AMT_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Gateseq::A_PARAM, -5.0, 5.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Gateseq::CV3AMT_PARAM, 0, 1.0, 0.0));
     
     addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Gateseq::BUTTON1_PARAM, 0.0, 1.0, 0.0));
     addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Gateseq::BUTTON2_PARAM, 0.0, 1.0, 0.0));
@@ -329,18 +324,18 @@ Via_Gateseq_Widget::Via_Gateseq_Widget(Via_Gateseq *module) : ModuleWidget(modul
     addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5, 320), module, Via_Gateseq::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
 
-    addInput(Port::create<ViaJack>(Vec(9, 242), Port::INPUT, module, Via_Gateseq::A_INPUT));
-    addInput(Port::create<ViaJack>(Vec(9, 283.5), Port::INPUT, module, Via_Gateseq::B_INPUT));
-    addInput(Port::create<ViaJack>(Vec(9, 326), Port::INPUT, module, Via_Gateseq::MAIN_LOGIC_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 242), Port::INPUT, module, Via_Gateseq::CV1_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 283.5), Port::INPUT, module, Via_Gateseq::CV2_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 326), Port::INPUT, module, Via_Gateseq::CV3_INPUT));
-    addInput(Port::create<ViaJack>(Vec(135.5, 283.5), Port::INPUT, module, Via_Gateseq::AUX_LOGIC_INPUT));
+    addInput(Port::create<ViaJack>(Vec(8.07, 241.22), Port::INPUT, module, Via_Gateseq::A_INPUT));
+    addInput(Port::create<ViaJack>(Vec(8.07, 282.62), Port::INPUT, module, Via_Gateseq::B_INPUT));
+    addInput(Port::create<ViaJack>(Vec(8.07, 324.02), Port::INPUT, module, Via_Gateseq::MAIN_LOGIC_INPUT));
+    addInput(Port::create<ViaJack>(Vec(45.55, 241.22), Port::INPUT, module, Via_Gateseq::CV1_INPUT));
+    addInput(Port::create<ViaJack>(Vec(45.55, 282.62), Port::INPUT, module, Via_Gateseq::CV2_INPUT));
+    addInput(Port::create<ViaJack>(Vec(45.55, 324.02), Port::INPUT, module, Via_Gateseq::CV3_INPUT));
+    addInput(Port::create<ViaJack>(Vec(134.8, 282.62), Port::INPUT, module, Via_Gateseq::AUX_LOGIC_INPUT));
 
-    addOutput(Port::create<ViaJack>(Vec(84.8, 242), Port::OUTPUT, module, Via_Gateseq::LOGICA_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(84.8, 283.5), Port::OUTPUT, module, Via_Gateseq::AUX_DAC_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(84.8, 326), Port::OUTPUT, module, Via_Gateseq::MAIN_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(135.5, 242), Port::OUTPUT, module, Via_Gateseq::AUX_LOGIC_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(83.28, 241.22), Port::OUTPUT, module, Via_Gateseq::LOGICA_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(83.28, 282.62), Port::OUTPUT, module, Via_Gateseq::AUX_DAC_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(83.28, 324.02), Port::OUTPUT, module, Via_Gateseq::MAIN_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(134.8, 241.22), Port::OUTPUT, module, Via_Gateseq::AUX_LOGIC_OUTPUT));
 
     addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7, 268.6), module, Via_Gateseq::LED1_LIGHT));
     addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 268.6), module, Via_Gateseq::LED2_LIGHT));
@@ -348,6 +343,7 @@ Via_Gateseq_Widget::Via_Gateseq_Widget(Via_Gateseq *module) : ModuleWidget(modul
     addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 309.9), module, Via_Gateseq::LED4_LIGHT));
     addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8, 179.6), module, Via_Gateseq::OUTPUT_GREEN_LIGHT));
     addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via_Gateseq::RED_LIGHT));
+
 }
 
 

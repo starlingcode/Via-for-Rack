@@ -311,13 +311,13 @@ Via_Meta_Widget::Via_Meta_Widget(Via_Meta *module) : ModuleWidget(module) {
 	addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-	addParam(ParamWidget::create<ViaSifamBlack>(Vec(11.5, 33), module, Via_Meta::KNOB1_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 33), module, Via_Meta::KNOB2_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(70.5, 173), module, Via_Meta::KNOB3_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(11.5, 173), module, Via_Meta::B_PARAM, -1.0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 33), module, Via_Meta::CV2AMT_PARAM, 0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(132.5, 104), module, Via_Meta::A_PARAM, -5.0, 5.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 173), module, Via_Meta::CV3AMT_PARAM, 0, 1.0, 0.0));
+	addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Meta::KNOB1_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Meta::KNOB2_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Meta::KNOB3_PARAM, 0, 4095.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Meta::B_PARAM, -1.0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Meta::CV2AMT_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Meta::A_PARAM, -5.0, 5.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Meta::CV3AMT_PARAM, 0, 1.0, 0.0));
     
     addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Meta::BUTTON1_PARAM, 0.0, 1.0, 0.0));
     addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Meta::BUTTON2_PARAM, 0.0, 1.0, 0.0));
@@ -329,18 +329,18 @@ Via_Meta_Widget::Via_Meta_Widget(Via_Meta *module) : ModuleWidget(module) {
     addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5, 320), module, Via_Meta::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
 
-	addInput(Port::create<ViaJack>(Vec(9, 242), Port::INPUT, module, Via_Meta::A_INPUT));
-    addInput(Port::create<ViaJack>(Vec(9, 283.5), Port::INPUT, module, Via_Meta::B_INPUT));
-    addInput(Port::create<ViaJack>(Vec(9, 326), Port::INPUT, module, Via_Meta::MAIN_LOGIC_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 242), Port::INPUT, module, Via_Meta::CV1_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 283.5), Port::INPUT, module, Via_Meta::CV2_INPUT));
-    addInput(Port::create<ViaJack>(Vec(47.0, 326), Port::INPUT, module, Via_Meta::CV3_INPUT));
-    addInput(Port::create<ViaJack>(Vec(135.5, 283.5), Port::INPUT, module, Via_Meta::AUX_LOGIC_INPUT));
+	addInput(Port::create<ViaJack>(Vec(8.07, 241.22), Port::INPUT, module, Via_Meta::A_INPUT));
+    addInput(Port::create<ViaJack>(Vec(8.07, 282.62), Port::INPUT, module, Via_Meta::B_INPUT));
+    addInput(Port::create<ViaJack>(Vec(8.07, 324.02), Port::INPUT, module, Via_Meta::MAIN_LOGIC_INPUT));
+    addInput(Port::create<ViaJack>(Vec(45.55, 241.22), Port::INPUT, module, Via_Meta::CV1_INPUT));
+    addInput(Port::create<ViaJack>(Vec(45.55, 282.62), Port::INPUT, module, Via_Meta::CV2_INPUT));
+    addInput(Port::create<ViaJack>(Vec(45.55, 324.02), Port::INPUT, module, Via_Meta::CV3_INPUT));
+    addInput(Port::create<ViaJack>(Vec(134.8, 282.62), Port::INPUT, module, Via_Meta::AUX_LOGIC_INPUT));
 
-	addOutput(Port::create<ViaJack>(Vec(84.8, 242), Port::OUTPUT, module, Via_Meta::LOGICA_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(84.8, 283.5), Port::OUTPUT, module, Via_Meta::AUX_DAC_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(84.8, 326), Port::OUTPUT, module, Via_Meta::MAIN_OUTPUT));
-    addOutput(Port::create<ViaJack>(Vec(135.5, 242), Port::OUTPUT, module, Via_Meta::AUX_LOGIC_OUTPUT));
+	addOutput(Port::create<ViaJack>(Vec(83.28, 241.22), Port::OUTPUT, module, Via_Meta::LOGICA_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(83.28, 282.62), Port::OUTPUT, module, Via_Meta::AUX_DAC_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(83.28, 324.02), Port::OUTPUT, module, Via_Meta::MAIN_OUTPUT));
+    addOutput(Port::create<ViaJack>(Vec(134.8, 241.22), Port::OUTPUT, module, Via_Meta::AUX_LOGIC_OUTPUT));
 
 	addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7, 268.6), module, Via_Meta::LED1_LIGHT));
     addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 268.6), module, Via_Meta::LED2_LIGHT));
