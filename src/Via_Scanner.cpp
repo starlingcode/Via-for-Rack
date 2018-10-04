@@ -240,6 +240,10 @@ void Via_Scanner::step() {
     }
     lastTrigInput = trigInput; 
 
+    virtualModule.ioProcessCallback();
+
+    // call this after the io process so that the sample and hold setting overrides
+
     int32_t auxTrigInput = clamp((int32_t)inputs[AUX_LOGIC_INPUT].value, 0, 1);
     if (auxTrigInput > lastAuxTrigInput) {
         virtualModule.auxRisingEdgeCallback();
@@ -247,8 +251,6 @@ void Via_Scanner::step() {
         virtualModule.auxFallingEdgeCallback();
     }
     lastAuxTrigInput = auxTrigInput;
-
-    virtualModule.ioProcessCallback();
 
     float dac1Sample = (float) virtualModule.outputs.dac1Samples[dacReadIndex];
     float dac2Sample = (float) virtualModule.outputs.dac2Samples[dacReadIndex];
@@ -262,7 +264,6 @@ void Via_Scanner::step() {
         virtualModule.cv2HalfTransferCallback();
         virtualModule.cv3HalfTransferCallback();
         virtualModule.halfTransferCallback();
-        dacReadIndex = 0;
     };
     if (dacReadIndex > 15) {
         virtualModule.cv2TransferCompleteCallback();
