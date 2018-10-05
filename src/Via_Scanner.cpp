@@ -329,12 +329,12 @@ Via_Scanner_Widget::Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(modul
     addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Scanner::A_PARAM, -5.0, 5.0, 0.0));
     addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Scanner::CV3AMT_PARAM, 0, 1.0, 0.0));
     
-    addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Scanner::BUTTON1_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<SH_Button>(Vec(20, 105), module, Via_Scanner::BUTTON4_PARAM, 0.0, 1.0, 0.0));
     addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Scanner::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Freq_Button>(Vec(85, 80), module, Via_Scanner::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Trig_Button>(Vec(10.5, 129), module, Via_Scanner::BUTTON4_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Freq_Button>(Vec(75, 105), module, Via_Scanner::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Trig_Button>(Vec(10.5, 129), module, Via_Scanner::BUTTON1_PARAM, 0.0, 1.0, 0.0));
     addParam(ParamWidget::create<Down_Button>(Vec(46, 131.5), module, Via_Scanner::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-    addParam(ParamWidget::create<Loop_Button>(Vec(85, 129), module, Via_Scanner::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+    addParam(ParamWidget::create<Loop_Button>(Vec(85, 129), module, Via_Scanner::BUTTON3_PARAM, 0.0, 1.0, 0.0));
     
     addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5, 320), module, Via_Scanner::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
