@@ -54,6 +54,7 @@ struct Via_Meta : Module {
     };
     
     Via_Meta() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+
     void step() override;
 
     ViaMeta virtualModule;
@@ -144,56 +145,41 @@ struct Via_Meta : Module {
         shBControl = virtualLogicOut(shBControl, virtualModule.shBOutput);
     }
 
-    // json_t *toJson() override {
-    //     json_t *rootJ = json_object();
+    void recallModuleState(void) {
+        virtualModule.metaUI.loadFromEEPROM(0);
+        virtualModule.handleAux3ModeChange(virtualModule.metaUI.aux3Mode);
+        virtualModule.handleButton1ModeChange(virtualModule.metaUI.button1Mode);
+        virtualModule.handleButton2ModeChange(virtualModule.metaUI.button2Mode);
+        virtualModule.handleButton3ModeChange(virtualModule.metaUI.button3Mode);
+        virtualModule.handleButton4ModeChange(virtualModule.metaUI.button4Mode);
+        virtualModule.handleButton5ModeChange(virtualModule.metaUI.button5Mode);
+        virtualModule.handleButton6ModeChange(virtualModule.metaUI.button6Mode);
+        virtualModule.handleAux1ModeChange(virtualModule.metaUI.aux1Mode);
+        virtualModule.handleAux2ModeChange(virtualModule.metaUI.aux2Mode);
+        virtualModule.handleAux4ModeChange(virtualModule.metaUI.aux4Mode);
+    }
+
+    int32_t jsonTest = 0;
+    int32_t jsonTestIn = 0;
+
+    json_t *toJson() override {
+
+        json_t *rootJ = json_object();
         
-    //     // freq
-    //     json_object_set_new(rootJ, "freq", json_integer(freqMode));
+        // freq
+        json_object_set_new(rootJ, "modes", json_integer(virtualModule.metaUI.modeStateBuffer));
         
-    //     // loop
-    //     json_object_set_new(rootJ, "loop", json_integer(loopMode));
-        
-    //     // trig
-    //     json_object_set_new(rootJ, "trig", json_integer(trigMode));
-        
-    //     // SH
-    //     json_object_set_new(rootJ, "sampleHold", json_integer(sampleHoldMode));
-        
-    //     // familyIndicator
-    //     json_object_set_new(rootJ, "family", json_integer(familyIndicator));
-        
-    //     // flagWord
-    //     json_object_set_new(rootJ, "flagWord", json_integer(flagHolder));
-        
-    //     // flagWord
-    //     json_object_set_new(rootJ, "position", json_integer(position));
-        
-    //     return rootJ;
-    // }
+        return rootJ;
+    }
     
-    // void fromJson(json_t *rootJ) override {
-    //     json_t *freqJ = json_object_get(rootJ, "freq");
-    //     freqMode = json_integer_value(freqJ);
-        
-    //     json_t *loopJ = json_object_get(rootJ, "loop");
-    //     loopMode = json_integer_value(loopJ);
-        
-    //     json_t *trigJ = json_object_get(rootJ, "trig");
-    //     trigMode = json_integer_value(trigJ);
-        
-    //     json_t *sampleHoldJ = json_object_get(rootJ, "sampleHold");
-    //     sampleHoldMode = json_integer_value(sampleHoldJ);
-        
-    //     json_t *familyJ = json_object_get(rootJ, "family");
-    //     familyIndicator = json_integer_value(familyJ);
-        
-    //     json_t *flagWordJ = json_object_get(rootJ, "flagWord");
-    //     flagHolder = json_integer_value(flagWordJ);
-        
-    //     json_t *positionJ = json_object_get(rootJ, "position");
-    //     position = json_integer_value(positionJ);
-        
-    // }
+    void fromJson(json_t *rootJ) override {
+
+        json_t *modesJ = json_object_get(rootJ, "modes");
+        virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
+        recallModuleState();
+
+
+    }
     
 };
 
@@ -211,9 +197,10 @@ void Via_Meta::step() {
         // trigger handling
         int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
         if (trigButton > lastTrigButton) {
-            virtualModule.mainRisingEdgeCallback();
+            recallModuleState();
+            virtualModule.buttonPressedCallback();
         } else if (trigButton < lastTrigButton) {
-            virtualModule.mainFallingEdgeCallback();
+            virtualModule.buttonReleasedCallback();
         } 
         lastTrigButton = trigButton;
     }
@@ -285,6 +272,10 @@ void Via_Meta::step() {
     outputs[AUX_DAC_OUTPUT].value = (dac3Sample/4095.0 - .5) * -10.666666666;
     outputs[LOGICA_OUTPUT].value = logicAState * 5.0;
     outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
+
+    if (jsonTest) {
+        virtualModule.setLEDD(1);
+    }
 
     updateLEDs();
     
