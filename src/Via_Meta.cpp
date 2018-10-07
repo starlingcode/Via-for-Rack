@@ -167,14 +167,14 @@ struct Via_Meta : Module {
         json_t *rootJ = json_object();
         
         // freq
-        json_object_set_new(rootJ, "modes", json_integer(virtualModule.metaUI.modeStateBuffer));
+        json_object_set_new(rootJ, "meta_modes", json_integer(virtualModule.metaUI.modeStateBuffer));
         
         return rootJ;
     }
     
     void fromJson(json_t *rootJ) override {
 
-        json_t *modesJ = json_object_get(rootJ, "modes");
+        json_t *modesJ = json_object_get(rootJ, "meta_modes");
         virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
         recallModuleState();
 

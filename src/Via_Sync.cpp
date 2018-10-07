@@ -144,56 +144,37 @@ struct Via_Sync : Module {
         shBControl = virtualLogicOut(shBControl, virtualModule.shBOutput);
     }
 
-    // json_t *toJson() override {
-    //     json_t *rootJ = json_object();
+    void recallModuleState(void) {
+        virtualModule.syncUI.loadFromEEPROM(0);
+        virtualModule.handleAux3ModeChange(virtualModule.syncUI.aux3Mode);
+        virtualModule.handleButton1ModeChange(virtualModule.syncUI.button1Mode);
+        virtualModule.handleButton2ModeChange(virtualModule.syncUI.button2Mode);
+        virtualModule.handleButton3ModeChange(virtualModule.syncUI.button3Mode);
+        virtualModule.handleButton4ModeChange(virtualModule.syncUI.button4Mode);
+        virtualModule.handleButton5ModeChange(virtualModule.syncUI.button5Mode);
+        virtualModule.handleButton6ModeChange(virtualModule.syncUI.button6Mode);
+        virtualModule.handleAux1ModeChange(virtualModule.syncUI.aux1Mode);
+        virtualModule.handleAux2ModeChange(virtualModule.syncUI.aux2Mode);
+        virtualModule.handleAux4ModeChange(virtualModule.syncUI.aux4Mode);
+    }
+
+    json_t *toJson() override {
+
+        json_t *rootJ = json_object();
         
-    //     // freq
-    //     json_object_set_new(rootJ, "freq", json_integer(freqMode));
+        json_object_set_new(rootJ, "sync_modes", json_integer(virtualModule.syncUI.modeStateBuffer));
         
-    //     // loop
-    //     json_object_set_new(rootJ, "loop", json_integer(loopMode));
-        
-    //     // trig
-    //     json_object_set_new(rootJ, "trig", json_integer(trigMode));
-        
-    //     // SH
-    //     json_object_set_new(rootJ, "sampleHold", json_integer(sampleHoldMode));
-        
-    //     // familyIndicator
-    //     json_object_set_new(rootJ, "family", json_integer(familyIndicator));
-        
-    //     // flagWord
-    //     json_object_set_new(rootJ, "flagWord", json_integer(flagHolder));
-        
-    //     // flagWord
-    //     json_object_set_new(rootJ, "position", json_integer(position));
-        
-    //     return rootJ;
-    // }
+        return rootJ;
+    }
     
-    // void fromJson(json_t *rootJ) override {
-    //     json_t *freqJ = json_object_get(rootJ, "freq");
-    //     freqMode = json_integer_value(freqJ);
-        
-    //     json_t *loopJ = json_object_get(rootJ, "loop");
-    //     loopMode = json_integer_value(loopJ);
-        
-    //     json_t *trigJ = json_object_get(rootJ, "trig");
-    //     trigMode = json_integer_value(trigJ);
-        
-    //     json_t *sampleHoldJ = json_object_get(rootJ, "sampleHold");
-    //     sampleHoldMode = json_integer_value(sampleHoldJ);
-        
-    //     json_t *familyJ = json_object_get(rootJ, "family");
-    //     familyIndicator = json_integer_value(familyJ);
-        
-    //     json_t *flagWordJ = json_object_get(rootJ, "flagWord");
-    //     flagHolder = json_integer_value(flagWordJ);
-        
-    //     json_t *positionJ = json_object_get(rootJ, "position");
-    //     position = json_integer_value(positionJ);
-        
-    // }
+    void fromJson(json_t *rootJ) override {
+
+        json_t *modesJ = json_object_get(rootJ, "sync_modes");
+        virtualModule.syncUI.modeStateBuffer = json_integer_value(modesJ);
+        recallModuleState();
+
+
+    }
     
 };
 
