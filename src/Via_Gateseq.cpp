@@ -1,4 +1,4 @@
-#include "trigseq.hpp"
+#include "gateseq.hpp"
 #include "Via_Graphics.hpp"
 
 
@@ -56,7 +56,7 @@ struct Via_Gateseq : Module {
     Via_Gateseq() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
     void step() override;
 
-    ViaTrigseq virtualModule;
+    ViaGateseq virtualModule;
     
     int32_t lastTrigInput;
     int32_t lastAuxTrigInput;
@@ -145,32 +145,32 @@ struct Via_Gateseq : Module {
     }
 
     void recallModuleState(void) {
-        virtualModule.trigseqUI.loadFromEEPROM(0);
-        // virtualModule.handleAux3ModeChange(virtualModule.trigseqUI.aux3Mode);
-        virtualModule.handleButton1ModeChange(virtualModule.trigseqUI.button1Mode);
-        virtualModule.handleButton2ModeChange(virtualModule.trigseqUI.button2Mode);
-        virtualModule.handleButton3ModeChange(virtualModule.trigseqUI.button3Mode);
-        virtualModule.handleButton4ModeChange(virtualModule.trigseqUI.button4Mode);
-        virtualModule.handleButton5ModeChange(virtualModule.trigseqUI.button5Mode);
-        virtualModule.handleButton6ModeChange(virtualModule.trigseqUI.button6Mode);
-        // virtualModule.handleAux1ModeChange(virtualModule.trigseqUI.aux1Mode);
-        virtualModule.handleAux2ModeChange(virtualModule.trigseqUI.aux2Mode);
-        // virtualModule.handleAux4ModeChange(virtualModule.trigseqUI.aux4Mode);
+        virtualModule.gateseqUI.loadFromEEPROM(0);
+        // virtualModule.handleAux3ModeChange(virtualModule.gateseqUI.aux3Mode);
+        virtualModule.handleButton1ModeChange(virtualModule.gateseqUI.button1Mode);
+        virtualModule.handleButton2ModeChange(virtualModule.gateseqUI.button2Mode);
+        virtualModule.handleButton3ModeChange(virtualModule.gateseqUI.button3Mode);
+        virtualModule.handleButton4ModeChange(virtualModule.gateseqUI.button4Mode);
+        virtualModule.handleButton5ModeChange(virtualModule.gateseqUI.button5Mode);
+        virtualModule.handleButton6ModeChange(virtualModule.gateseqUI.button6Mode);
+        // virtualModule.handleAux1ModeChange(virtualModule.gateseqUI.aux1Mode);
+        virtualModule.handleAux2ModeChange(virtualModule.gateseqUI.aux2Mode);
+        // virtualModule.handleAux4ModeChange(virtualModule.gateseqUI.aux4Mode);
     }
 
     json_t *toJson() override {
 
         json_t *rootJ = json_object();
         
-        json_object_set_new(rootJ, "trigseq_modes", json_integer(virtualModule.trigseqUI.modeStateBuffer));
+        json_object_set_new(rootJ, "gateseq_modes", json_integer(virtualModule.gateseqUI.modeStateBuffer));
         
         return rootJ;
     }
     
     void fromJson(json_t *rootJ) override {
 
-        json_t *modesJ = json_object_get(rootJ, "trigseq_modes");
-        virtualModule.trigseqUI.modeStateBuffer = json_integer_value(modesJ);
+        json_t *modesJ = json_object_get(rootJ, "gateseq_modes");
+        virtualModule.gateseqUI.modeStateBuffer = json_integer_value(modesJ);
         recallModuleState();
 
 
@@ -188,7 +188,7 @@ void Via_Gateseq::step() {
         updateSlowIO();
         virtualModule.slowConversionCallback();
         virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
-        virtualModule.trigseqUI.incrementTimer();
+        virtualModule.gateseqUI.incrementTimer();
         // trigger handling
         int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
         if (trigButton > lastTrigButton) {

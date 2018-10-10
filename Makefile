@@ -30,7 +30,7 @@ SOURCES += $(wildcard Via/ui/src/*.cpp)
 SOURCES += $(wildcard Via/modules/meta/*.cpp)
 SOURCES += $(wildcard Via/modules/scanner/*.cpp)
 SOURCES += $(wildcard Via/modules/sync/*.cpp)
-SOURCES += $(wildcard Via/modules/trigseq/*.cpp)
+SOURCES += $(wildcard Via/modules/gateseq/*.cpp)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.
