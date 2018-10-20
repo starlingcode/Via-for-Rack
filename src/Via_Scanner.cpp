@@ -235,9 +235,9 @@ void Via_Scanner::step() {
 
     float dac1Sample = (float) virtualModule.outputs.dac1Samples[dacReadIndex];
     float dac2Sample = (float) virtualModule.outputs.dac2Samples[dacReadIndex];
-    // float dac3Sample = (float) virtualModule.outputs.dac3Samples[dacReadIndex];
+    float dac3Sample = (float) virtualModule.outputs.dac3Samples[dacReadIndex];
 
-    float dac3Sample = (float) virtualModule.scanner.xIndexBuffer[dacReadIndex]/16;
+    //float dac3Sample = (float) virtualModule.scanner.xIndexBuffer[dacReadIndex]/16;
 
     updateLogicOutputs();
 
