@@ -1,5 +1,6 @@
 #include "sync.hpp"
 #include "Via_Graphics.hpp"
+#include "dsp/decimator.hpp"
 
 
 struct Via_Sync : Module {
@@ -82,6 +83,40 @@ struct Via_Sync : Module {
 
     float aSample = 0;
     float bSample = 0;
+
+    int32_t clockDivider = 0;
+
+    int32_t divideAmount = 1;
+
+    void onSampleRateChange() override {
+        float sampleRate = engineGetSampleRate();
+
+        if (sampleRate == 44100.0) {
+            divideAmount = 1;
+        } else if (sampleRate == 48000.0) {
+            divideAmount = 1;
+        } else if (sampleRate == 88200.0) {
+            divideAmount = 2;
+        } else if (sampleRate == 96000.0) {
+            divideAmount = 2;
+        } else if (sampleRate == 176400.0) {
+            divideAmount = 4;
+        } else if (sampleRate == 192000.0) {
+            divideAmount = 4;
+        }
+        
+    }
+
+    #define SYNC_OVERSAMPLE_AMOUNT 8
+    #define SYNC_OVERSAMPLE_QUALITY 6
+
+    float dac1DecimatorBuffer[8];
+    float dac2DecimatorBuffer[8];
+    float dac3DecimatorBuffer[8];
+
+    Decimator<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> dac1Decimator;
+    Decimator<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> dac2Decimator;
+    Decimator<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> dac3Decimator;
 
     void updateSlowIO(void) {
 
@@ -180,96 +215,115 @@ struct Via_Sync : Module {
 
 void Via_Sync::step() {
 
-    // update the "slow IO" (not audio rate) every 16 samples
-    // needs to scale with sample rate somehow
-    slowIOPrescaler++;
-    if (slowIOPrescaler == 16) {
-        slowIOPrescaler = 0;
-        updateSlowIO();
-        virtualModule.slowConversionCallback();
-        virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
-        virtualModule.syncUI.incrementTimer();
+    clockDivider++;
+
+    if (clockDivider >= divideAmount) {
+
+        // update the "slow IO" (not audio rate) every 16 samples
+        // needs to scale with sample rate somehow
+        slowIOPrescaler++;
+        if (slowIOPrescaler == 16) {
+            slowIOPrescaler = 0;
+            updateSlowIO();
+            virtualModule.slowConversionCallback();
+            virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
+            virtualModule.syncUI.incrementTimer();
+            // trigger handling
+            int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
+            if (trigButton > lastTrigButton) {
+                virtualModule.mainRisingEdgeCallback();
+            } else if (trigButton < lastTrigButton) {
+                virtualModule.mainFallingEdgeCallback();
+            } 
+            lastTrigButton = trigButton;
+        }
+
+        // manage audio rate dacs and adcs
+
+        // scale -5 - 5 V to -1 to 1 and then convert to 16 bit int;
+        float cv2Scale = (32767.0 * clamp(-inputs[CV2_INPUT].value/5, -1.0, 1.0)) * params[CV2AMT_PARAM].value;
+        float cv3Scale = (32767.0 * clamp(-inputs[CV3_INPUT].value/5, -1.0, 1.0)) * params[CV3AMT_PARAM].value;
+        int16_t cv2Conversion = (int16_t) cv2Scale;
+        int16_t cv3Conversion = (int16_t) cv3Scale;
+
+        // no ADC buffer for now..
+        virtualModule.inputs.cv2Samples[0] = cv2Conversion;
+        virtualModule.inputs.cv3Samples[0] = cv3Conversion;
+
         // trigger handling
-        int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
-        if (trigButton > lastTrigButton) {
+
+        int32_t trigInput = clamp((int32_t)inputs[MAIN_LOGIC_INPUT].value, 0, 1);
+        if (trigInput > lastTrigInput) {
             virtualModule.mainRisingEdgeCallback();
-        } else if (trigButton < lastTrigButton) {
+        } else if (trigInput < lastTrigInput) {
             virtualModule.mainFallingEdgeCallback();
-        } 
-        lastTrigButton = trigButton;
+        }
+        lastTrigInput = trigInput; 
+
+        int32_t auxTrigInput = clamp((int32_t)inputs[AUX_LOGIC_INPUT].value, 0, 1);
+        if (auxTrigInput > lastAuxTrigInput) {
+            virtualModule.auxRisingEdgeCallback();
+        } else if (auxTrigInput < lastAuxTrigInput) {
+            virtualModule.auxFallingEdgeCallback();
+        }
+        lastAuxTrigInput = auxTrigInput; 
+
+        int32_t samplesRemaining = 8;
+        int32_t writeIndex = 0;
+
+        // convert to float and downsample
+
+        while (samplesRemaining) {
+
+            dac1DecimatorBuffer[writeIndex] = (float) virtualModule.outputs.dac1Samples[writeIndex];
+            dac2DecimatorBuffer[writeIndex] = (float) virtualModule.outputs.dac2Samples[writeIndex];
+            dac3DecimatorBuffer[writeIndex] = (float) virtualModule.outputs.dac3Samples[writeIndex];
+
+            samplesRemaining--;
+            writeIndex ++;
+
+        }
+
+        float dac1Sample = dac1Decimator.process(dac1DecimatorBuffer);
+        float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
+        float dac3Sample = dac3Decimator.process(dac2DecimatorBuffer);
+        updateLogicOutputs();
+        virtualModule.halfTransferCallback();
+
+
+        // "model" the circuit
+        // A and B inputs with normalled reference voltages
+        float aIn = inputs[A_INPUT].value + (!inputs[A_INPUT].active) * params[A_PARAM].value;
+        float bIn = (inputs[B_INPUT].active) * ((inputs[B_INPUT].value) * (params[B_PARAM].value)) + (!inputs[B_INPUT].active) * (5* (params[B_PARAM].value));
+        
+        // sample and holds
+        // get a new sample on the rising edge at the sh control output
+        if (shAControl > shALast) {
+            aSample = aIn;
+        }
+        if (shBControl > shBLast) {
+            bSample = bIn;
+        }
+
+        shALast = shAControl;
+        shBLast = shBControl;
+
+        // either use the sample or track depending on the sh control output
+        aIn = shAControl * aSample + !shAControl * aIn;
+        bIn = shBControl * bSample + !shBControl * bIn;
+
+        // VCA/mixing stage
+        // normalize 12 bits to 0-1
+        outputs[MAIN_OUTPUT].value = bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0); 
+        outputs[AUX_DAC_OUTPUT].value = (dac3Sample/4095.0 - .5) * -10.666666666;
+        outputs[LOGICA_OUTPUT].value = logicAState * 5.0;
+        outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
+
+        updateLEDs();
+
+        virtualModule.incrementVirtualTimer();
+
     }
-
-    // manage audio rate dacs and adcs
-
-    // scale -5 - 5 V to -1 to 1 and then convert to 16 bit int;
-    float cv2Scale = (32767.0 * clamp(-inputs[CV2_INPUT].value/5, -1.0, 1.0)) * params[CV2AMT_PARAM].value;
-    float cv3Scale = (32767.0 * clamp(-inputs[CV3_INPUT].value/5, -1.0, 1.0)) * params[CV3AMT_PARAM].value;
-    int16_t cv2Conversion = (int16_t) cv2Scale;
-    int16_t cv3Conversion = (int16_t) cv3Scale;
-
-    // no ADC buffer for now..
-    virtualModule.inputs.cv2Samples[0] = cv2Conversion;
-    virtualModule.inputs.cv3Samples[0] = cv3Conversion;
-
-    // trigger handling
-
-    int32_t trigInput = clamp((int32_t)inputs[MAIN_LOGIC_INPUT].value, 0, 1);
-    if (trigInput > lastTrigInput) {
-        virtualModule.mainRisingEdgeCallback();
-    } else if (trigInput < lastTrigInput) {
-        virtualModule.mainFallingEdgeCallback();
-    }
-    lastTrigInput = trigInput; 
-
-    int32_t auxTrigInput = clamp((int32_t)inputs[AUX_LOGIC_INPUT].value, 0, 1);
-    if (auxTrigInput > lastAuxTrigInput) {
-        virtualModule.auxRisingEdgeCallback();
-    } else if (auxTrigInput < lastAuxTrigInput) {
-        virtualModule.auxFallingEdgeCallback();
-    }
-    lastAuxTrigInput = auxTrigInput; 
-
-
-
-    // buffer length of 1 ..
-    float dac1Sample = (float) virtualModule.outputs.dac1Samples[0];
-    float dac2Sample = (float) virtualModule.outputs.dac2Samples[0];
-    float dac3Sample = (float) virtualModule.outputs.dac3Samples[0];
-    updateLogicOutputs();
-    virtualModule.halfTransferCallback();
-
-
-    // "model" the circuit
-    // A and B inputs with normalled reference voltages
-    float aIn = inputs[A_INPUT].value + (!inputs[A_INPUT].active) * params[A_PARAM].value;
-    float bIn = (inputs[B_INPUT].active) * ((inputs[B_INPUT].value) * (params[B_PARAM].value)) + (!inputs[B_INPUT].active) * (5* (params[B_PARAM].value));
-    
-    // sample and holds
-    // get a new sample on the rising edge at the sh control output
-    if (shAControl > shALast) {
-        aSample = aIn;
-    }
-    if (shBControl > shBLast) {
-        bSample = bIn;
-    }
-
-    shALast = shAControl;
-    shBLast = shBControl;
-
-    // either use the sample or track depending on the sh control output
-    aIn = shAControl * aSample + !shAControl * aIn;
-    bIn = shBControl * bSample + !shBControl * bIn;
-
-    // VCA/mixing stage
-    // normalize 12 bits to 0-1
-    outputs[MAIN_OUTPUT].value = bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0); 
-    outputs[AUX_DAC_OUTPUT].value = (dac3Sample/4095.0 - .5) * -10.666666666;
-    outputs[LOGICA_OUTPUT].value = logicAState * 5.0;
-    outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
-
-    updateLEDs();
-
-    virtualModule.incrementVirtualTimer();
     
 }
 

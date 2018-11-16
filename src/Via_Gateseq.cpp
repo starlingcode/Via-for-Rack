@@ -206,15 +206,15 @@ void Via_Gateseq::step() {
     virtualModule.sequencer.virtualTimer3Count += virtualModule.sequencer.virtualTimer3Enable;
     virtualModule.sequencer.virtualTimer4Count += virtualModule.sequencer.virtualTimer4Enable;
 
-    if (virtualModule.sequencer.virtualTimer2Count > virtualModule.sequencer.virtualTimer2Overflow) {
+    if (virtualModule.sequencer.virtualTimer2Count >= virtualModule.sequencer.virtualTimer2Overflow) {
         virtualModule.auxTimer1InterruptCallback();
         virtualModule.sequencer.virtualTimer2Count = 0;
     }
-    if (virtualModule.sequencer.virtualTimer3Count > virtualModule.sequencer.virtualTimer3Overflow) {
+    if (virtualModule.sequencer.virtualTimer3Count >= virtualModule.sequencer.virtualTimer3Overflow) {
         virtualModule.auxTimer2InterruptCallback();
         virtualModule.sequencer.virtualTimer3Count = 0;
     }
-    if (virtualModule.sequencer.virtualTimer4Count > virtualModule.sequencer.virtualTimer4Overflow) {
+    if (virtualModule.sequencer.virtualTimer4Count >= virtualModule.sequencer.virtualTimer4Overflow) {
         virtualModule.auxTimer3InterruptCallback();
         virtualModule.sequencer.virtualTimer4Count = 0;
     }
