@@ -54,7 +54,9 @@ struct Via_Scanner : Module {
         NUM_LIGHTS
     };
     
-    Via_Scanner() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+    Via_Scanner() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+        onSampleRateChange();
+    }
     void step() override;
 
     ViaScanner virtualModule;
@@ -320,6 +322,8 @@ void Via_Scanner::step() {
         outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
 
         updateLEDs();
+
+        clockDivider = 0;
 
     }
     

@@ -54,7 +54,10 @@ struct Via_Sync : Module {
         NUM_LIGHTS
     };
     
-    Via_Sync() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+    Via_Sync() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+        onSampleRateChange();
+
+    }
     void step() override;
 
     ViaSync virtualModule;
@@ -322,6 +325,9 @@ void Via_Sync::step() {
         updateLEDs();
 
         virtualModule.incrementVirtualTimer();
+
+        clockDivider = 0;
+
 
     }
     

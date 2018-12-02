@@ -54,7 +54,10 @@ struct Via_Meta : Module {
         NUM_LIGHTS
     };
     
-    Via_Meta() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+    Via_Meta() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+        onSampleRateChange();
+
+    }
 
     void step() override;
 
