@@ -289,7 +289,7 @@ void Via_Sync::step() {
 
         float dac1Sample = dac1Decimator.process(dac1DecimatorBuffer);
         float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
-        float dac3Sample = dac3Decimator.process(dac2DecimatorBuffer);
+        float dac3Sample = dac3Decimator.process(dac3DecimatorBuffer);
         updateLogicOutputs();
         virtualModule.halfTransferCallback();
 

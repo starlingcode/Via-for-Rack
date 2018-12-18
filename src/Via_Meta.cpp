@@ -111,6 +111,8 @@ struct Via_Meta : Module {
         
     }
 
+    int32_t printCounter = 0;
+
     #define META_OVERSAMPLE_AMOUNT 8
     #define META_OVERSAMPLE_QUALITY 6
 
@@ -261,6 +263,11 @@ void Via_Meta::step() {
                 virtualModule.blankTimerEnable = 0;
                 virtualModule.auxTimer2InterruptCallback();
             }
+            // printCounter++;
+            // if (printCounter > 10000) {
+            //     printf("really, its %d \n", virtualModule.calculateDac3);
+            //     printCounter = 0;
+            // }
 
         }
 
@@ -312,7 +319,7 @@ void Via_Meta::step() {
 
         float dac1Sample = dac1Decimator.process(dac1DecimatorBuffer);
         float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
-        float dac3Sample = dac3Decimator.process(dac2DecimatorBuffer);
+        float dac3Sample = dac3Decimator.process(dac3DecimatorBuffer);
         updateLogicOutputs();
         virtualModule.halfTransferCallback();
 
@@ -357,26 +364,6 @@ void Via_Meta::step() {
     
 }
 
-// TODO simulate button press on the UI
-
-
-struct MetaAux2ModeHandler : MenuItem {
-    Via_Meta *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.metaUI.aux2Mode = mode;
-        module->virtualModule.handleAux2ModeChange(mode);
-    }
-};
-
-struct MetaAux4ModeHandler : MenuItem {
-    Via_Meta *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.metaUI.aux4Mode = mode;
-        module->virtualModule.handleAux4ModeChange(mode);
-    }
-};
 
 struct Via_Meta_Widget : ModuleWidget  {
 
@@ -440,16 +427,71 @@ struct Via_Meta_Widget : ModuleWidget  {
         Via_Meta *module = dynamic_cast<Via_Meta*>(this->module);
         assert(module);
 
-        menu->addChild(construct<MenuLabel>());
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Logic Out"));
-        menu->addChild(construct<MetaAux2ModeHandler>(&MenuItem::text, "High during release", &MetaAux2ModeHandler::module, module, &MetaAux2ModeHandler::mode, 0));
-        menu->addChild(construct<MetaAux2ModeHandler>(&MenuItem::text, "High during attack", &MetaAux2ModeHandler::module, module, &MetaAux2ModeHandler::mode, 1));
+        struct MetaAux1ModeHandler : MenuItem {
+            Via_Meta *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.metaUI.aux1Mode = mode;
+                if ((module->virtualModule.metaUI.button3Mode | module->virtualModule.metaUI.button6Mode) == 0) {
+                    module->virtualModule.handleAux1ModeChange(mode);
+                }
+            }
+            void step() override {
+                rightText = (module->virtualModule.metaUI.aux1Mode  == mode) ? "✔" : "";
+                MenuItem::step();
+            }
+        };
+
+        struct MetaAux2ModeHandler : MenuItem {
+            Via_Meta *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.metaUI.aux2Mode = mode;
+                module->virtualModule.handleAux2ModeChange(mode);
+            }
+        };
+
+        struct MetaAux4ModeHandler : MenuItem {
+            Via_Meta *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.metaUI.aux4Mode = mode;
+                module->virtualModule.handleAux4ModeChange(mode);
+            }
+        };
+
+
+        menu->addChild(MenuEntry::create());
+        menu->addChild(MenuLabel::create("Logic out"));
+        MetaAux2ModeHandler *aux2Item1 = MenuItem::create<MetaAux2ModeHandler>("High during release", CHECKMARK(module->virtualModule.metaUI.aux2Mode == 0));
+        aux2Item1->module = module;
+        aux2Item1->mode = 0;
+        menu->addChild(aux2Item1);
+        MetaAux2ModeHandler *aux2Item2 = MenuItem::create<MetaAux2ModeHandler>("High during attack", CHECKMARK(module->virtualModule.metaUI.aux2Mode == 1));
+        aux2Item2->module = module;
+        aux2Item2->mode = 1;
+        menu->addChild(aux2Item2);
+
+        menu->addChild(new MenuEntry());
+        menu->addChild(MenuLabel::create("Signal out"));
+        MetaAux4ModeHandler *aux4Item1 = MenuItem::create<MetaAux4ModeHandler>("Triangle", CHECKMARK(module->virtualModule.metaUI.aux4Mode == 0));
+        aux4Item1->module = module;
+        aux4Item1->mode = 0;
+        menu->addChild(aux4Item1);
+        MetaAux4ModeHandler *aux4Item2 = MenuItem::create<MetaAux4ModeHandler>("Contour", CHECKMARK(module->virtualModule.metaUI.aux4Mode == 1));
+        aux4Item2->module = module;
+        aux4Item2->mode = 1;
+        menu->addChild(aux4Item2);
 
 
         menu->addChild(construct<MenuLabel>());
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Alt output"));
-        menu->addChild(construct<MetaAux4ModeHandler>(&MenuItem::text, "Triangle", &MetaAux4ModeHandler::module, module, &MetaAux4ModeHandler::mode, 0));
-        menu->addChild(construct<MetaAux4ModeHandler>(&MenuItem::text, "Contour", &MetaAux4ModeHandler::module, module, &MetaAux4ModeHandler::mode, 1));
+        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Drum alt output"));
+        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Triangle", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 0));
+        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Contour", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 1));
+        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Envelope", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 2));
+        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Noise", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 3));
+
+
         }
 
 };
