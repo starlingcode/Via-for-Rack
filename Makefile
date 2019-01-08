@@ -1,5 +1,5 @@
-SLUG = Starling_Via_Meta
-VERSION = 0.6.0
+SLUG = Starling_Via
+VERSION = 0.9.0
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS += \

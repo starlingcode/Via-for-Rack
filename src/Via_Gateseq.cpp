@@ -144,19 +144,6 @@ struct Via_Gateseq : Module {
         shBControl = virtualLogicOut(shBControl, virtualModule.shBOutput);
     }
 
-    void recallModuleState(void) {
-        virtualModule.gateseqUI.loadFromEEPROM(0);
-        // virtualModule.handleAux3ModeChange(virtualModule.gateseqUI.aux3Mode);
-        virtualModule.handleButton1ModeChange(virtualModule.gateseqUI.button1Mode);
-        virtualModule.handleButton2ModeChange(virtualModule.gateseqUI.button2Mode);
-        virtualModule.handleButton3ModeChange(virtualModule.gateseqUI.button3Mode);
-        virtualModule.handleButton4ModeChange(virtualModule.gateseqUI.button4Mode);
-        virtualModule.handleButton5ModeChange(virtualModule.gateseqUI.button5Mode);
-        virtualModule.handleButton6ModeChange(virtualModule.gateseqUI.button6Mode);
-        // virtualModule.handleAux1ModeChange(virtualModule.gateseqUI.aux1Mode);
-        virtualModule.handleAux2ModeChange(virtualModule.gateseqUI.aux2Mode);
-        // virtualModule.handleAux4ModeChange(virtualModule.gateseqUI.aux4Mode);
-    }
 
     json_t *toJson() override {
 
@@ -171,7 +158,8 @@ struct Via_Gateseq : Module {
 
         json_t *modesJ = json_object_get(rootJ, "gateseq_modes");
         virtualModule.gateseqUI.modeStateBuffer = json_integer_value(modesJ);
-        recallModuleState();
+        virtualModule.gateseqUI.loadFromEEPROM(0);
+        virtualModule.gateseqUI.recallModuleState();
 
 
     }
@@ -376,28 +364,6 @@ struct Via_Gateseq_Widget : ModuleWidget  {
 
 
 Model *modelVia_Gateseq = Model::create<Via_Gateseq, Via_Gateseq_Widget>(
-        "Starling", "Via_Gateseq", "Via_Gateseq", OSCILLATOR_TAG);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////// TABLE CLASS ///////////////////////////////
-
-
+        "Starling", "GATESEQ", "GATESEQ", OSCILLATOR_TAG);
 
 

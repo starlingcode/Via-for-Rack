@@ -208,7 +208,8 @@ struct Via_Scanner : Module {
 
         json_t *modesJ = json_object_get(rootJ, "scanner_modes");
         virtualModule.scannerUI.modeStateBuffer = json_integer_value(modesJ);
-        recallModuleState();
+        virtualModule.scannerUI.loadFromEEPROM(0);
+        virtualModule.scannerUI.recallModuleState();
 
 
     }
@@ -387,28 +388,6 @@ Via_Scanner_Widget::Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(modul
 
 
 Model *modelVia_Scanner = Model::create<Via_Scanner, Via_Scanner_Widget>(
-        "Starling", "Via_Scanner", "Via_Scanner", OSCILLATOR_TAG);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////// TABLE CLASS ///////////////////////////////
-
-
+        "Starling", "SCANNER", "SCANNER", OSCILLATOR_TAG);
 
 

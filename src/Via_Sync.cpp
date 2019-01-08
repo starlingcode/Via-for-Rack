@@ -209,7 +209,8 @@ struct Via_Sync : Module {
 
         json_t *modesJ = json_object_get(rootJ, "sync_modes");
         virtualModule.syncUI.modeStateBuffer = json_integer_value(modesJ);
-        recallModuleState();
+        virtualModule.syncUI.loadFromEEPROM(0);
+        virtualModule.syncUI.recallModuleState();
 
 
     }
@@ -465,28 +466,6 @@ struct Via_Sync_Widget : ModuleWidget  {
 
 
 Model *modelVia_Sync = Model::create<Via_Sync, Via_Sync_Widget>(
-        "Starling", "Via_Sync", "Via_Sync", OSCILLATOR_TAG);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////// TABLE CLASS ///////////////////////////////
-
-
+        "Starling", "SYNC", "SYNC", OSCILLATOR_TAG);
 
 

@@ -185,20 +185,6 @@ struct Via_Meta : Module {
         shBControl = virtualLogicOut(shBControl, virtualModule.shBOutput);
     }
 
-    void recallModuleState(void) {
-        virtualModule.metaUI.loadFromEEPROM(0);
-        virtualModule.handleAux3ModeChange(virtualModule.metaUI.aux3Mode);
-        virtualModule.handleButton1ModeChange(virtualModule.metaUI.button1Mode);
-        virtualModule.handleButton2ModeChange(virtualModule.metaUI.button2Mode);
-        virtualModule.handleButton3ModeChange(virtualModule.metaUI.button3Mode);
-        virtualModule.handleButton4ModeChange(virtualModule.metaUI.button4Mode);
-        virtualModule.handleButton5ModeChange(virtualModule.metaUI.button5Mode);
-        virtualModule.handleButton6ModeChange(virtualModule.metaUI.button6Mode);
-        virtualModule.handleAux1ModeChange(virtualModule.metaUI.aux1Mode);
-        virtualModule.handleAux2ModeChange(virtualModule.metaUI.aux2Mode);
-        virtualModule.handleAux4ModeChange(virtualModule.metaUI.aux4Mode);
-    }
-
     int32_t jsonTest = 0;
     int32_t jsonTestIn = 0;
 
@@ -216,8 +202,8 @@ struct Via_Meta : Module {
 
         json_t *modesJ = json_object_get(rootJ, "meta_modes");
         virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
-        recallModuleState();
-
+        virtualModule.metaUI.loadFromEEPROM(0);
+        virtualModule.metaUI.recallModuleState();
 
     }
     
@@ -243,7 +229,6 @@ void Via_Meta::step() {
             // trigger handling
             int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
             if (trigButton > lastTrigButton) {
-                recallModuleState();
                 virtualModule.buttonPressedCallback();
             } else if (trigButton < lastTrigButton) {
                 virtualModule.buttonReleasedCallback();
@@ -498,28 +483,5 @@ struct Via_Meta_Widget : ModuleWidget  {
 
 
 Model *modelVia_Meta = Model::create<Via_Meta, Via_Meta_Widget>(
-        "Starling", "Via_Meta", "Via_Meta", OSCILLATOR_TAG);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////// TABLE CLASS ///////////////////////////////
-
-
-
+        "Starling", "META", "META", OSCILLATOR_TAG);
 
