@@ -22,9 +22,9 @@ struct RGBTriangle : ModuleLightWidget {
     void drawLight(NVGcontext *vg) override {
         
         nvgBeginPath(vg);
-        nvgMoveTo(vg, .6,-17.8);
-        nvgLineTo(vg, -11.5,9.5);
-        nvgLineTo(vg, 11.9,9.5);
+        nvgMoveTo(vg, .5,-17.8);
+        nvgLineTo(vg, -12,9.6);
+        nvgLineTo(vg, 12.7,9.6);
         nvgClosePath(vg);
         
         
