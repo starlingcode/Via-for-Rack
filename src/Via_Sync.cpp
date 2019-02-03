@@ -374,6 +374,31 @@ struct SyncAux4ModeHandler : MenuItem {
     }
 };
 
+struct SyncRestorePresets : MenuItem {
+    Via_Sync *module;
+    ModuleWidget *moduleWidget;
+
+    int32_t mode;
+    void onAction(EventAction &e) override {
+        uint32_t currentState = module->virtualModule.syncUI.modeStateBuffer;
+        moduleWidget->reset();
+        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset1;
+        moduleWidget->save("presets/Via Sync 1 (Harmonic Osc).vcvm");
+        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset2;
+        moduleWidget->save("presets/Via Sync 2 (Arpeggiated Osc).vcvm");
+        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset3;
+        moduleWidget->save("presets/Via Sync 3 (Arpeggiated Osc BP).vcvm");
+        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset4;
+        moduleWidget->save("presets/Via Sync 4 (Voct).vcvm");
+        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset5;
+        moduleWidget->save("presets/Via Sync 5 (Sequence).vcvm");
+        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset6;
+        moduleWidget->save("presets/Via Sync 6 (LFO).vcvm");
+        module->virtualModule.syncUI.modeStateBuffer = currentState;
+
+    }
+};
+
 struct Via_Sync_Widget : ModuleWidget  {
 
     Via_Sync_Widget(Via_Sync *module) : ModuleWidget(module) {
@@ -392,13 +417,13 @@ struct Via_Sync_Widget : ModuleWidget  {
         addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Sync::KNOB1_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Sync::KNOB2_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Sync::KNOB3_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Sync::B_PARAM, -1.0, 1.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Sync::CV2AMT_PARAM, 0, 1.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Sync::A_PARAM, -5.0, 5.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Sync::CV3AMT_PARAM, 0, 1.0, 0.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Sync::KNOB1_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Sync::KNOB2_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Sync::KNOB3_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Sync::B_PARAM, -1.0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Sync::CV2AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Sync::A_PARAM, -5.0, 5.0, -5.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Sync::CV3AMT_PARAM, 0, 1.0, 1.0));
         
         addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Sync::BUTTON1_PARAM, 0.0, 1.0, 0.0));
         addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Sync::BUTTON2_PARAM, 0.0, 1.0, 0.0));
@@ -460,6 +485,15 @@ struct Via_Sync_Widget : ModuleWidget  {
         menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Table mode"));
         menu->addChild(construct<SyncAux4ModeHandler>(&MenuItem::text, "Group-specific", &SyncAux4ModeHandler::module, module, &SyncAux4ModeHandler::mode, 0));
         menu->addChild(construct<SyncAux4ModeHandler>(&MenuItem::text, "Global", &SyncAux4ModeHandler::module, module, &SyncAux4ModeHandler::mode, 1));
+        
+
+        menu->addChild(MenuEntry::create());
+        SyncRestorePresets *restorePresets = new SyncRestorePresets();
+        restorePresets->text = "Restore presets";
+        restorePresets->module = module;
+        restorePresets->moduleWidget = this;
+        menu->addChild(restorePresets);
+
         }
 
 };

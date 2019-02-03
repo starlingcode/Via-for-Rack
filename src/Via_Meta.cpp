@@ -97,16 +97,22 @@ struct Via_Meta : Module {
 
         if (sampleRate == 44100.0) {
             divideAmount = 1;
+            virtualModule.metaController.cv1Offset = -70;
         } else if (sampleRate == 48000.0) {
             divideAmount = 1;
+            virtualModule.metaController.cv1Offset = -23;
         } else if (sampleRate == 88200.0) {
             divideAmount = 2;
+            virtualModule.metaController.cv1Offset = -70;
         } else if (sampleRate == 96000.0) {
             divideAmount = 2;
+            virtualModule.metaController.cv1Offset = -23;
         } else if (sampleRate == 176400.0) {
             divideAmount = 4;
+            virtualModule.metaController.cv1Offset = -70;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
+            virtualModule.metaController.cv1Offset = -23;
         }
         
     }
@@ -368,13 +374,13 @@ struct Via_Meta_Widget : ModuleWidget  {
     	addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     	addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-    	addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Meta::KNOB1_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Meta::KNOB2_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Meta::KNOB3_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Meta::B_PARAM, -1.0, 1.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Meta::CV2AMT_PARAM, 0, 1.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Meta::A_PARAM, -5.0, 5.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Meta::CV3AMT_PARAM, 0, 1.0, 0.0));
+    	addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Meta::KNOB1_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Meta::KNOB2_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Meta::KNOB3_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Meta::B_PARAM, -1.0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Meta::CV2AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Meta::A_PARAM, -5.0, 5.0, -5.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Meta::CV3AMT_PARAM, 0, 1.0, 1.0));
         
         addParam(ParamWidget::create<SH_Button>(Vec(10.5, 80), module, Via_Meta::BUTTON1_PARAM, 0.0, 1.0, 0.0));
         addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Meta::BUTTON2_PARAM, 0.0, 1.0, 0.0));
@@ -445,6 +451,30 @@ struct Via_Meta_Widget : ModuleWidget  {
             }
         };
 
+        struct MetaRestorePresets : MenuItem {
+            Via_Meta *module;
+            ModuleWidget *moduleWidget;
+
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                uint32_t currentState = module->virtualModule.metaUI.modeStateBuffer;
+                moduleWidget->reset();
+                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset1;
+                moduleWidget->save("presets/Via Meta 1 (Drum).vcvm");
+                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset2;
+                moduleWidget->save("presets/Via Meta 2 (Osc).vcvm");
+                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset3;
+                moduleWidget->save("presets/Via Meta 3 (Env).vcvm");
+                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset4;
+                moduleWidget->save("presets/Via Meta 4 (Looping AR).vcvm");
+                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset5;
+                moduleWidget->save("presets/Via Meta 5 (Sequence).vcvm");
+                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset6;
+                moduleWidget->save("presets/Via Meta 6 (Complex LFO).vcvm");
+                module->virtualModule.metaUI.modeStateBuffer = currentState;
+            }
+        };
+
 
         menu->addChild(MenuEntry::create());
         menu->addChild(MenuLabel::create("Logic out"));
@@ -468,7 +498,6 @@ struct Via_Meta_Widget : ModuleWidget  {
         aux4Item2->mode = 1;
         menu->addChild(aux4Item2);
 
-
         menu->addChild(construct<MenuLabel>());
         menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Drum alt output"));
         menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Triangle", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 0));
@@ -476,6 +505,12 @@ struct Via_Meta_Widget : ModuleWidget  {
         menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Envelope", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 2));
         menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Noise", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 3));
 
+        menu->addChild(MenuEntry::create());
+        MetaRestorePresets *restorePresets = new MetaRestorePresets();
+        restorePresets->text = "Restore presets";
+        restorePresets->module = module;
+        restorePresets->moduleWidget = this;
+        menu->addChild(restorePresets);
 
         }
 

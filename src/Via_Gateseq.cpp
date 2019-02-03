@@ -288,6 +288,31 @@ struct GateseqAux2ModeHandler : MenuItem {
     }
 };
 
+struct GateseqRestorePresets : MenuItem {
+    Via_Gateseq *module;
+    ModuleWidget *moduleWidget;
+
+    int32_t mode;
+    void onAction(EventAction &e) override {
+        uint32_t currentState = module->virtualModule.gateseqUI.modeStateBuffer;
+        moduleWidget->reset();
+        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset1;
+        moduleWidget->save("presets/Via Gateseq 1 (Euclidean).vcvm");
+        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset2;
+        moduleWidget->save("presets/Via Gateseq 2 (2vs3).vcvm");
+        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset3;
+        moduleWidget->save("presets/Via Gateseq 3 (Shuffle/Swing).vcvm");
+        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset4;
+        moduleWidget->save("presets/Via Gateseq 4 (Multiplier).vcvm");
+        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset5;
+        moduleWidget->save("presets/Via Gateseq 5 (Logic).vcvm");
+        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset6;
+        moduleWidget->save("presets/Via Gateseq 6 (SH).vcvm");
+        module->virtualModule.gateseqUI.modeStateBuffer = currentState;
+
+    }
+};
+
 struct Via_Gateseq_Widget : ModuleWidget  {
 
     Via_Gateseq_Widget(Via_Gateseq *module) : ModuleWidget(module) {
@@ -306,13 +331,13 @@ struct Via_Gateseq_Widget : ModuleWidget  {
         addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Via_Gateseq::KNOB1_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Via_Gateseq::KNOB2_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Via_Gateseq::KNOB3_PARAM, 0, 4095.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Via_Gateseq::B_PARAM, -1.0, 1.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Via_Gateseq::CV2AMT_PARAM, 0, 1.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Via_Gateseq::A_PARAM, -5.0, 5.0, 0.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Via_Gateseq::CV3AMT_PARAM, 0, 1.0, 0.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Via_Gateseq::KNOB1_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Via_Gateseq::KNOB2_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Via_Gateseq::KNOB3_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Via_Gateseq::B_PARAM, -1.0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Via_Gateseq::CV2AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Via_Gateseq::A_PARAM, -5.0, 5.0, -5.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Via_Gateseq::CV3AMT_PARAM, 0, 1.0, 1.0));
         
         addParam(ParamWidget::create<SH_Button>(Vec(10.5 + .753, 80), module, Via_Gateseq::BUTTON1_PARAM, 0.0, 1.0, 0.0));
         addParam(ParamWidget::create<Up_Button>(Vec(47 + .753, 77.5), module, Via_Gateseq::BUTTON2_PARAM, 0.0, 1.0, 0.0));
@@ -356,6 +381,13 @@ struct Via_Gateseq_Widget : ModuleWidget  {
         menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Or", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 1));
         menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Xor", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 2));
         menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Nor", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 3));
+
+        menu->addChild(MenuEntry::create());
+        GateseqRestorePresets *restorePresets = new GateseqRestorePresets();
+        restorePresets->text = "Restore presets";
+        restorePresets->module = module;
+        restorePresets->moduleWidget = this;
+        menu->addChild(restorePresets);
 
         }
 

@@ -330,13 +330,37 @@ void Via_Scanner::step() {
     
 }
 
+struct ScannerRestorePresets : MenuItem {
+    Via_Scanner *module;
+    ModuleWidget *moduleWidget;
 
-struct Via_Scanner_Widget : ModuleWidget {
-    Via_Scanner_Widget(Via_Scanner *module);
+    int32_t mode;
+    void onAction(EventAction &e) override {
+        uint32_t currentState = module->virtualModule.scannerUI.modeStateBuffer;
+        moduleWidget->reset();
+        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset1;
+        moduleWidget->save("presets/Via Scanner 1 (Slopes).vcvm");
+        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset2;
+        moduleWidget->save("presets/Via Scanner 2 (Hills).vcvm");
+        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset3;
+        moduleWidget->save("presets/Via Scanner 3 (Multiplying Mountains).vcvm");
+        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset4;
+        moduleWidget->save("presets/Via Scanner 4 (Synthland).vcvm");
+        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset5;
+        moduleWidget->save("presets/Via Scanner 5 (Staircases).vcvm");
+        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset6;
+        moduleWidget->save("presets/Via Scanner 6 (Blockland).vcvm");
+        module->virtualModule.scannerUI.modeStateBuffer = currentState;
+
+    }
 };
 
 
-Via_Scanner_Widget::Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(module) {
+
+struct Via_Scanner_Widget : ModuleWidget  {
+
+    Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(module) {
+
 	box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
 	{
@@ -346,13 +370,13 @@ Via_Scanner_Widget::Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(modul
 		addChild(panel);
 	}
 
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Scanner::KNOB1_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Scanner::KNOB2_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Scanner::KNOB3_PARAM, 0, 4095.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Scanner::B_PARAM, -1.0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Scanner::CV2AMT_PARAM, 0, 1.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Scanner::A_PARAM, -5.0, 5.0, 0.0));
-    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Scanner::CV3AMT_PARAM, 0, 1.0, 0.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022, 30.90), module, Via_Scanner::KNOB1_PARAM, 0, 4095.0, 2048.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 30.90), module, Via_Scanner::KNOB2_PARAM, 0, 4095.0, 2048.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53, 169.89), module, Via_Scanner::KNOB3_PARAM, 0, 4095.0, 2048.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022, 169.89), module, Via_Scanner::B_PARAM, -1.0, 1.0, 1.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04, 30.90), module, Via_Scanner::CV2AMT_PARAM, 0, 1.0, 1.0));
+    addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04, 100.4), module, Via_Scanner::A_PARAM, -5.0, 5.0, -5.0));
+    addParam(ParamWidget::create<ViaSifamBlack>(Vec(132.5, 169.89), module, Via_Scanner::CV3AMT_PARAM, 0, 1.0, 1.0));
     
     addParam(ParamWidget::create<SH_Button>(Vec(20, 105), module, Via_Scanner::BUTTON4_PARAM, 0.0, 1.0, 0.0));
     addParam(ParamWidget::create<Up_Button>(Vec(47, 77.5), module, Via_Scanner::BUTTON2_PARAM, 0.0, 1.0, 0.0));
@@ -383,8 +407,24 @@ Via_Scanner_Widget::Via_Scanner_Widget(Via_Scanner *module) : ModuleWidget(modul
     addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4, 309.9), module, Via_Scanner::LED4_LIGHT));
     addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8, 179.6), module, Via_Scanner::OUTPUT_GREEN_LIGHT));
     addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59, 221), module, Via_Scanner::RED_LIGHT));
+
+    };
+
+    void appendContextMenu(Menu *menu) override {
+        Via_Scanner *module = dynamic_cast<Via_Scanner*>(this->module);
+        assert(module);
+
+        menu->addChild(MenuEntry::create());
+        ScannerRestorePresets *restorePresets = new ScannerRestorePresets();
+        restorePresets->text = "Restore presets";
+        restorePresets->module = module;
+        restorePresets->moduleWidget = this;
+        menu->addChild(restorePresets);
+    }
     
-}
+};
+
+
 
 
 Model *modelVia_Scanner = Model::create<Via_Scanner, Via_Scanner_Widget>(
