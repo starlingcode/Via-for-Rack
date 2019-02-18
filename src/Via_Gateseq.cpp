@@ -301,7 +301,7 @@ struct GateseqRestorePresets : MenuItem {
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset2;
         moduleWidget->save("presets/Via Gateseq 2 (2vs3).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset3;
-        moduleWidget->save("presets/Via Gateseq 3 (Shuffle/Swing).vcvm");
+        moduleWidget->save("presets/Via Gateseq 3 (ShuffleSwing).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset4;
         moduleWidget->save("presets/Via Gateseq 4 (Multiplier).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset5;
