@@ -389,26 +389,25 @@ struct Via_Meta_Widget : ModuleWidget  {
         addParam(ParamWidget::create<Down_Button>(Vec(46 + .753, 131.5), module, Via_Meta::BUTTON5_PARAM, 0.0, 1.0, 0.0));
         addParam(ParamWidget::create<Loop_Button>(Vec(85 + .753, 129), module, Via_Meta::BUTTON6_PARAM, 0.0, 1.0, 0.0));
         
-        addParam(ParamWidget::create<VIA_manual_button>(Vec(133.5 + .753, 320), module, Via_Meta::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Via_Meta::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Via_Meta::A_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Via_Meta::B_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Via_Meta::MAIN_LOGIC_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Via_Meta::CV1_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Via_Meta::CV2_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Via_Meta::CV3_INPUT));
+        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Via_Meta::AUX_LOGIC_INPUT));
 
-        addInput(Port::create<ViaJack>(Vec(8.07 + .753, 241.22), Port::INPUT, module, Via_Meta::A_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + .753, 282.62), Port::INPUT, module, Via_Meta::B_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + .753, 324.02), Port::INPUT, module, Via_Meta::MAIN_LOGIC_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.55 + .753, 241.22), Port::INPUT, module, Via_Meta::CV1_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.55 + .753, 282.62), Port::INPUT, module, Via_Meta::CV2_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.55 + .753, 324.02), Port::INPUT, module, Via_Meta::CV3_INPUT));
-        addInput(Port::create<ViaJack>(Vec(134.8 + .753, 282.62), Port::INPUT, module, Via_Meta::AUX_LOGIC_INPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Via_Meta::LOGICA_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Via_Meta::AUX_DAC_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Via_Meta::MAIN_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Via_Meta::AUX_LOGIC_OUTPUT));
 
-        addOutput(Port::create<ViaJack>(Vec(83.28 + .753, 241.22), Port::OUTPUT, module, Via_Meta::LOGICA_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.28 + .753, 282.62), Port::OUTPUT, module, Via_Meta::AUX_DAC_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.28 + .753, 324.02), Port::OUTPUT, module, Via_Meta::MAIN_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(134.8 + .753, 241.22), Port::OUTPUT, module, Via_Meta::AUX_LOGIC_OUTPUT));
-
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7 + .753, 268.6), module, Via_Meta::LED1_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4 + .753, 268.6), module, Via_Meta::LED2_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.7 + .753, 309.9), module, Via_Meta::LED3_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.4 + .753, 309.9), module, Via_Meta::LED4_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Via_Meta::LED1_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.1 + .753, 268.5), module, Via_Meta::LED2_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Via_Meta::LED3_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.1 + .753, 309.9), module, Via_Meta::LED4_LIGHT));
         addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Via_Meta::OUTPUT_GREEN_LIGHT));
         addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Via_Meta::RED_LIGHT));
 
