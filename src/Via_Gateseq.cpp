@@ -338,12 +338,12 @@ struct Via_Gateseq_Widget : ModuleWidget  {
         addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Via_Gateseq::A_PARAM, -5.0, 5.0, -5.0));
         addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Via_Gateseq::CV3AMT_PARAM, 0, 1.0, 1.0));
         
-        addParam(ParamWidget::create<SH_Button>(Vec(10.5 + .753, 80), module, Via_Gateseq::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Up_Button>(Vec(47 + .753, 77.5), module, Via_Gateseq::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Freq_Button>(Vec(85 + .753, 80), module, Via_Gateseq::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Trig_Button>(Vec(10.5 + .753, 129), module, Via_Gateseq::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Down_Button>(Vec(46 + .753, 131.5), module, Via_Gateseq::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Loop_Button>(Vec(85 + .753, 129), module, Via_Gateseq::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<SH_Button>(Vec(8 + .753, 85), module, Via_Gateseq::BUTTON1_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Up_Button>(Vec(48 + .753, 85), module, Via_Gateseq::BUTTON2_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Freq_Button>(Vec(86 + .753, 85), module, Via_Gateseq::BUTTON3_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Trig_Button>(Vec(8 + .753, 139), module, Via_Gateseq::BUTTON4_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Down_Button>(Vec(48 + .753, 139), module, Via_Gateseq::BUTTON5_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Loop_Button>(Vec(86 + .753, 139), module, Via_Gateseq::BUTTON6_PARAM, 0.0, 1.0, 0.0));
         
         addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Via_Gateseq::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
