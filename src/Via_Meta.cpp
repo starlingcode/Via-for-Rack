@@ -56,7 +56,6 @@ struct Via_Meta : Module {
     
     Via_Meta() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
         onSampleRateChange();
-
     }
 
     void step() override;
@@ -200,9 +199,11 @@ struct Via_Meta : Module {
         
         // freq
         json_object_set_new(rootJ, "meta_modes", json_integer(virtualModule.metaUI.modeStateBuffer));
-        
+
         return rootJ;
     }
+
+    int32_t testMode;
     
     void fromJson(json_t *rootJ) override {
 
@@ -255,8 +256,8 @@ void Via_Meta::step() {
                 virtualModule.auxTimer2InterruptCallback();
             }
             // printCounter++;
-            // if (printCounter > 10000) {
-            //     printf("really, its %d \n", virtualModule.calculateDac3);
+            // if (printCounter > 1000) {
+            //     printf("really, its %d \n", testMode);
             //     printCounter = 0;
             // }
 
@@ -343,10 +344,6 @@ void Via_Meta::step() {
         outputs[LOGICA_OUTPUT].value = logicAState * 5.0;
         outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
 
-        if (jsonTest) {
-            virtualModule.setLEDD(1);
-        }
-
         updateLEDs();
 
         clockDivider = 0;
@@ -422,6 +419,7 @@ struct Via_Meta_Widget : ModuleWidget  {
             int32_t mode;
             void onAction(EventAction &e) override {
                 module->virtualModule.metaUI.aux1Mode = mode;
+                module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
                 if ((module->virtualModule.metaUI.button3Mode | module->virtualModule.metaUI.button6Mode) == 0) {
                     module->virtualModule.handleAux1ModeChange(mode);
                 }
@@ -438,6 +436,8 @@ struct Via_Meta_Widget : ModuleWidget  {
             void onAction(EventAction &e) override {
                 module->virtualModule.metaUI.aux2Mode = mode;
                 module->virtualModule.handleAux2ModeChange(mode);
+                module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
+
             }
         };
 
@@ -447,6 +447,8 @@ struct Via_Meta_Widget : ModuleWidget  {
             void onAction(EventAction &e) override {
                 module->virtualModule.metaUI.aux4Mode = mode;
                 module->virtualModule.handleAux4ModeChange(mode);
+                module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux4Mode, AUX_MODE4_MASK, AUX_MODE4_SHIFT);
+
             }
         };
 

@@ -150,7 +150,8 @@ struct Via_Gateseq : Module {
         json_t *rootJ = json_object();
         
         json_object_set_new(rootJ, "gateseq_modes", json_integer(virtualModule.gateseqUI.modeStateBuffer));
-        
+        json_object_set_new(rootJ, "logic_mode", json_integer((int) virtualModule.gateseqUI.aux2Mode));
+     
         return rootJ;
     }
     
@@ -284,7 +285,12 @@ struct GateseqAux2ModeHandler : MenuItem {
     int32_t mode;
     void onAction(EventAction &e) override {
         module->virtualModule.gateseqUI.aux2Mode = mode;
+        module->virtualModule.gateseqUI.storeMode(module->virtualModule.gateseqUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
         module->virtualModule.handleAux2ModeChange(mode);
+    }
+    void step() override {
+        rightText = (module->virtualModule.gateseqUI.aux2Mode == mode) ? "✔" : "";
+        MenuItem::step();
     }
 };
 

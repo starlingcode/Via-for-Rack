@@ -342,6 +342,11 @@ struct SyncAux1ModeHandler : MenuItem {
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux1Mode = mode;
         module->virtualModule.handleAux1ModeChange(mode);
+        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux1Mode, AUX_MODE1_MASK, AUX_MODE1_SHIFT);
+    }
+    void step() override {
+        rightText = (module->virtualModule.syncUI.aux1Mode  == mode) ? "✔" : "";
+        MenuItem::step();
     }
 };
 
@@ -351,7 +356,11 @@ struct SyncAux2ModeHandler : MenuItem {
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux2Mode = mode;
         module->virtualModule.handleAux2ModeChange(mode);
-
+        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
+    }
+    void step() override {
+        rightText = (module->virtualModule.syncUI.aux2Mode  == mode) ? "✔" : "";
+        MenuItem::step();
     }
 };
 
@@ -361,6 +370,11 @@ struct SyncAux3ModeHandler : MenuItem {
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux3Mode = mode;
         module->virtualModule.handleAux3ModeChange(mode);
+        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
+    }
+    void step() override {
+        rightText = (module->virtualModule.syncUI.aux3Mode  == mode) ? "✔" : "";
+        MenuItem::step();
     }
 };
 
@@ -370,8 +384,13 @@ struct SyncAux4ModeHandler : MenuItem {
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux4Mode = mode;
         module->virtualModule.handleAux4ModeChange(mode);
-
+        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux4Mode, AUX_MODE4_MASK, AUX_MODE4_SHIFT);
     }
+    void step() override {
+        rightText = (module->virtualModule.syncUI.aux4Mode  == mode) ? "✔" : "";
+        MenuItem::step();
+    }
+
 };
 
 struct SyncRestorePresets : MenuItem {
