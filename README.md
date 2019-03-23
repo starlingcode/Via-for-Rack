@@ -9,13 +9,19 @@ Building the plugins:
 
 First, build Rack (https://vcvrack.com/manual/Building.html)
 
-After cloning the repository into Rack/plugins, change the current directory to the Via plugin folder and initialize the submodule with:
-
+Change the current directory to Rack/plugins and clone the repo:
+```
+git clone https://github.com/starlingcode/Via-for-Rack.git
+```
+Navigate to the Via plugin directory:
+```
+cd Via-for-Rack
+```
+Update the submodules:
 ```
 git submodule update --init --recursive
 ```
-Then, build the plugins with:
-
+Then, build the plugins:
 ```
 make
 ```
