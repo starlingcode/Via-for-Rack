@@ -5,7 +5,7 @@ Source for the Rack plugins of the Via modules (https://starling.space/via)
 
 User documentation can be found here: https://starling.space/via/rack#manual
 
-Building the plugins:
+## Build Instructions
 
 First, build Rack (https://vcvrack.com/manual/Building.html)
 
