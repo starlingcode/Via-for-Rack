@@ -28,5 +28,5 @@ make
 
 ## Contributing
 
-I welcome Issues and Pull Requests to this repository if you have suggestions for improvement.
+We welcome Issues and Pull Requests to this repository if you have suggestions for improvement.
 
