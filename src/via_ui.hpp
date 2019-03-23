@@ -1,6 +1,5 @@
-#include "Starling.hpp"
+#include "starling.hpp"
 #include "util/color.hpp"
-#include "dsp/digital.hpp"
 
 // Modified light widget for the white LED
 
@@ -59,14 +58,6 @@ struct RGBTriangle : ModuleLightWidget {
     }
 };
 
-// Davies knob for contrast against the black background, adapted from Rack component library
-// Thanks Grayscale http://grayscale.info/ !
-
-struct Davies1900hvia : Davies1900hKnob {
-    Davies1900hvia() {
-        setSVG(SVG::load(assetPlugin(plugin, "res/Davies1900hvia.svg")));
-    }
-};
 
 struct ViaSifamBlack : Davies1900hKnob {
     ViaSifamBlack() {

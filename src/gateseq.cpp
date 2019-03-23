@@ -1,8 +1,9 @@
 #include "gateseq.hpp"
-#include "Via_Graphics.hpp"
+#include "via_ui.hpp"
+#include "dsp/digital.hpp"
 
 
-struct Via_Gateseq : Module {
+struct Gateseq : Module {
     
     
     enum ParamIds {
@@ -53,13 +54,19 @@ struct Via_Gateseq : Module {
         NUM_LIGHTS
     };
     
-    Via_Gateseq() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
+    Gateseq() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+        onSampleRateChange();
+    }
     void step() override;
 
     ViaGateseq virtualModule;
     
-    int32_t lastTrigInput;
-    int32_t lastAuxTrigInput;
+    SchmittTrigger mainLogic;
+    SchmittTrigger auxLogic;
+
+    bool lastTrigState = false;
+    bool lastAuxTrigState = false;
+
     int32_t lastTrigButton;
 
     int32_t dacReadIndex = 0;
@@ -82,6 +89,25 @@ struct Via_Gateseq : Module {
 
     float aSample = 0;
     float bSample = 0;
+
+    void onSampleRateChange() override {
+        float sampleRate = engineGetSampleRate();
+
+        if (sampleRate == 44100.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 44;
+        } else if (sampleRate == 48000.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 48;
+        } else if (sampleRate == 88200.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 88;
+        } else if (sampleRate == 96000.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 96;
+        } else if (sampleRate == 176400.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 176;
+        } else if (sampleRate == 192000.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 192;
+        }
+        
+    }
 
     void updateSlowIO(void) {
 
@@ -167,7 +193,7 @@ struct Via_Gateseq : Module {
     
 };
 
-void Via_Gateseq::step() {
+void Gateseq::step() {
 
     // update the "slow IO" (not audio rate) every 16 samples
     // needs to scale with sample rate somehow
@@ -222,23 +248,23 @@ void Via_Gateseq::step() {
 
     // trigger handling
 
-    int32_t auxTrigInput = clamp((int32_t)inputs[AUX_LOGIC_INPUT].value, 0, 1);
-    if (auxTrigInput > lastAuxTrigInput) {
-        virtualModule.auxRisingEdgeCallback();
-    } else if (auxTrigInput < lastAuxTrigInput) {
-        virtualModule.auxFallingEdgeCallback();
-    }
-    lastAuxTrigInput = auxTrigInput; 
-
-    int32_t trigInput = clamp((int32_t)inputs[MAIN_LOGIC_INPUT].value, 0, 1);
-    if (trigInput > lastTrigInput) {
+    mainLogic.process(rescale(inputs[MAIN_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
+    bool trigState = mainLogic.isHigh();
+    if (trigState && !lastTrigState) {
         virtualModule.mainRisingEdgeCallback();
-    } else if (trigInput < lastTrigInput) {
+    } else if (!trigState && lastTrigState) {
         virtualModule.mainFallingEdgeCallback();
     }
-    lastTrigInput = trigInput; 
+    lastTrigState = trigState; 
 
-
+    auxLogic.process(rescale(inputs[AUX_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
+    bool auxTrigState = auxLogic.isHigh();
+    if (auxTrigState && !lastAuxTrigState) {
+        virtualModule.auxRisingEdgeCallback();
+    } else if (!auxTrigState && lastAuxTrigState) {
+        virtualModule.auxFallingEdgeCallback();
+    }
+    lastAuxTrigState = auxTrigState; 
 
     // buffer length of 1 ..
     float dac1Sample = (float) virtualModule.outputs.dac1Samples[0];
@@ -281,7 +307,7 @@ void Via_Gateseq::step() {
 }
 
 struct GateseqAux2ModeHandler : MenuItem {
-    Via_Gateseq *module;
+    Gateseq *module;
     int32_t mode;
     void onAction(EventAction &e) override {
         module->virtualModule.gateseqUI.aux2Mode = mode;
@@ -295,33 +321,54 @@ struct GateseqAux2ModeHandler : MenuItem {
 };
 
 struct GateseqRestorePresets : MenuItem {
-    Via_Gateseq *module;
+    Gateseq *module;
     ModuleWidget *moduleWidget;
 
     int32_t mode;
     void onAction(EventAction &e) override {
+        std::string rootDir = assetLocal("presets");
+        systemCreateDirectory(rootDir);
+        std::string subDir = assetLocal("presets/Via GATESEQ");
+        systemCreateDirectory(subDir);
+
+        float knob1Store = moduleWidget->params[Gateseq::KNOB1_PARAM]->value;
+        float knob2Store = moduleWidget->params[Gateseq::KNOB2_PARAM]->value;
+        float knob3Store = moduleWidget->params[Gateseq::KNOB3_PARAM]->value;
+        float cv2AmtStore = moduleWidget->params[Gateseq::CV2AMT_PARAM]->value;
+        float cv3AmtStore = moduleWidget->params[Gateseq::CV3AMT_PARAM]->value;
+        float aStore = moduleWidget->params[Gateseq::A_PARAM]->value;
+        float bStore = moduleWidget->params[Gateseq::B_PARAM]->value;
+
         uint32_t currentState = module->virtualModule.gateseqUI.modeStateBuffer;
         moduleWidget->reset();
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset1;
-        moduleWidget->save("presets/Via Gateseq 1 (Euclidean).vcvm");
+        moduleWidget->save("presets/Via GATESEQ/1 (Euclidean).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset2;
-        moduleWidget->save("presets/Via Gateseq 2 (2vs3).vcvm");
+        moduleWidget->save("presets/Via GATESEQ/2 (2vs3).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset3;
-        moduleWidget->save("presets/Via Gateseq 3 (ShuffleSwing).vcvm");
+        moduleWidget->save("presets/Via GATESEQ/3 (ShuffleSwing).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset4;
-        moduleWidget->save("presets/Via Gateseq 4 (Multiplier).vcvm");
+        moduleWidget->save("presets/Via GATESEQ/4 (Multiplier).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset5;
-        moduleWidget->save("presets/Via Gateseq 5 (Logic).vcvm");
+        moduleWidget->save("presets/Via GATESEQ/5 (Logic).vcvm");
         module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset6;
-        moduleWidget->save("presets/Via Gateseq 6 (SH).vcvm");
+        moduleWidget->save("presets/Via GATESEQ/6 (SH).vcvm");
+
         module->virtualModule.gateseqUI.modeStateBuffer = currentState;
+        moduleWidget->params[Gateseq::KNOB1_PARAM]->setValue(knob1Store);
+        moduleWidget->params[Gateseq::KNOB2_PARAM]->setValue(knob2Store);
+        moduleWidget->params[Gateseq::KNOB3_PARAM]->setValue(knob3Store);
+        moduleWidget->params[Gateseq::CV2AMT_PARAM]->setValue(cv2AmtStore);
+        moduleWidget->params[Gateseq::CV3AMT_PARAM]->setValue(cv3AmtStore);
+        moduleWidget->params[Gateseq::A_PARAM]->setValue(aStore);
+        moduleWidget->params[Gateseq::B_PARAM]->setValue(bStore);
 
     }
 };
 
-struct Via_Gateseq_Widget : ModuleWidget  {
+struct GateseqWidget : ModuleWidget  {
 
-    Via_Gateseq_Widget(Via_Gateseq *module) : ModuleWidget(module) {
+    GateseqWidget(Gateseq *module) : ModuleWidget(module) {
 
         box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
@@ -336,47 +383,47 @@ struct Via_Gateseq_Widget : ModuleWidget  {
         addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Via_Gateseq::KNOB1_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Via_Gateseq::KNOB2_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Via_Gateseq::KNOB3_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Via_Gateseq::B_PARAM, -1.0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Via_Gateseq::CV2AMT_PARAM, 0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Via_Gateseq::A_PARAM, -5.0, 5.0, -5.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Via_Gateseq::CV3AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Gateseq::KNOB1_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Gateseq::KNOB2_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Gateseq::KNOB3_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Gateseq::B_PARAM, -1.0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Gateseq::CV2AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Gateseq::A_PARAM, -5.0, 5.0, -5.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Gateseq::CV3AMT_PARAM, 0, 1.0, 1.0));
         
-        addParam(ParamWidget::create<SH_Button>(Vec(8 + .753, 85), module, Via_Gateseq::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Up_Button>(Vec(48 + .753, 85), module, Via_Gateseq::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Freq_Button>(Vec(86 + .753, 85), module, Via_Gateseq::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Trig_Button>(Vec(8 + .753, 139), module, Via_Gateseq::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Down_Button>(Vec(48 + .753, 139), module, Via_Gateseq::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Loop_Button>(Vec(86 + .753, 139), module, Via_Gateseq::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<SH_Button>(Vec(8 + .753, 85), module, Gateseq::BUTTON1_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Up_Button>(Vec(48 + .753, 85), module, Gateseq::BUTTON2_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Freq_Button>(Vec(86 + .753, 85), module, Gateseq::BUTTON3_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Trig_Button>(Vec(8 + .753, 139), module, Gateseq::BUTTON4_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Down_Button>(Vec(48 + .753, 139), module, Gateseq::BUTTON5_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Loop_Button>(Vec(86 + .753, 139), module, Gateseq::BUTTON6_PARAM, 0.0, 1.0, 0.0));
         
-        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Via_Gateseq::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Gateseq::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Via_Gateseq::A_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Via_Gateseq::B_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Via_Gateseq::MAIN_LOGIC_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Via_Gateseq::CV1_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Via_Gateseq::CV2_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Via_Gateseq::CV3_INPUT));
-        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Via_Gateseq::AUX_LOGIC_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Gateseq::A_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Gateseq::B_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Gateseq::MAIN_LOGIC_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Gateseq::CV1_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Gateseq::CV2_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Gateseq::CV3_INPUT));
+        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Gateseq::AUX_LOGIC_INPUT));
 
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Via_Gateseq::LOGICA_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Via_Gateseq::AUX_DAC_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Via_Gateseq::MAIN_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Via_Gateseq::AUX_LOGIC_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Gateseq::LOGICA_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Gateseq::AUX_DAC_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Gateseq::MAIN_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Gateseq::AUX_LOGIC_OUTPUT));
 
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Via_Gateseq::LED1_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Via_Gateseq::LED2_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Via_Gateseq::LED3_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Via_Gateseq::LED4_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Via_Gateseq::OUTPUT_GREEN_LIGHT));
-        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Via_Gateseq::RED_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Gateseq::LED1_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Gateseq::LED2_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Gateseq::LED3_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Gateseq::LED4_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Gateseq::OUTPUT_GREEN_LIGHT));
+        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Gateseq::RED_LIGHT));
 
         }
 
     void appendContextMenu(Menu *menu) override {
-        Via_Gateseq *module = dynamic_cast<Via_Gateseq*>(this->module);
+        Gateseq *module = dynamic_cast<Gateseq*>(this->module);
         assert(module);
 
         menu->addChild(construct<MenuLabel>());
@@ -399,7 +446,7 @@ struct Via_Gateseq_Widget : ModuleWidget  {
 
 
 
-Model *modelVia_Gateseq = Model::create<Via_Gateseq, Via_Gateseq_Widget>(
-        "Starling", "GATESEQ", "GATESEQ", OSCILLATOR_TAG);
+Model *modelGateseq = Model::create<Gateseq, GateseqWidget>(
+        "Starling", "GATESEQ", "GATESEQ", CLOCK_MODULATOR_TAG, LOGIC_TAG, SEQUENCER_TAG, DIGITAL_TAG);
 
 

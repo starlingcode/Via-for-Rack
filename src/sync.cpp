@@ -1,9 +1,10 @@
 #include "sync.hpp"
-#include "Via_Graphics.hpp"
+#include "via_ui.hpp"
 #include "dsp/decimator.hpp"
+#include "dsp/digital.hpp"
 
 
-struct Via_Sync : Module {
+struct Sync : Module {
     
     
     enum ParamIds {
@@ -54,13 +55,19 @@ struct Via_Sync : Module {
         NUM_LIGHTS
     };
     
-    Via_Sync() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+    Sync() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
         onSampleRateChange();
 
     }
     void step() override;
 
     ViaSync virtualModule;
+
+    SchmittTrigger mainLogic;
+    SchmittTrigger auxLogic;
+
+    bool lastTrigState = false;
+    bool lastAuxTrigState = false;
     
     int32_t lastTrigInput;
     int32_t lastAuxTrigInput;
@@ -217,7 +224,7 @@ struct Via_Sync : Module {
     
 };
 
-void Via_Sync::step() {
+void Sync::step() {
 
     clockDivider++;
 
@@ -256,21 +263,23 @@ void Via_Sync::step() {
 
         // trigger handling
 
-        int32_t trigInput = clamp((int32_t)inputs[MAIN_LOGIC_INPUT].value, 0, 1);
-        if (trigInput > lastTrigInput) {
+        mainLogic.process(rescale(inputs[MAIN_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
+        bool trigState = mainLogic.isHigh();
+        if (trigState && !lastTrigState) {
             virtualModule.mainRisingEdgeCallback();
-        } else if (trigInput < lastTrigInput) {
+        } else if (!trigState && lastTrigState) {
             virtualModule.mainFallingEdgeCallback();
         }
-        lastTrigInput = trigInput; 
+        lastTrigState = trigState; 
 
-        int32_t auxTrigInput = clamp((int32_t)inputs[AUX_LOGIC_INPUT].value, 0, 1);
-        if (auxTrigInput > lastAuxTrigInput) {
+        auxLogic.process(rescale(inputs[AUX_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
+        bool auxTrigState = auxLogic.isHigh();
+        if (auxTrigState && !lastAuxTrigState) {
             virtualModule.auxRisingEdgeCallback();
-        } else if (auxTrigInput < lastAuxTrigInput) {
+        } else if (!auxTrigState && lastAuxTrigState) {
             virtualModule.auxFallingEdgeCallback();
         }
-        lastAuxTrigInput = auxTrigInput; 
+        lastAuxTrigState = auxTrigState; 
 
         int32_t samplesRemaining = 8;
         int32_t writeIndex = 0;
@@ -337,7 +346,7 @@ void Via_Sync::step() {
 // TODO simulate button press on the UI
 
 struct SyncAux1ModeHandler : MenuItem {
-    Via_Sync *module;
+    Sync *module;
     int32_t mode;
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux1Mode = mode;
@@ -351,7 +360,7 @@ struct SyncAux1ModeHandler : MenuItem {
 };
 
 struct SyncAux2ModeHandler : MenuItem {
-    Via_Sync *module;
+    Sync *module;
     int32_t mode;
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux2Mode = mode;
@@ -365,7 +374,7 @@ struct SyncAux2ModeHandler : MenuItem {
 };
 
 struct SyncAux3ModeHandler : MenuItem {
-    Via_Sync *module;
+    Sync *module;
     int32_t mode;
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux3Mode = mode;
@@ -379,7 +388,7 @@ struct SyncAux3ModeHandler : MenuItem {
 };
 
 struct SyncAux4ModeHandler : MenuItem {
-    Via_Sync *module;
+    Sync *module;
     int32_t mode;
     void onAction(EventAction &e) override {
         module->virtualModule.syncUI.aux4Mode = mode;
@@ -394,33 +403,55 @@ struct SyncAux4ModeHandler : MenuItem {
 };
 
 struct SyncRestorePresets : MenuItem {
-    Via_Sync *module;
+    Sync *module;
     ModuleWidget *moduleWidget;
 
     int32_t mode;
     void onAction(EventAction &e) override {
+        std::string rootDir = assetLocal("presets");
+        systemCreateDirectory(rootDir);
+        std::string subDir = assetLocal("presets/Via SYNC");
+        systemCreateDirectory(subDir);
+
+        float knob1Store = moduleWidget->params[Sync::KNOB1_PARAM]->value;
+        float knob2Store = moduleWidget->params[Sync::KNOB2_PARAM]->value;
+        float knob3Store = moduleWidget->params[Sync::KNOB3_PARAM]->value;
+        float cv2AmtStore = moduleWidget->params[Sync::CV2AMT_PARAM]->value;
+        float cv3AmtStore = moduleWidget->params[Sync::CV3AMT_PARAM]->value;
+        float aStore = moduleWidget->params[Sync::A_PARAM]->value;
+        float bStore = moduleWidget->params[Sync::B_PARAM]->value;
+
         uint32_t currentState = module->virtualModule.syncUI.modeStateBuffer;
+        
         moduleWidget->reset();
         module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset1;
-        moduleWidget->save("presets/Via Sync 1 (Harmonic Osc).vcvm");
+        moduleWidget->save("presets/Via SYNC/1 (Harmonic Osc).vcvm");
         module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset2;
-        moduleWidget->save("presets/Via Sync 2 (Arpeggiated Osc).vcvm");
+        moduleWidget->save("presets/Via SYNC/2 (Arpeggiated Osc).vcvm");
         module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset3;
-        moduleWidget->save("presets/Via Sync 3 (Arpeggiated Osc BP).vcvm");
+        moduleWidget->save("presets/Via SYNC/3 (Arpeggiated Osc BP).vcvm");
         module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset4;
-        moduleWidget->save("presets/Via Sync 4 (Voct).vcvm");
+        moduleWidget->save("presets/Via SYNC/4 (Voct).vcvm");
         module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset5;
-        moduleWidget->save("presets/Via Sync 5 (Sequence).vcvm");
+        moduleWidget->save("presets/Via SYNC/5 (Sequence).vcvm");
         module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset6;
-        moduleWidget->save("presets/Via Sync 6 (LFO).vcvm");
+        moduleWidget->save("presets/Via SYNC/6 (LFO).vcvm");
+        
         module->virtualModule.syncUI.modeStateBuffer = currentState;
+        moduleWidget->params[Sync::KNOB1_PARAM]->setValue(knob1Store);
+        moduleWidget->params[Sync::KNOB2_PARAM]->setValue(knob2Store);
+        moduleWidget->params[Sync::KNOB3_PARAM]->setValue(knob3Store);
+        moduleWidget->params[Sync::CV2AMT_PARAM]->setValue(cv2AmtStore);
+        moduleWidget->params[Sync::CV3AMT_PARAM]->setValue(cv3AmtStore);
+        moduleWidget->params[Sync::A_PARAM]->setValue(aStore);
+        moduleWidget->params[Sync::B_PARAM]->setValue(bStore);
 
     }
 };
 
-struct Via_Sync_Widget : ModuleWidget  {
+struct Sync_Widget : ModuleWidget  {
 
-    Via_Sync_Widget(Via_Sync *module) : ModuleWidget(module) {
+    Sync_Widget(Sync *module) : ModuleWidget(module) {
 
         box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
@@ -436,47 +467,47 @@ struct Via_Sync_Widget : ModuleWidget  {
         addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Via_Sync::KNOB1_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Via_Sync::KNOB2_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Via_Sync::KNOB3_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Via_Sync::B_PARAM, -1.0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Via_Sync::CV2AMT_PARAM, 0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Via_Sync::A_PARAM, -5.0, 5.0, -5.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Via_Sync::CV3AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Sync::KNOB1_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Sync::KNOB2_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Sync::KNOB3_PARAM, 0, 4095.0, 2048.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Sync::B_PARAM, -1.0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Sync::CV2AMT_PARAM, 0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Sync::A_PARAM, -5.0, 5.0, -5.0));
+        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Sync::CV3AMT_PARAM, 0, 1.0, 1.0));
         
-        addParam(ParamWidget::create<SH_Button>(Vec(7 + .753, 82), module, Via_Sync::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Up_Button>(Vec(48 + .753, 79.5), module, Via_Sync::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Freq_Button>(Vec(88.5 + .753, 82), module, Via_Sync::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Trig_Button>(Vec(7 + .753, 136.5), module, Via_Sync::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Down_Button>(Vec(48 + .753, 135.5), module, Via_Sync::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Loop_Button>(Vec(88.5 + .753, 136.5), module, Via_Sync::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<SH_Button>(Vec(7 + .753, 82), module, Sync::BUTTON1_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Up_Button>(Vec(48 + .753, 79.5), module, Sync::BUTTON2_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Freq_Button>(Vec(88.5 + .753, 82), module, Sync::BUTTON3_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Trig_Button>(Vec(7 + .753, 136.5), module, Sync::BUTTON4_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Down_Button>(Vec(48 + .753, 135.5), module, Sync::BUTTON5_PARAM, 0.0, 1.0, 0.0));
+        addParam(ParamWidget::create<Loop_Button>(Vec(88.5 + .753, 136.5), module, Sync::BUTTON6_PARAM, 0.0, 1.0, 0.0));
         
-        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Via_Sync::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Sync::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
 
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Via_Sync::A_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Via_Sync::B_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Via_Sync::MAIN_LOGIC_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Via_Sync::CV1_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Via_Sync::CV2_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Via_Sync::CV3_INPUT));
-        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Via_Sync::AUX_LOGIC_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Sync::A_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Sync::B_INPUT));
+        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Sync::MAIN_LOGIC_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Sync::CV1_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Sync::CV2_INPUT));
+        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Sync::CV3_INPUT));
+        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Sync::AUX_LOGIC_INPUT));
 
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Via_Sync::LOGICA_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Via_Sync::AUX_DAC_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Via_Sync::MAIN_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Via_Sync::AUX_LOGIC_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Sync::LOGICA_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Sync::AUX_DAC_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Sync::MAIN_OUTPUT));
+        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Sync::AUX_LOGIC_OUTPUT));
 
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Via_Sync::LED1_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Via_Sync::LED2_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Via_Sync::LED3_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Via_Sync::LED4_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Via_Sync::OUTPUT_GREEN_LIGHT));
-        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Via_Sync::RED_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Sync::LED1_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Sync::LED2_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Sync::LED3_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Sync::LED4_LIGHT));
+        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Sync::OUTPUT_GREEN_LIGHT));
+        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Sync::RED_LIGHT));
 
         }
 
     void appendContextMenu(Menu *menu) override {
-        Via_Sync *module = dynamic_cast<Via_Sync*>(this->module);
+        Sync *module = dynamic_cast<Sync*>(this->module);
         assert(module);
 
         menu->addChild(construct<MenuLabel>());
@@ -517,7 +548,7 @@ struct Via_Sync_Widget : ModuleWidget  {
 };
 
 
-Model *modelVia_Sync = Model::create<Via_Sync, Via_Sync_Widget>(
-        "Starling", "SYNC", "SYNC", OSCILLATOR_TAG);
+Model *modelSync = Model::create<Sync, Sync_Widget>(
+        "Starling", "SYNC", "SYNC", OSCILLATOR_TAG, CLOCK_MODULATOR_TAG, CLOCK_TAG, LFO_TAG, RING_MODULATOR_TAG, DIGITAL_TAG);
 
 
