@@ -101,22 +101,28 @@ struct Meta : Module {
 
         if (sampleRate == 44100.0) {
             divideAmount = 1;
-            virtualModule.metaController.cv1Offset = -70;
+            virtualModule.metaController.audioBaseIncrement = 39562;
+            virtualModule.metaController.drumBaseIncrement = 66466;
         } else if (sampleRate == 48000.0) {
             divideAmount = 1;
-            virtualModule.metaController.cv1Offset = -23;
+            virtualModule.metaController.audioBaseIncrement = 36347;
+            virtualModule.metaController.drumBaseIncrement = 61065;
         } else if (sampleRate == 88200.0) {
             divideAmount = 2;
-            virtualModule.metaController.cv1Offset = -70;
+            virtualModule.metaController.audioBaseIncrement = 39562;
+            virtualModule.metaController.drumBaseIncrement = 66466;
         } else if (sampleRate == 96000.0) {
             divideAmount = 2;
-            virtualModule.metaController.cv1Offset = -23;
+            virtualModule.metaController.audioBaseIncrement = 36347;
+            virtualModule.metaController.drumBaseIncrement = 61065;
         } else if (sampleRate == 176400.0) {
             divideAmount = 4;
-            virtualModule.metaController.cv1Offset = -70;
+            virtualModule.metaController.audioBaseIncrement = 39562;
+            virtualModule.metaController.drumBaseIncrement = 66466;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
-            virtualModule.metaController.cv1Offset = -23;
+            virtualModule.metaController.audioBaseIncrement = 36347;
+            virtualModule.metaController.drumBaseIncrement = 61065;
         }
         
     }
@@ -506,6 +512,26 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
+        struct MetaTuneC4 : MenuItem {
+            Meta *module;
+            ModuleWidget *moduleWidget;
+
+            int32_t mode;
+            void onAction(EventAction &e) override {
+
+                int32_t audioOsc = !(module->virtualModule.metaUI.button3Mode) && module->virtualModule.metaUI.button6Mode;
+                int32_t drumVoice = !(module->virtualModule.metaUI.button3Mode) && !(module->virtualModule.metaUI.button6Mode);
+
+                if (audioOsc) {
+                    moduleWidget->params[Meta::KNOB1_PARAM]->setValue(2048.f);
+                    moduleWidget->params[Meta::KNOB2_PARAM]->setValue(0.f);
+                } else if (drumVoice) {
+                    moduleWidget->params[Meta::KNOB1_PARAM]->setValue(4095.f);
+                }
+
+            }
+        };
+
 
         menu->addChild(MenuEntry::create());
         menu->addChild(MenuLabel::create("Logic out"));
@@ -535,6 +561,13 @@ struct MetaWidget : ModuleWidget  {
         menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Contour", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 1));
         menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Envelope", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 2));
         menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Noise", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 3));
+
+        menu->addChild(MenuEntry::create());
+        MetaTuneC4 *tuneC4 = new MetaTuneC4();
+        tuneC4->text = "Tune to C4";
+        tuneC4->module = module;
+        tuneC4->moduleWidget = this;
+        menu->addChild(tuneC4);
 
         menu->addChild(MenuEntry::create());
         MetaRestorePresets *restorePresets = new MetaRestorePresets();

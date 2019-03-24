@@ -103,16 +103,23 @@ struct Sync : Module {
 
         if (sampleRate == 44100.0) {
             divideAmount = 1;
+            virtualModule.virtualTimerOverflow = 44;
         } else if (sampleRate == 48000.0) {
             divideAmount = 1;
+            virtualModule.virtualTimerOverflow = 48;
         } else if (sampleRate == 88200.0) {
             divideAmount = 2;
+            virtualModule.virtualTimerOverflow = 44;
         } else if (sampleRate == 96000.0) {
             divideAmount = 2;
+            virtualModule.virtualTimerOverflow = 48;
+
         } else if (sampleRate == 176400.0) {
             divideAmount = 4;
+            virtualModule.virtualTimerOverflow = 44;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
+            virtualModule.virtualTimerOverflow = 48;
         }
         
     }
@@ -248,6 +255,15 @@ void Sync::step() {
             } 
             lastTrigButton = trigButton;
         }
+
+        // manage the complex software timer
+
+        virtualModule.virtualTimer += virtualModule.virtualTimerEnable;
+        if (virtualModule.virtualTimer >= virtualModule.virtualTimerOverflow) {
+            virtualModule.virtualTimer = 0;
+            virtualModule.auxTimer2InterruptCallback();
+        }
+
 
         // manage audio rate dacs and adcs
 
