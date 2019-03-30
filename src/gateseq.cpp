@@ -56,10 +56,18 @@ struct Gateseq : Module {
     
     Gateseq() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
         onSampleRateChange();
+        presetData[0] = virtualModule.gateseqUI.stockPreset1;
+        presetData[1] = virtualModule.gateseqUI.stockPreset2;
+        presetData[2] = virtualModule.gateseqUI.stockPreset3;
+        presetData[3] = virtualModule.gateseqUI.stockPreset4;
+        presetData[4] = virtualModule.gateseqUI.stockPreset5;
+        presetData[5] = virtualModule.gateseqUI.stockPreset6;
     }
     void step() override;
 
     ViaGateseq virtualModule;
+
+    uint32_t presetData[6];
     
     SchmittTrigger mainLogic;
     SchmittTrigger auxLogic;
@@ -433,12 +441,42 @@ struct GateseqWidget : ModuleWidget  {
         menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Xor", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 2));
         menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Nor", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 3));
 
+        struct PresetRecallItem : MenuItem {
+            Gateseq *module;
+            int preset;
+            void onAction(EventAction &e) override {
+                module->virtualModule.gateseqUI.modeStateBuffer = preset;
+                module->virtualModule.gateseqUI.loadFromEEPROM(0);
+                module->virtualModule.gateseqUI.recallModuleState();
+            }
+        };
+
+        struct StockPresetItem : MenuItem {
+            Gateseq *module;
+            Menu *createChildMenu() override {
+                Menu *menu = new Menu();
+                const std::string presetLabels[] = {
+                    "Euclidean",
+                    "2 vs 3",
+                    "Shuffle Swing",
+                    "Multiplier",
+                    "Logic",
+                    "Resample",
+                };
+                for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
+                    PresetRecallItem *item = MenuItem::create<PresetRecallItem>(presetLabels[i]);
+                    item->module = module;
+                    item->preset = module->presetData[i];
+                    menu->addChild(item);
+                }
+                return menu;
+            }
+        };
+
         menu->addChild(MenuEntry::create());
-        GateseqRestorePresets *restorePresets = new GateseqRestorePresets();
-        restorePresets->text = "Restore presets";
-        restorePresets->module = module;
-        restorePresets->moduleWidget = this;
-        menu->addChild(restorePresets);
+        StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
+        stockPresets->module = module;
+        menu->addChild(stockPresets);
 
         }
 

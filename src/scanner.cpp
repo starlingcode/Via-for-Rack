@@ -57,10 +57,18 @@ struct Scanner : Module {
     
     Scanner() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
         onSampleRateChange();
+        presetData[0] = virtualModule.scannerUI.stockPreset1;
+        presetData[1] = virtualModule.scannerUI.stockPreset2;
+        presetData[2] = virtualModule.scannerUI.stockPreset3;
+        presetData[3] = virtualModule.scannerUI.stockPreset4;
+        presetData[4] = virtualModule.scannerUI.stockPreset5;
+        presetData[5] = virtualModule.scannerUI.stockPreset6;
     }
     void step() override;
 
     ViaScanner virtualModule;
+
+    uint32_t presetData[6];
 
     SchmittTrigger mainLogic;
     SchmittTrigger auxLogic;
@@ -323,56 +331,6 @@ void Scanner::step() {
     
 }
 
-struct ScannerRestorePresets : MenuItem {
-    Scanner *module;
-    ModuleWidget *moduleWidget;
-
-    int32_t mode;
-    void onAction(EventAction &e) override {
-
-        std::string rootDir = assetLocal("presets");
-        systemCreateDirectory(rootDir);
-        std::string subDir = assetLocal("presets/Via SCANNER");
-        systemCreateDirectory(subDir);
-
-        float knob1Store = moduleWidget->params[Scanner::KNOB1_PARAM]->value;
-        float knob2Store = moduleWidget->params[Scanner::KNOB2_PARAM]->value;
-        float knob3Store = moduleWidget->params[Scanner::KNOB3_PARAM]->value;
-        float cv2AmtStore = moduleWidget->params[Scanner::CV2AMT_PARAM]->value;
-        float cv3AmtStore = moduleWidget->params[Scanner::CV3AMT_PARAM]->value;
-        float aStore = moduleWidget->params[Scanner::A_PARAM]->value;
-        float bStore = moduleWidget->params[Scanner::B_PARAM]->value;
-        float currentState = module->virtualModule.scannerUI.modeStateBuffer;
-        
-        moduleWidget->reset();
-        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset1;
-        moduleWidget->save("presets/Via SCANNER/1 (Slopes).vcvm");
-        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset2;
-        moduleWidget->save("presets/Via SCANNER/2 (Hills).vcvm");
-        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset3;
-        moduleWidget->save("presets/Via SCANNER/3 (Multiplying Mountains).vcvm");
-        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset4;
-        moduleWidget->save("presets/Via SCANNER/4 (Synthland).vcvm");
-        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset5;
-        moduleWidget->save("presets/Via SCANNER/5 (Staircases).vcvm");
-        module->virtualModule.scannerUI.modeStateBuffer = module->virtualModule.scannerUI.stockPreset6;
-        moduleWidget->save("presets/Via SCANNER/6 (Blockland).vcvm");
-
-        module->virtualModule.scannerUI.modeStateBuffer = currentState;
-
-        moduleWidget->params[Scanner::KNOB1_PARAM]->setValue(knob1Store);
-        moduleWidget->params[Scanner::KNOB2_PARAM]->setValue(knob2Store);
-        moduleWidget->params[Scanner::KNOB3_PARAM]->setValue(knob3Store);
-        moduleWidget->params[Scanner::CV2AMT_PARAM]->setValue(cv2AmtStore);
-        moduleWidget->params[Scanner::CV3AMT_PARAM]->setValue(cv3AmtStore);
-        moduleWidget->params[Scanner::A_PARAM]->setValue(aStore);
-        moduleWidget->params[Scanner::B_PARAM]->setValue(bStore);
-
-    }
-};
-
-
-
 struct ScannerWidget : ModuleWidget  {
 
     ScannerWidget(Scanner *module) : ModuleWidget(module) {
@@ -433,14 +391,44 @@ struct ScannerWidget : ModuleWidget  {
 
     void appendContextMenu(Menu *menu) override {
         Scanner *module = dynamic_cast<Scanner*>(this->module);
-        assert(module);
+
+        struct PresetRecallItem : MenuItem {
+            Scanner *module;
+            int preset;
+            void onAction(EventAction &e) override {
+                module->virtualModule.scannerUI.modeStateBuffer = preset;
+                module->virtualModule.scannerUI.loadFromEEPROM(0);
+                module->virtualModule.scannerUI.recallModuleState();
+            }
+        };
+
+        struct StockPresetItem : MenuItem {
+            Scanner *module;
+            Menu *createChildMenu() override {
+                Menu *menu = new Menu();
+                const std::string presetLabels[] = {
+                    "Slopes",
+                    "Physics World",
+                    "Multiplier Mountains",
+                    "Synthville",
+                    "Steppes",
+                    "Blockland",
+                };
+                for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
+                    PresetRecallItem *item = MenuItem::create<PresetRecallItem>(presetLabels[i]);
+                    item->module = module;
+                    item->preset = module->presetData[i];
+                    menu->addChild(item);
+                }
+                return menu;
+            }
+        };
 
         menu->addChild(MenuEntry::create());
-        ScannerRestorePresets *restorePresets = new ScannerRestorePresets();
-        restorePresets->text = "Restore presets";
-        restorePresets->module = module;
-        restorePresets->moduleWidget = this;
-        menu->addChild(restorePresets);
+        StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
+        stockPresets->module = module;
+        menu->addChild(stockPresets);
+
     }
     
 };

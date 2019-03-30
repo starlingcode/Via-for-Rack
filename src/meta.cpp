@@ -57,11 +57,19 @@ struct Meta : Module {
     
     Meta() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
         onSampleRateChange();
+        presetData[0] = virtualModule.metaUI.stockPreset1;
+        presetData[1] = virtualModule.metaUI.stockPreset2;
+        presetData[2] = virtualModule.metaUI.stockPreset3;
+        presetData[3] = virtualModule.metaUI.stockPreset4;
+        presetData[4] = virtualModule.metaUI.stockPreset5;
+        presetData[5] = virtualModule.metaUI.stockPreset6;
     }
 
     void step() override;
 
     ViaMeta virtualModule;
+
+    uint32_t presetData[6];
     
     SchmittTrigger mainLogic;
     SchmittTrigger auxLogic;
@@ -425,92 +433,79 @@ struct MetaWidget : ModuleWidget  {
 
     void appendContextMenu(Menu *menu) override {
         Meta *module = dynamic_cast<Meta*>(this->module);
-        assert(module);
-
-        struct MetaAux1ModeHandler : MenuItem {
-            Meta *module;
-            int32_t mode;
-            void onAction(EventAction &e) override {
-                module->virtualModule.metaUI.aux1Mode = mode;
-                module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
-                if ((module->virtualModule.metaUI.button3Mode | module->virtualModule.metaUI.button6Mode) == 0) {
-                    module->virtualModule.handleAux1ModeChange(mode);
-                }
-            }
-            void step() override {
-                rightText = (module->virtualModule.metaUI.aux1Mode  == mode) ? "✔" : "";
-                MenuItem::step();
-            }
-        };
 
         struct MetaAux2ModeHandler : MenuItem {
             Meta *module;
-            int32_t mode;
+            int32_t logicMode;
             void onAction(EventAction &e) override {
-                module->virtualModule.metaUI.aux2Mode = mode;
-                module->virtualModule.handleAux2ModeChange(mode);
+                module->virtualModule.metaUI.aux2Mode = logicMode;
+                module->virtualModule.handleAux2ModeChange(logicMode);
                 module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
 
             }
         };
 
+        menu->addChild(MenuEntry::create());
+        menu->addChild(MenuLabel::create("Logic out"));
+        const std::string logicLabels[] = {
+            "High during release",
+            "High during attack",
+        };
+        for (int i = 0; i < (int) LENGTHOF(logicLabels); i++) {
+            MetaAux2ModeHandler *aux2Item = MenuItem::create<MetaAux2ModeHandler>(logicLabels[i], CHECKMARK(module->virtualModule.metaUI.aux2Mode == i));
+            aux2Item->module = module;
+            aux2Item->logicMode = i;
+            menu->addChild(aux2Item);
+        }
+
         struct MetaAux4ModeHandler : MenuItem {
             Meta *module;
-            int32_t mode;
+            int32_t signalMode;
             void onAction(EventAction &e) override {
-                module->virtualModule.metaUI.aux4Mode = mode;
-                module->virtualModule.handleAux4ModeChange(mode);
+                module->virtualModule.metaUI.aux4Mode = signalMode;
+                module->virtualModule.handleAux4ModeChange(signalMode);
                 module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux4Mode, AUX_MODE4_MASK, AUX_MODE4_SHIFT);
-
             }
         };
 
-        struct MetaRestorePresets : MenuItem {
+        menu->addChild(MenuLabel::create("Signal out"));
+        const std::string signalLabels[] = {
+            "Triangle",
+            "Contour",
+        };
+        for (int i = 0; i < (int) LENGTHOF(signalLabels); i++) {
+            MetaAux4ModeHandler *aux4Item = MenuItem::create<MetaAux4ModeHandler>(signalLabels[i], CHECKMARK(module->virtualModule.metaUI.aux4Mode == i));
+            aux4Item->module = module;
+            aux4Item->signalMode = i;
+            menu->addChild(aux4Item);
+        }
+
+        struct MetaAux1ModeHandler : MenuItem {
             Meta *module;
-            ModuleWidget *moduleWidget;
-
-            int32_t mode;
+            int32_t drumMode;
             void onAction(EventAction &e) override {
-
-                std::string rootDir = assetLocal("presets");
-                systemCreateDirectory(rootDir);
-                std::string subDir = assetLocal("presets/Via META");
-                systemCreateDirectory(subDir);
-
-                float knob1Store = moduleWidget->params[Meta::KNOB1_PARAM]->value;
-                float knob2Store = moduleWidget->params[Meta::KNOB2_PARAM]->value;
-                float knob3Store = moduleWidget->params[Meta::KNOB3_PARAM]->value;
-                float cv2AmtStore = moduleWidget->params[Meta::CV2AMT_PARAM]->value;
-                float cv3AmtStore = moduleWidget->params[Meta::CV3AMT_PARAM]->value;
-                float aStore = moduleWidget->params[Meta::A_PARAM]->value;
-                float bStore = moduleWidget->params[Meta::B_PARAM]->value;
-
-
-                uint32_t currentState = module->virtualModule.metaUI.modeStateBuffer;
-                moduleWidget->reset();
-                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset1;
-                moduleWidget->save("presets/Via META/1 (Drum).vcvm");
-                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset2;
-                moduleWidget->save("presets/Via META/2 (Osc).vcvm");
-                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset3;
-                moduleWidget->save("presets/Via META/3 (Env).vcvm");
-                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset4;
-                moduleWidget->save("presets/Via META/4 (Looping AR).vcvm");
-                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset5;
-                moduleWidget->save("presets/Via META/5 (Sequence).vcvm");
-                module->virtualModule.metaUI.modeStateBuffer = module->virtualModule.metaUI.stockPreset6;
-                moduleWidget->save("presets/Via META/6 (Complex LFO).vcvm");
-
-                module->virtualModule.metaUI.modeStateBuffer = currentState;
-                moduleWidget->params[Meta::KNOB1_PARAM]->setValue(knob1Store);
-                moduleWidget->params[Meta::KNOB2_PARAM]->setValue(knob2Store);
-                moduleWidget->params[Meta::KNOB3_PARAM]->setValue(knob3Store);
-                moduleWidget->params[Meta::CV2AMT_PARAM]->setValue(cv2AmtStore);
-                moduleWidget->params[Meta::CV3AMT_PARAM]->setValue(cv3AmtStore);
-                moduleWidget->params[Meta::A_PARAM]->setValue(aStore);
-                moduleWidget->params[Meta::B_PARAM]->setValue(bStore);
+                module->virtualModule.metaUI.aux1Mode = drumMode;
+                module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux1Mode, AUX_MODE1_MASK, AUX_MODE1_SHIFT);
+                if ((module->virtualModule.metaUI.button3Mode | module->virtualModule.metaUI.button6Mode) == 0) {
+                    module->virtualModule.handleAux1ModeChange(drumMode);
+                }
             }
         };
+
+        menu->addChild(MenuLabel::create("Drum signal out"));
+        const std::string drumOutLabels[] = {
+            "Triangle",
+            "Contour",
+            "Envelope",
+            "Noise"
+        };
+        for (int i = 0; i < (int) LENGTHOF(drumOutLabels); i++) {
+            MetaAux1ModeHandler *aux1Item = MenuItem::create<MetaAux1ModeHandler>(drumOutLabels[i], CHECKMARK(module->virtualModule.metaUI.aux1Mode == i));
+            aux1Item->module = module;
+            aux1Item->drumMode = i;
+            menu->addChild(aux1Item);
+        }
+
 
         struct MetaTuneC4 : MenuItem {
             Meta *module;
@@ -532,36 +527,6 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
-
-        menu->addChild(MenuEntry::create());
-        menu->addChild(MenuLabel::create("Logic out"));
-        MetaAux2ModeHandler *aux2Item1 = MenuItem::create<MetaAux2ModeHandler>("High during release", CHECKMARK(module->virtualModule.metaUI.aux2Mode == 0));
-        aux2Item1->module = module;
-        aux2Item1->mode = 0;
-        menu->addChild(aux2Item1);
-        MetaAux2ModeHandler *aux2Item2 = MenuItem::create<MetaAux2ModeHandler>("High during attack", CHECKMARK(module->virtualModule.metaUI.aux2Mode == 1));
-        aux2Item2->module = module;
-        aux2Item2->mode = 1;
-        menu->addChild(aux2Item2);
-
-        menu->addChild(new MenuEntry());
-        menu->addChild(MenuLabel::create("Signal out"));
-        MetaAux4ModeHandler *aux4Item1 = MenuItem::create<MetaAux4ModeHandler>("Triangle", CHECKMARK(module->virtualModule.metaUI.aux4Mode == 0));
-        aux4Item1->module = module;
-        aux4Item1->mode = 0;
-        menu->addChild(aux4Item1);
-        MetaAux4ModeHandler *aux4Item2 = MenuItem::create<MetaAux4ModeHandler>("Contour", CHECKMARK(module->virtualModule.metaUI.aux4Mode == 1));
-        aux4Item2->module = module;
-        aux4Item2->mode = 1;
-        menu->addChild(aux4Item2);
-
-        menu->addChild(construct<MenuLabel>());
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Drum alt output"));
-        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Triangle", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 0));
-        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Contour", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 1));
-        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Envelope", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 2));
-        menu->addChild(construct<MetaAux1ModeHandler>(&MenuItem::text, "Noise", &MetaAux1ModeHandler::module, module, &MetaAux1ModeHandler::mode, 3));
-
         menu->addChild(MenuEntry::create());
         MetaTuneC4 *tuneC4 = new MetaTuneC4();
         tuneC4->text = "Tune to C4";
@@ -569,14 +534,44 @@ struct MetaWidget : ModuleWidget  {
         tuneC4->moduleWidget = this;
         menu->addChild(tuneC4);
 
-        menu->addChild(MenuEntry::create());
-        MetaRestorePresets *restorePresets = new MetaRestorePresets();
-        restorePresets->text = "Restore presets";
-        restorePresets->module = module;
-        restorePresets->moduleWidget = this;
-        menu->addChild(restorePresets);
+        struct PresetRecallItem : MenuItem {
+            Meta *module;
+            int preset;
+            void onAction(EventAction &e) override {
+                module->virtualModule.metaUI.modeStateBuffer = preset;
+                module->virtualModule.metaUI.loadFromEEPROM(0);
+                module->virtualModule.metaUI.recallModuleState();
+            }
+        };
 
-        }
+        struct StockPresetItem : MenuItem {
+            Meta *module;
+            Menu *createChildMenu() override {
+                Menu *menu = new Menu();
+                const std::string presetLabels[] = {
+                    "Drum",
+                    "Oscillator",
+                    "AR Envelope",
+                    "Looping AR",
+                    "Modulation Sequence",
+                    "Complex LFO",
+                };
+                for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
+                    PresetRecallItem *item = MenuItem::create<PresetRecallItem>(presetLabels[i]);
+                    item->module = module;
+                    item->preset = module->presetData[i];
+                    menu->addChild(item);
+                }
+                return menu;
+            }
+        };
+
+        menu->addChild(MenuEntry::create());
+        StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
+        stockPresets->module = module;
+        menu->addChild(stockPresets);
+
+    }
 
 };
 

@@ -57,11 +57,18 @@ struct Sync : Module {
     
     Sync() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
         onSampleRateChange();
-
+        presetData[0] = virtualModule.syncUI.stockPreset1;
+        presetData[1] = virtualModule.syncUI.stockPreset2;
+        presetData[2] = virtualModule.syncUI.stockPreset3;
+        presetData[3] = virtualModule.syncUI.stockPreset4;
+        presetData[4] = virtualModule.syncUI.stockPreset5;
+        presetData[5] = virtualModule.syncUI.stockPreset6;
     }
     void step() override;
 
     ViaSync virtualModule;
+
+    uint32_t presetData[6];
 
     SchmittTrigger mainLogic;
     SchmittTrigger auxLogic;
@@ -532,32 +539,57 @@ struct Sync_Widget : ModuleWidget  {
         menu->addChild(construct<SyncAux1ModeHandler>(&MenuItem::text, "Delta", &SyncAux1ModeHandler::module, module, &SyncAux1ModeHandler::mode, 1));
 
 
-        menu->addChild(construct<MenuLabel>());
         menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Alt output"));
         menu->addChild(construct<SyncAux2ModeHandler>(&MenuItem::text, "Triangle", &SyncAux2ModeHandler::module, module, &SyncAux2ModeHandler::mode, 0));
         menu->addChild(construct<SyncAux2ModeHandler>(&MenuItem::text, "Contour", &SyncAux2ModeHandler::module, module, &SyncAux2ModeHandler::mode, 1));
 
-        menu->addChild(construct<MenuLabel>());
         menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Quadrature"));
         menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "0 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 0));
         menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "90 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 1));
         menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "180 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 2));
         menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "270 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 3));
 
-
-
-        menu->addChild(construct<MenuLabel>());
         menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Table mode"));
         menu->addChild(construct<SyncAux4ModeHandler>(&MenuItem::text, "Group-specific", &SyncAux4ModeHandler::module, module, &SyncAux4ModeHandler::mode, 0));
         menu->addChild(construct<SyncAux4ModeHandler>(&MenuItem::text, "Global", &SyncAux4ModeHandler::module, module, &SyncAux4ModeHandler::mode, 1));
         
+        struct PresetRecallItem : MenuItem {
+            Sync *module;
+            int preset;
+            void onAction(EventAction &e) override {
+                module->virtualModule.syncUI.modeStateBuffer = preset;
+                module->virtualModule.syncUI.loadFromEEPROM(0);
+                module->virtualModule.syncUI.recallModuleState();
+            }
+        };
+
+        struct StockPresetItem : MenuItem {
+            Sync *module;
+            Menu *createChildMenu() override {
+                Menu *menu = new Menu();
+                const std::string presetLabels[] = {
+                    "Harmonic Osc",
+                    "Arpeggiated Osc",
+                    "Arpeggiated Osc BP",
+                    "V/oct Osc",
+                    "Sequence",
+                    "Tempo-Synced LFO",
+                };
+                for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
+                    PresetRecallItem *item = MenuItem::create<PresetRecallItem>(presetLabels[i]);
+                    item->module = module;
+                    item->preset = module->presetData[i];
+                    menu->addChild(item);
+                }
+                return menu;
+            }
+        };
 
         menu->addChild(MenuEntry::create());
-        SyncRestorePresets *restorePresets = new SyncRestorePresets();
-        restorePresets->text = "Restore presets";
-        restorePresets->module = module;
-        restorePresets->moduleWidget = this;
-        menu->addChild(restorePresets);
+        StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
+        stockPresets->module = module;
+        menu->addChild(stockPresets);
+        
 
         }
 
