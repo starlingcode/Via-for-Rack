@@ -314,66 +314,6 @@ void Gateseq::step() {
     
 }
 
-struct GateseqAux2ModeHandler : MenuItem {
-    Gateseq *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.gateseqUI.aux2Mode = mode;
-        module->virtualModule.gateseqUI.storeMode(module->virtualModule.gateseqUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
-        module->virtualModule.handleAux2ModeChange(mode);
-    }
-    void step() override {
-        rightText = (module->virtualModule.gateseqUI.aux2Mode == mode) ? "✔" : "";
-        MenuItem::step();
-    }
-};
-
-struct GateseqRestorePresets : MenuItem {
-    Gateseq *module;
-    ModuleWidget *moduleWidget;
-
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        std::string rootDir = assetLocal("presets");
-        systemCreateDirectory(rootDir);
-        std::string subDir = assetLocal("presets/Via GATESEQ");
-        systemCreateDirectory(subDir);
-
-        float knob1Store = moduleWidget->params[Gateseq::KNOB1_PARAM]->value;
-        float knob2Store = moduleWidget->params[Gateseq::KNOB2_PARAM]->value;
-        float knob3Store = moduleWidget->params[Gateseq::KNOB3_PARAM]->value;
-        float cv2AmtStore = moduleWidget->params[Gateseq::CV2AMT_PARAM]->value;
-        float cv3AmtStore = moduleWidget->params[Gateseq::CV3AMT_PARAM]->value;
-        float aStore = moduleWidget->params[Gateseq::A_PARAM]->value;
-        float bStore = moduleWidget->params[Gateseq::B_PARAM]->value;
-
-        uint32_t currentState = module->virtualModule.gateseqUI.modeStateBuffer;
-        moduleWidget->reset();
-        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset1;
-        moduleWidget->save("presets/Via GATESEQ/1 (Euclidean).vcvm");
-        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset2;
-        moduleWidget->save("presets/Via GATESEQ/2 (2vs3).vcvm");
-        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset3;
-        moduleWidget->save("presets/Via GATESEQ/3 (ShuffleSwing).vcvm");
-        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset4;
-        moduleWidget->save("presets/Via GATESEQ/4 (Multiplier).vcvm");
-        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset5;
-        moduleWidget->save("presets/Via GATESEQ/5 (Logic).vcvm");
-        module->virtualModule.gateseqUI.modeStateBuffer = module->virtualModule.gateseqUI.stockPreset6;
-        moduleWidget->save("presets/Via GATESEQ/6 (SH).vcvm");
-
-        module->virtualModule.gateseqUI.modeStateBuffer = currentState;
-        moduleWidget->params[Gateseq::KNOB1_PARAM]->setValue(knob1Store);
-        moduleWidget->params[Gateseq::KNOB2_PARAM]->setValue(knob2Store);
-        moduleWidget->params[Gateseq::KNOB3_PARAM]->setValue(knob3Store);
-        moduleWidget->params[Gateseq::CV2AMT_PARAM]->setValue(cv2AmtStore);
-        moduleWidget->params[Gateseq::CV3AMT_PARAM]->setValue(cv3AmtStore);
-        moduleWidget->params[Gateseq::A_PARAM]->setValue(aStore);
-        moduleWidget->params[Gateseq::B_PARAM]->setValue(bStore);
-
-    }
-};
-
 struct GateseqWidget : ModuleWidget  {
 
     GateseqWidget(Gateseq *module) : ModuleWidget(module) {
@@ -434,12 +374,30 @@ struct GateseqWidget : ModuleWidget  {
         Gateseq *module = dynamic_cast<Gateseq*>(this->module);
         assert(module);
 
-        menu->addChild(construct<MenuLabel>());
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Logic Mode"));
-        menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "And", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 0));
-        menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Or", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 1));
-        menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Xor", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 2));
-        menu->addChild(construct<GateseqAux2ModeHandler>(&MenuItem::text, "Nor", &GateseqAux2ModeHandler::module, module, &GateseqAux2ModeHandler::mode, 3));
+        struct GateseqAux2ModeHandler : MenuItem {
+            Gateseq *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.gateseqUI.aux2Mode = mode;
+                module->virtualModule.gateseqUI.storeMode(module->virtualModule.gateseqUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
+                module->virtualModule.handleAux2ModeChange(mode);
+            }
+        };
+
+        menu->addChild(MenuEntry::create());
+        menu->addChild(MenuLabel::create("Drum signal out"));
+        const std::string logicLabels[] = {
+            "And",
+            "Or",
+            "Xor",
+            "Nor"
+        };
+        for (int i = 0; i < (int) LENGTHOF(logicLabels); i++) {
+            GateseqAux2ModeHandler *aux2Item = MenuItem::create<GateseqAux2ModeHandler>(logicLabels[i], CHECKMARK(module->virtualModule.gateseqUI.aux2Mode == i));
+            aux2Item->module = module;
+            aux2Item->mode = i;
+            menu->addChild(aux2Item);
+        }
 
         struct PresetRecallItem : MenuItem {
             Gateseq *module;

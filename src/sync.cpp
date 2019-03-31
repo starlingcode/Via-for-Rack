@@ -366,111 +366,6 @@ void Sync::step() {
     
 }
 
-// TODO simulate button press on the UI
-
-struct SyncAux1ModeHandler : MenuItem {
-    Sync *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.syncUI.aux1Mode = mode;
-        module->virtualModule.handleAux1ModeChange(mode);
-        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux1Mode, AUX_MODE1_MASK, AUX_MODE1_SHIFT);
-    }
-    void step() override {
-        rightText = (module->virtualModule.syncUI.aux1Mode  == mode) ? "✔" : "";
-        MenuItem::step();
-    }
-};
-
-struct SyncAux2ModeHandler : MenuItem {
-    Sync *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.syncUI.aux2Mode = mode;
-        module->virtualModule.handleAux2ModeChange(mode);
-        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
-    }
-    void step() override {
-        rightText = (module->virtualModule.syncUI.aux2Mode  == mode) ? "✔" : "";
-        MenuItem::step();
-    }
-};
-
-struct SyncAux3ModeHandler : MenuItem {
-    Sync *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.syncUI.aux3Mode = mode;
-        module->virtualModule.handleAux3ModeChange(mode);
-        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
-    }
-    void step() override {
-        rightText = (module->virtualModule.syncUI.aux3Mode  == mode) ? "✔" : "";
-        MenuItem::step();
-    }
-};
-
-struct SyncAux4ModeHandler : MenuItem {
-    Sync *module;
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        module->virtualModule.syncUI.aux4Mode = mode;
-        module->virtualModule.handleAux4ModeChange(mode);
-        module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux4Mode, AUX_MODE4_MASK, AUX_MODE4_SHIFT);
-    }
-    void step() override {
-        rightText = (module->virtualModule.syncUI.aux4Mode  == mode) ? "✔" : "";
-        MenuItem::step();
-    }
-
-};
-
-struct SyncRestorePresets : MenuItem {
-    Sync *module;
-    ModuleWidget *moduleWidget;
-
-    int32_t mode;
-    void onAction(EventAction &e) override {
-        std::string rootDir = assetLocal("presets");
-        systemCreateDirectory(rootDir);
-        std::string subDir = assetLocal("presets/Via SYNC");
-        systemCreateDirectory(subDir);
-
-        float knob1Store = moduleWidget->params[Sync::KNOB1_PARAM]->value;
-        float knob2Store = moduleWidget->params[Sync::KNOB2_PARAM]->value;
-        float knob3Store = moduleWidget->params[Sync::KNOB3_PARAM]->value;
-        float cv2AmtStore = moduleWidget->params[Sync::CV2AMT_PARAM]->value;
-        float cv3AmtStore = moduleWidget->params[Sync::CV3AMT_PARAM]->value;
-        float aStore = moduleWidget->params[Sync::A_PARAM]->value;
-        float bStore = moduleWidget->params[Sync::B_PARAM]->value;
-
-        uint32_t currentState = module->virtualModule.syncUI.modeStateBuffer;
-        
-        moduleWidget->reset();
-        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset1;
-        moduleWidget->save("presets/Via SYNC/1 (Harmonic Osc).vcvm");
-        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset2;
-        moduleWidget->save("presets/Via SYNC/2 (Arpeggiated Osc).vcvm");
-        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset3;
-        moduleWidget->save("presets/Via SYNC/3 (Arpeggiated Osc BP).vcvm");
-        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset4;
-        moduleWidget->save("presets/Via SYNC/4 (Voct).vcvm");
-        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset5;
-        moduleWidget->save("presets/Via SYNC/5 (Sequence).vcvm");
-        module->virtualModule.syncUI.modeStateBuffer = module->virtualModule.syncUI.stockPreset6;
-        moduleWidget->save("presets/Via SYNC/6 (LFO).vcvm");
-        
-        module->virtualModule.syncUI.modeStateBuffer = currentState;
-        moduleWidget->params[Sync::KNOB1_PARAM]->setValue(knob1Store);
-        moduleWidget->params[Sync::KNOB2_PARAM]->setValue(knob2Store);
-        moduleWidget->params[Sync::KNOB3_PARAM]->setValue(knob3Store);
-        moduleWidget->params[Sync::CV2AMT_PARAM]->setValue(cv2AmtStore);
-        moduleWidget->params[Sync::CV3AMT_PARAM]->setValue(cv3AmtStore);
-        moduleWidget->params[Sync::A_PARAM]->setValue(aStore);
-        moduleWidget->params[Sync::B_PARAM]->setValue(bStore);
-
-    }
-};
 
 struct Sync_Widget : ModuleWidget  {
 
@@ -533,25 +428,113 @@ struct Sync_Widget : ModuleWidget  {
         Sync *module = dynamic_cast<Sync*>(this->module);
         assert(module);
 
-        menu->addChild(construct<MenuLabel>());
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Logic Out"));
-        menu->addChild(construct<SyncAux1ModeHandler>(&MenuItem::text, "High during attack", &SyncAux1ModeHandler::module, module, &SyncAux1ModeHandler::mode, 0));
-        menu->addChild(construct<SyncAux1ModeHandler>(&MenuItem::text, "Delta", &SyncAux1ModeHandler::module, module, &SyncAux1ModeHandler::mode, 1));
+        struct SyncAux1ModeHandler : MenuItem {
+            Sync *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.syncUI.aux1Mode = mode;
+                module->virtualModule.handleAux1ModeChange(mode);
+                module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux1Mode, AUX_MODE1_MASK, AUX_MODE1_SHIFT);
+            }
+            void step() override {
+                rightText = (module->virtualModule.syncUI.aux1Mode  == mode) ? "✔" : "";
+                MenuItem::step();
+            }
+        };
 
+        menu->addChild(MenuEntry::create());
+        menu->addChild(MenuLabel::create("Logic Out"));
+        const std::string logicLabels[] = {
+            "High during attack",
+            "Delta"
+        };
+        for (int i = 0; i < (int) LENGTHOF(logicLabels); i++) {
+            SyncAux1ModeHandler *aux1Item = MenuItem::create<SyncAux1ModeHandler>(logicLabels[i], CHECKMARK(module->virtualModule.syncUI.aux1Mode == i));
+            aux1Item->module = module;
+            aux1Item->mode = i;
+            menu->addChild(aux1Item);
+        }
 
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Alt output"));
-        menu->addChild(construct<SyncAux2ModeHandler>(&MenuItem::text, "Triangle", &SyncAux2ModeHandler::module, module, &SyncAux2ModeHandler::mode, 0));
-        menu->addChild(construct<SyncAux2ModeHandler>(&MenuItem::text, "Contour", &SyncAux2ModeHandler::module, module, &SyncAux2ModeHandler::mode, 1));
+        struct SyncAux2ModeHandler : MenuItem {
+            Sync *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.syncUI.aux2Mode = mode;
+                module->virtualModule.handleAux2ModeChange(mode);
+                module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
+            }
+            void step() override {
+                rightText = (module->virtualModule.syncUI.aux2Mode  == mode) ? "✔" : "";
+                MenuItem::step();
+            }
+        };
 
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Quadrature"));
-        menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "0 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 0));
-        menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "90 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 1));
-        menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "180 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 2));
-        menu->addChild(construct<SyncAux3ModeHandler>(&MenuItem::text, "270 degrees", &SyncAux3ModeHandler::module, module, &SyncAux3ModeHandler::mode, 3));
+        menu->addChild(MenuLabel::create("Signal Out"));
+        const std::string signalLabels[] = {
+            "Triangle",
+            "Contour"
+        };
+        for (int i = 0; i < (int) LENGTHOF(signalLabels); i++) {
+            SyncAux2ModeHandler *aux2Item = MenuItem::create<SyncAux2ModeHandler>(signalLabels[i], CHECKMARK(module->virtualModule.syncUI.aux2Mode == i));
+            aux2Item->module = module;
+            aux2Item->mode = i;
+            menu->addChild(aux2Item);
+        }
 
-        menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Table mode"));
-        menu->addChild(construct<SyncAux4ModeHandler>(&MenuItem::text, "Group-specific", &SyncAux4ModeHandler::module, module, &SyncAux4ModeHandler::mode, 0));
-        menu->addChild(construct<SyncAux4ModeHandler>(&MenuItem::text, "Global", &SyncAux4ModeHandler::module, module, &SyncAux4ModeHandler::mode, 1));
+        struct SyncAux3ModeHandler : MenuItem {
+            Sync *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.syncUI.aux3Mode = mode;
+                module->virtualModule.handleAux3ModeChange(mode);
+                module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
+            }
+            void step() override {
+                rightText = (module->virtualModule.syncUI.aux3Mode  == mode) ? "✔" : "";
+                MenuItem::step();
+            }
+        };
+
+        menu->addChild(MenuLabel::create("Quadrature"));
+        const std::string quadratureLabels[] = {
+            "0 degrees",
+            "90 degrees",
+            "180 degrees",
+            "270 degrees"
+        };
+        for (int i = 0; i < (int) LENGTHOF(quadratureLabels); i++) {
+            SyncAux3ModeHandler *aux3Item = MenuItem::create<SyncAux3ModeHandler>(quadratureLabels[i], CHECKMARK(module->virtualModule.syncUI.aux3Mode == i));
+            aux3Item->module = module;
+            aux3Item->mode = i;
+            menu->addChild(aux3Item);
+        }
+
+        struct SyncAux4ModeHandler : MenuItem {
+            Sync *module;
+            int32_t mode;
+            void onAction(EventAction &e) override {
+                module->virtualModule.syncUI.aux4Mode = mode;
+                module->virtualModule.handleAux4ModeChange(mode);
+                module->virtualModule.syncUI.storeMode(module->virtualModule.syncUI.aux4Mode, AUX_MODE4_MASK, AUX_MODE4_SHIFT);
+            }
+            void step() override {
+                rightText = (module->virtualModule.syncUI.aux4Mode  == mode) ? "✔" : "";
+                MenuItem::step();
+            }
+
+        };
+
+        menu->addChild(MenuLabel::create("Wave Options"));
+        const std::string auxLabels[] = {
+            "Group-specific",
+            "Aux"
+        };
+        for (int i = 0; i < (int) LENGTHOF(auxLabels); i++) {
+            SyncAux4ModeHandler *aux4Item = MenuItem::create<SyncAux4ModeHandler>(auxLabels[i], CHECKMARK(module->virtualModule.syncUI.aux4Mode == i));
+            aux4Item->module = module;
+            aux4Item->mode = i;
+            menu->addChild(aux4Item);
+        }
         
         struct PresetRecallItem : MenuItem {
             Sync *module;
@@ -589,9 +572,8 @@ struct Sync_Widget : ModuleWidget  {
         StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
         stockPresets->module = module;
         menu->addChild(stockPresets);
-        
 
-        }
+    }
 
 };
 
