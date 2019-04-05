@@ -233,9 +233,9 @@ void Scanner::step() {
             // trigger handling
             int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
             if (trigButton > lastTrigButton) {
-                virtualModule.mainRisingEdgeCallback();
+                virtualModule.buttonPressedCallback();
             } else if (trigButton < lastTrigButton) {
-                virtualModule.mainFallingEdgeCallback();
+                virtualModule.buttonReleasedCallback();
             } 
             lastTrigButton = trigButton;
         }
