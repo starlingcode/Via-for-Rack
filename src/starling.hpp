@@ -14,4 +14,5 @@ extern Model *modelMeta;
 extern Model *modelGateseq;
 extern Model *modelScanner;
 extern Model *modelSync;
+extern Model *modelAtsr;
 
