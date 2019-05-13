@@ -314,9 +314,9 @@ struct AtsrWidget : ModuleWidget  {
         addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Atsr::KNOB1_PARAM, 0, 4095.0, 2048.0));
         addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Atsr::KNOB2_PARAM, 0, 4095.0, 2048.0));
         addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Atsr::KNOB3_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Atsr::B_PARAM, -1.0, 1.0, 1.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Atsr::B_PARAM, -1.0, 1.0, 0.5));
         addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Atsr::CV2AMT_PARAM, 0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Atsr::A_PARAM, -5.0, 5.0, -5.0));
+        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Atsr::A_PARAM, -5.0, 5.0, 5.0));
         addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Atsr::CV3AMT_PARAM, 0, 1.0, 1.0));
         
         addParam(ParamWidget::create<SH_Button>(Vec(9 + .753, 85), module, Atsr::BUTTON1_PARAM, 0.0, 1.0, 0.0));
