@@ -96,17 +96,17 @@ struct Atsr : Module {
         float sampleRate = engineGetSampleRate();
 
         if (sampleRate == 44100.0) {
-
+            virtualModule.incScale = 71332;
         } else if (sampleRate == 48000.0) {
-
+            virtualModule.incScale = 65536;
         } else if (sampleRate == 88200.0) {
-
+            virtualModule.incScale = 35666;
         } else if (sampleRate == 96000.0) {
-
+            virtualModule.incScale = 32768;
         } else if (sampleRate == 176400.0) {
-
+            virtualModule.incScale = 17833;
         } else if (sampleRate == 192000.0) {
-
+            virtualModule.incScale = 16383;
         }
         
     }
@@ -152,7 +152,7 @@ struct Atsr : Module {
             ledAState = virtualLogicOut(ledAState, virtualModule.ledAOutput);
             ledBState = virtualLogicOut(ledBState, virtualModule.ledBOutput);
             lights[LED1_LIGHT].setBrightnessSmooth(ledAState, 2);
-            lights[LED3_LIGHT].setBrightnessSmooth(ledBState/4095.0, 2);
+            lights[LED3_LIGHT].setBrightnessSmooth(ledBState, 2);
         }
         ledCState = virtualLogicOut(ledCState, virtualModule.ledCOutput);
         ledDState = virtualLogicOut(ledDState, virtualModule.ledDOutput);
