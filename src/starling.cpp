@@ -22,6 +22,7 @@ void init(rack::Plugin *p) {
     p->addModel(modelScanner);
     p->addModel(modelSync);
     p->addModel(modelAtsr);
+    p->addModel(modelOsc3);
 
 	// Any other plugin initialization may go here.
 	// As an alternative, consider lazy-loading assets and lookup tables when your module is created to reduce startup times of Rack.
