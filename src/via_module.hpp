@@ -119,9 +119,9 @@ struct Via : Module {
         virtualIO->button6Input = (int32_t) params[BUTTON6_PARAM].value;
 
         // these have a janky array ordering to correspond with the DMA stream on the hardware
-        virtualIO->controls.controlRateInputs[2] = clamp((int32_t) params[KNOB1_PARAM].value, 1, 4095);
-        virtualIO->controls.controlRateInputs[3] = clamp((int32_t) params[KNOB2_PARAM].value, 1, 4095);
-        virtualIO->controls.controlRateInputs[1] = clamp((int32_t) params[KNOB3_PARAM].value, 1, 4095);
+        virtualIO->controls.controlRateInputs[2] = clamp((int32_t) params[KNOB1_PARAM].value, 0, 4095);
+        virtualIO->controls.controlRateInputs[3] = clamp((int32_t) params[KNOB2_PARAM].value, 0, 4095);
+        virtualIO->controls.controlRateInputs[1] = clamp((int32_t) params[KNOB3_PARAM].value, 0, 4095);
         // model the the 1v/oct input, scale 10.6666666 volts 12 bit adc range
         // it the gain scaling stage is inverting
         float cv1Conversion = -inputs[CV1_INPUT].value;
