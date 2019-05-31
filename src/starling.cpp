@@ -13,8 +13,8 @@ void init(rack::Plugin *p) {
 	// The ZIP package must only contain one folder, with the name equal to the plugin's slug.
 	p->slug = TOSTRING(SLUG);
 	p->version = TOSTRING(VERSION);
-	p->website = "https://github.com/liquidcitymotors/Via-for-VCVRack";
-	p->manual = "https://starling.space/via/rack";
+	p->website = "https://github.com/starlingcode/Via-for-Rack";
+	p->manual = "https://starling.space/via/rack#manual";
 
 	// For each module, specify the ModuleWidget subclass, manufacturer slug (for saving in patches), manufacturer human-readable name, module slug, and module name
     p->addModel(modelMeta);
