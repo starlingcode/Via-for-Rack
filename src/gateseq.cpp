@@ -236,7 +236,6 @@ struct GateseqWidget : ModuleWidget  {
 
 
 
-Model *modelGateseq = Model::create<Gateseq, GateseqWidget>(
-        "Starling", "GATESEQ", "GATESEQ", CLOCK_MODULATOR_TAG, LOGIC_TAG, SEQUENCER_TAG, DIGITAL_TAG);
+Model *modelGateseq = Model::create<Gateseq, GateseqWidget>("GATESEQ");
 
 

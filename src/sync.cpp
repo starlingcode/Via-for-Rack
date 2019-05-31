@@ -323,7 +323,6 @@ struct Sync_Widget : ModuleWidget  {
 };
 
 
-Model *modelSync = Model::create<Sync, Sync_Widget>(
-        "Starling", "SYNC", "SYNC", OSCILLATOR_TAG, CLOCK_MODULATOR_TAG, CLOCK_TAG, LFO_TAG, RING_MODULATOR_TAG, DIGITAL_TAG);
+Model *modelSync = Model::create<Sync, Sync_Widget>("SYNC");
 
 

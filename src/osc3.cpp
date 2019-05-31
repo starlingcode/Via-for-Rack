@@ -162,7 +162,6 @@ struct Osc3Widget : ModuleWidget  {
     
 };
 
-Model *modelOsc3 = Model::create<Osc3, Osc3Widget>(
-        "Starling", "OSC3", "OSC3", WAVESHAPER_TAG, DISTORTION_TAG, SAMPLE_AND_HOLD_TAG);
+Model *modelOsc3 = Model::create<Osc3, Osc3Widget>("OSC3");
 
 

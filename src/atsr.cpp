@@ -241,7 +241,6 @@ struct AtsrWidget : ModuleWidget  {
 
 
 
-Model *modelAtsr = Model::create<Atsr, AtsrWidget>(
-        "Starling", "ATSR", "ATSR", ENVELOPE_GENERATOR_TAG, FUNCTION_GENERATOR_TAG, LFO_TAG);
+Model *modelAtsr = Model::create<Atsr, AtsrWidget>("ATSR");
 
 

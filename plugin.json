@@ -1,0 +1,36 @@
+{
+  "slug": "Starling_Via",
+  "name": "Via",
+  "author": "Starling",
+  "license": "MIT",
+  "pluginUrl": "https://starling.space/via/rack",
+  "authorUrl": "https://starling.space",
+  "authorEmail": "admin@starling.space",
+  "manualUrl": "https://starling.space/via/rack#manual",
+  "sourceUrl": "https://github.com/starlingcode/Via-for-Rack.git",
+  "donateUrl": "https://paypal.me/ssttaarrlliinngg",
+  "repoVersion": "1.0.0",
+  "latestVersion": "1.0.0",
+    "modules": [
+    {
+      "slug": "META",
+      "name": "META",
+      "tags": ["Function Generator", "Drum", "Ring Modulator"]
+    },
+    {
+      "slug": "SYNC",
+      "name": "SYNC",
+      "tags": ["Oscillator"]
+    },
+    {
+      "slug": "SCANNER",
+      "name": "SCANNER",
+      "tags": ["Waveshaper"]
+    },
+    {
+      "slug": "GATESEQ",
+      "name": "GATESEQ",
+      "tags": ["Sequencer"]
+    }
+  ]
+}

@@ -326,6 +326,5 @@ struct MetaWidget : ModuleWidget  {
 };
 
 
-Model *modelMeta = Model::create<Meta, MetaWidget>(
-        "Starling", "META", "META", OSCILLATOR_TAG, FUNCTION_GENERATOR_TAG, ENVELOPE_GENERATOR_TAG, DRUM_TAG, SYNTH_VOICE_TAG, LFO_TAG, RING_MODULATOR_TAG, DIGITAL_TAG);
+Model *modelMeta = Model::create<Meta, MetaWidget>("META");
 

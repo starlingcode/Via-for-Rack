@@ -1,5 +1,3 @@
-SLUG = Starling_Via
-VERSION = 0.6.2
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS += \
@@ -32,7 +30,6 @@ SOURCES += $(wildcard Via/modules/scanner/*.cpp)
 SOURCES += $(wildcard Via/modules/sync/*.cpp)
 SOURCES += $(wildcard Via/modules/gateseq/*.cpp)
 SOURCES += $(wildcard Via/modules/atsr/*.cpp)
-SOURCES += $(wildcard Via/modules/osc3/*.cpp)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin is automatically added.

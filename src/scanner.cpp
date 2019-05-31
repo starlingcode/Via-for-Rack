@@ -195,7 +195,6 @@ struct ScannerWidget : ModuleWidget  {
     
 };
 
-Model *modelScanner = Model::create<Scanner, ScannerWidget>(
-        "Starling", "SCANNER", "SCANNER", WAVESHAPER_TAG, DISTORTION_TAG, SAMPLE_AND_HOLD_TAG);
+Model *modelScanner = Model::create<Scanner, ScannerWidget>("SCANNER");
 
 
