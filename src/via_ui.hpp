@@ -1,11 +1,11 @@
 #include "starling.hpp"
-#include "util/color.hpp"
+#include "color.hpp"
 
 // Modified light widget for the white LED
 
 struct WhiteLight : ModuleLightWidget {
     WhiteLight() {
-        addBaseColor(COLOR_WHITE);
+        addBaseColor(SCHEME_WHITE);
     }
 };
 
@@ -18,111 +18,79 @@ struct RGBTriangle : ModuleLightWidget {
         addBaseColor(nvgRGBAf(0.0, 0.0, 1.0, 1.0));
     }
     
-    void drawLight(NVGcontext *vg) override {
+    void drawLight(const DrawArgs &args) override {
         
-        nvgBeginPath(vg);
-        nvgMoveTo(vg, .5,-17.8);
-        nvgLineTo(vg, -12,9.6);
-        nvgLineTo(vg, 12.7,9.6);
-        nvgClosePath(vg);
+        nvgBeginPath(args.vg);
+        nvgMoveTo(args.vg, .5,-17.8);
+        nvgLineTo(args.vg, -12,9.6);
+        nvgLineTo(args.vg, 12.7,9.6);
+        nvgClosePath(args.vg);
         
         
         
         // Solid color
         
-        nvgFillColor(vg, color);
+        nvgFillColor(args.vg, color);
         nvgTransRGBAf(color, 1.0);
-        nvgFill(vg);
+        nvgFill(args.vg);
         
         // Border
-        nvgStrokeWidth(vg, 0.5);
-        nvgStrokeColor(vg, borderColor);
-        nvgStroke(vg);
-        nvgRotate(vg, (30.0/120.0)*NVG_PI*2);
+        nvgStrokeWidth(args.vg, 0.5);
+        nvgStrokeColor(args.vg, borderColor);
+        nvgStroke(args.vg);
+        nvgRotate(args.vg, (30.0/120.0)*NVG_PI*2);
     }
     
-    void drawHalo(NVGcontext *vg) override {
+    void drawHalo(const DrawArgs &args) override {
         float radius = 14;
         float oradius = radius + 13;
         
-        nvgBeginPath(vg);
-        nvgRect(vg, -25, -25, 50, 50);
+        nvgBeginPath(args.vg);
+        nvgRect(args.vg, -25, -25, 50, 50);
         
         NVGpaint paint;
-        NVGcolor icol = colorMult(color, 0.10);
+        NVGcolor icol = color::mult(color, 0.10);
         NVGcolor ocol = nvgRGB(0, 0, 0);
-        paint = nvgRadialGradient(vg, 0, 0, radius, oradius, icol, ocol);
-        nvgFillPaint(vg, paint);
-        nvgGlobalCompositeOperation(vg, NVG_LIGHTER);
-        nvgFill(vg);
+        paint = nvgRadialGradient(args.vg, 0, 0, radius, oradius, icol, ocol);
+        nvgFillPaint(args.vg, paint);
+        nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+        nvgFill(args.vg);
     }
 };
 
 
-struct ViaSifamBlack : Davies1900hKnob {
+struct ViaSifamBlack : RoundKnob {
     ViaSifamBlack() {
-        setSVG(SVG::load(assetPlugin(plugin, "res/knob_sifam_blkcap.svg")));
+        setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/knob_sifam_blkcap.svg")));
     }
 };
 
-struct ViaSifamGrey : Davies1900hKnob {
+struct ViaSifamGrey : RoundKnob {
     ViaSifamGrey() {
-        setSVG(SVG::load(assetPlugin(plugin, "res/knob_sifam_grycap.svg")));
+        setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/knob_sifam_grycap.svg")));
     }
 };
 
-struct ViaJack : PJ301MPort {
+struct ViaJack : SvgPort {
     ViaJack() {
-        setSVG(SVG::load(assetPlugin(plugin, "res/jack-nogradients.svg")));
+        setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/jack-nogradients.svg")));
     }
 };
 
 // Button skins for the manual trigger and touch sensors
 
-struct SH_Button : SVGSwitch, MomentarySwitch {
-    SH_Button() {
-        addFrame(SVG::load(assetPlugin(plugin, "res/transparent_button.svg")));
+struct TransparentButton : SvgSwitch {
+    TransparentButton() {
+        momentary = true;
+        shadow->opacity = 0.0;
+        addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/transparent_button.svg")));
     }
 };
 
-
-struct Trig_Button : SVGSwitch, MomentarySwitch {
-    Trig_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
-    }
-};
-
-
-struct Freq_Button : SVGSwitch, MomentarySwitch {
-    Freq_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
-    }
-};
-
-
-struct Loop_Button : SVGSwitch, MomentarySwitch {
-    Loop_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
-    }
-};
-
-
-struct Up_Button : SVGSwitch, MomentarySwitch {
-    Up_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
-    }
-};
-
-
-struct Down_Button : SVGSwitch, MomentarySwitch {
-    Down_Button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/transparent_button.svg")));
-    }
-};
-
-struct VIA_manual_button : SVGSwitch, MomentarySwitch {
-    VIA_manual_button() {
-        addFrame(SVG::load(assetPlugin(plugin,"res/manual_trig.svg")));
-        addFrame(SVG::load(assetPlugin(plugin,"res/manual_trig_down.svg")));
+struct ViaPushButton : SvgSwitch {
+    ViaPushButton() {
+        momentary = true;
+        addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/manual_trig.svg")));
+        addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/manual_trig_down.svg")));
     }
 };

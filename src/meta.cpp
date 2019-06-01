@@ -6,9 +6,75 @@
 
 struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     
+    enum ParamIds {
+        KNOB1_PARAM,
+        KNOB2_PARAM,
+        KNOB3_PARAM,
+        A_PARAM,
+        B_PARAM,
+        CV2AMT_PARAM,
+        CV3AMT_PARAM,
+        BUTTON1_PARAM,
+        BUTTON2_PARAM,
+        BUTTON3_PARAM,
+        BUTTON4_PARAM,
+        BUTTON5_PARAM,
+        BUTTON6_PARAM,
+        TRIGBUTTON_PARAM,
+        NUM_PARAMS
+    };
+    enum InputIds {
+        A_INPUT,
+        B_INPUT,
+        CV1_INPUT,
+        CV2_INPUT,
+        CV3_INPUT,
+        MAIN_LOGIC_INPUT,
+        AUX_LOGIC_INPUT,
+        NUM_INPUTS
+    };
+    enum OutputIds {
+        MAIN_OUTPUT,
+        LOGICA_OUTPUT,
+        AUX_DAC_OUTPUT,
+        AUX_LOGIC_OUTPUT,
+        NUM_OUTPUTS
+    };
+    enum LightIds {
+        LED1_LIGHT,
+        LED2_LIGHT,
+        LED3_LIGHT,
+        LED4_LIGHT,
+        OUTPUT_GREEN_LIGHT,
+        OUTPUT_RED_LIGHT,
+        RED_LIGHT,
+        GREEN_LIGHT,
+        BLUE_LIGHT,
+        PURPLE_LIGHT,
+        NUM_LIGHTS
+    };
+
     Meta() : Via() {
         
         virtualIO = &virtualModule;
+
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Label Me!");
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Label Me!");
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Label Me!");
+        configParam(B_PARAM, -1.0, 1.0, 0.5, "Label Me!");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        configParam(A_PARAM, -5.0, 5.0, 5.0, "Label Me!");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        
+        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
 
         onSampleRateChange();
         presetData[0] = virtualModule.metaUI.stockPreset1;
@@ -20,12 +86,12 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     
     }
 
-    void step() override;
+    void process(const ProcessArgs &args) override;
 
     ViaMeta virtualModule;
 
     void onSampleRateChange() override {
-        float sampleRate = engineGetSampleRate();
+        float sampleRate = APP->engine->getSampleRate();
 
         if (sampleRate == 44100.0) {
             divideAmount = 1;
@@ -55,7 +121,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         
     }
 
-    json_t *toJson() override {
+    json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
         
@@ -67,7 +133,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     int32_t testMode;
     
-    void fromJson(json_t *rootJ) override {
+    void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "meta_modes");
         virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
@@ -78,7 +144,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     
 };
 
-void Meta::step() {
+void Meta::process(const ProcessArgs &args) {
 
     clockDivider++;
 
@@ -93,15 +159,10 @@ void Meta::step() {
             virtualModule.slowConversionCallback();
             virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
             virtualModule.metaUI.incrementTimer();
-            // trigger handling
-            int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
-            if (trigButton > lastTrigButton) {
-                virtualModule.buttonPressedCallback();
-            } else if (trigButton < lastTrigButton) {
-                virtualModule.buttonReleasedCallback();
-            }
-            virtualModule.metaUI.trigButton = trigButton; 
-            lastTrigButton = trigButton;
+            
+            processTriggerButton();
+            updateLEDs();
+            
             virtualModule.blinkTimerCount += virtualModule.blinkTimerEnable;
             virtualModule.blankTimerCount += virtualModule.blankTimerEnable;
             if (virtualModule.blinkTimerCount > virtualModule.blinkTimerOverflow) {
@@ -115,6 +176,7 @@ void Meta::step() {
                 virtualModule.blankTimerEnable = 0;
                 virtualModule.auxTimer2InterruptCallback();
             }
+
         }
 
         updateAudioRate();
@@ -126,58 +188,55 @@ void Meta::step() {
 
 struct MetaWidget : ModuleWidget  {
 
-    MetaWidget(Meta *module) : ModuleWidget(module) {
+    MetaWidget(Meta *module) {
+
+        setModule(module);
 
     	box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
-    	{
-    		SVGPanel *panel = new SVGPanel();
-    		panel->box.size = box.size;
-    		panel->setBackground(SVG::load(assetPlugin(plugin, "res/meta.svg")));
-    		addChild(panel);
-    	}
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/meta.svg")));
 
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Meta::KNOB1_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Meta::KNOB2_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Meta::KNOB3_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Meta::B_PARAM, -1.0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Meta::CV2AMT_PARAM, 0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Meta::A_PARAM, -5.0, 5.0, -5.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Meta::CV3AMT_PARAM, 0, 1.0, 1.0));
+        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Meta::KNOB1_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Meta::KNOB2_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Meta::KNOB3_PARAM));
+        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Meta::B_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Meta::CV2AMT_PARAM));
+        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Meta::A_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Meta::CV3AMT_PARAM));
         
-        addParam(ParamWidget::create<SH_Button>(Vec(10.5 + .753, 80), module, Meta::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Up_Button>(Vec(47 + .753, 77.5), module, Meta::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Freq_Button>(Vec(85 + .753, 80), module, Meta::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Trig_Button>(Vec(10.5 + .753, 129), module, Meta::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Down_Button>(Vec(46 + .753, 131.5), module, Meta::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Loop_Button>(Vec(85 + .753, 129), module, Meta::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 80), module, Meta::BUTTON1_PARAM));
+        addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Meta::BUTTON2_PARAM));
+        addParam(createParam<TransparentButton>(Vec(85 + .753, 80), module, Meta::BUTTON3_PARAM));
+        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 129), module, Meta::BUTTON4_PARAM));
+        addParam(createParam<TransparentButton>(Vec(46 + .753, 131.5), module, Meta::BUTTON5_PARAM));
+        addParam(createParam<TransparentButton>(Vec(85 + .753, 129), module, Meta::BUTTON6_PARAM));
         
-        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Meta::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+        addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Meta::TRIGBUTTON_PARAM));
 
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Meta::A_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Meta::B_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Meta::MAIN_LOGIC_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Meta::CV1_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Meta::CV2_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Meta::CV3_INPUT));
-        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Meta::AUX_LOGIC_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Meta::A_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Meta::B_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Meta::MAIN_LOGIC_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Meta::CV1_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Meta::CV2_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Meta::CV3_INPUT));
+        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Meta::AUX_LOGIC_INPUT));
 
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Meta::LOGICA_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Meta::AUX_DAC_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Meta::MAIN_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Meta::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Meta::LOGICA_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Meta::AUX_DAC_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Meta::MAIN_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Meta::AUX_LOGIC_OUTPUT));
 
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Meta::LED1_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.1 + .753, 268.5), module, Meta::LED2_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Meta::LED3_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.1 + .753, 309.9), module, Meta::LED4_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Meta::OUTPUT_GREEN_LIGHT));
-        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Meta::RED_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Meta::LED1_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.1 + .753, 268.5), module, Meta::LED2_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Meta::LED3_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.1 + .753, 309.9), module, Meta::LED4_LIGHT));
+        addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Meta::OUTPUT_GREEN_LIGHT));
+        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Meta::RED_LIGHT));
 
         }
 
@@ -187,7 +246,7 @@ struct MetaWidget : ModuleWidget  {
         struct MetaAux2ModeHandler : MenuItem {
             Meta *module;
             int32_t logicMode;
-            void onAction(EventAction &e) override {
+            void onAction(const event::Action &e) override {
                 module->virtualModule.metaUI.aux2Mode = logicMode;
                 module->virtualModule.handleAux2ModeChange(logicMode);
                 module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux2Mode, AUX_MODE2_MASK, AUX_MODE2_SHIFT);
@@ -195,14 +254,14 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
-        menu->addChild(MenuEntry::create());
-        menu->addChild(MenuLabel::create("Logic out"));
+        menu->addChild(new MenuEntry);
+        menu->addChild(createMenuLabel("Logic out"));
         const std::string logicLabels[] = {
             "High during release",
             "High during attack",
         };
         for (int i = 0; i < (int) LENGTHOF(logicLabels); i++) {
-            MetaAux2ModeHandler *aux2Item = MenuItem::create<MetaAux2ModeHandler>(logicLabels[i], CHECKMARK(module->virtualModule.metaUI.aux2Mode == i));
+            MetaAux2ModeHandler *aux2Item = createMenuItem<MetaAux2ModeHandler>(logicLabels[i], CHECKMARK(module->virtualModule.metaUI.aux2Mode == i));
             aux2Item->module = module;
             aux2Item->logicMode = i;
             menu->addChild(aux2Item);
@@ -211,20 +270,20 @@ struct MetaWidget : ModuleWidget  {
         struct MetaAux4ModeHandler : MenuItem {
             Meta *module;
             int32_t signalMode;
-            void onAction(EventAction &e) override {
+            void onAction(const event::Action &e) override {
                 module->virtualModule.metaUI.aux4Mode = signalMode;
                 module->virtualModule.handleAux4ModeChange(signalMode);
                 module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux4Mode, AUX_MODE4_MASK, AUX_MODE4_SHIFT);
             }
         };
 
-        menu->addChild(MenuLabel::create("Signal out"));
+        menu->addChild(createMenuLabel("Signal out"));
         const std::string signalLabels[] = {
             "Triangle",
             "Contour",
         };
         for (int i = 0; i < (int) LENGTHOF(signalLabels); i++) {
-            MetaAux4ModeHandler *aux4Item = MenuItem::create<MetaAux4ModeHandler>(signalLabels[i], CHECKMARK(module->virtualModule.metaUI.aux4Mode == i));
+            MetaAux4ModeHandler *aux4Item = createMenuItem<MetaAux4ModeHandler>(signalLabels[i], CHECKMARK(module->virtualModule.metaUI.aux4Mode == i));
             aux4Item->module = module;
             aux4Item->signalMode = i;
             menu->addChild(aux4Item);
@@ -233,7 +292,7 @@ struct MetaWidget : ModuleWidget  {
         struct MetaAux1ModeHandler : MenuItem {
             Meta *module;
             int32_t drumMode;
-            void onAction(EventAction &e) override {
+            void onAction(const event::Action &e) override {
                 module->virtualModule.metaUI.aux1Mode = drumMode;
                 module->virtualModule.metaUI.storeMode(module->virtualModule.metaUI.aux1Mode, AUX_MODE1_MASK, AUX_MODE1_SHIFT);
                 if ((module->virtualModule.metaUI.button3Mode | module->virtualModule.metaUI.button6Mode) == 0) {
@@ -242,7 +301,7 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
-        menu->addChild(MenuLabel::create("Drum signal out"));
+        menu->addChild(createMenuLabel("Drum signal out"));
         const std::string drumOutLabels[] = {
             "Triangle",
             "Contour",
@@ -250,7 +309,7 @@ struct MetaWidget : ModuleWidget  {
             "Noise"
         };
         for (int i = 0; i < (int) LENGTHOF(drumOutLabels); i++) {
-            MetaAux1ModeHandler *aux1Item = MenuItem::create<MetaAux1ModeHandler>(drumOutLabels[i], CHECKMARK(module->virtualModule.metaUI.aux1Mode == i));
+            MetaAux1ModeHandler *aux1Item = createMenuItem<MetaAux1ModeHandler>(drumOutLabels[i], CHECKMARK(module->virtualModule.metaUI.aux1Mode == i));
             aux1Item->module = module;
             aux1Item->drumMode = i;
             menu->addChild(aux1Item);
@@ -262,22 +321,22 @@ struct MetaWidget : ModuleWidget  {
             ModuleWidget *moduleWidget;
 
             int32_t mode;
-            void onAction(EventAction &e) override {
+            void onAction(const event::Action &e) override {
 
                 int32_t audioOsc = !(module->virtualModule.metaUI.button3Mode) && module->virtualModule.metaUI.button6Mode;
                 int32_t drumVoice = !(module->virtualModule.metaUI.button3Mode) && !(module->virtualModule.metaUI.button6Mode);
 
                 if (audioOsc) {
-                    moduleWidget->params[Meta::KNOB1_PARAM]->setValue(2048.f);
-                    moduleWidget->params[Meta::KNOB2_PARAM]->setValue(0.f);
+                    moduleWidget->params[Meta::KNOB1_PARAM]->paramQuantity->setValue(2048.f);
+                    moduleWidget->params[Meta::KNOB2_PARAM]->paramQuantity->setValue(0.f);
                 } else if (drumVoice) {
-                    moduleWidget->params[Meta::KNOB1_PARAM]->setValue(4095.f);
+                    moduleWidget->params[Meta::KNOB1_PARAM]->paramQuantity->setValue(4095.f);
                 }
 
             }
         };
 
-        menu->addChild(MenuEntry::create());
+        menu->addChild(new MenuEntry);
         MetaTuneC4 *tuneC4 = new MetaTuneC4();
         tuneC4->text = "Tune to C4";
         tuneC4->module = module;
@@ -287,7 +346,7 @@ struct MetaWidget : ModuleWidget  {
         struct PresetRecallItem : MenuItem {
             Meta *module;
             int preset;
-            void onAction(EventAction &e) override {
+            void onAction(const event::Action &e) override {
                 module->virtualModule.metaUI.modeStateBuffer = preset;
                 module->virtualModule.metaUI.loadFromEEPROM(0);
                 module->virtualModule.metaUI.recallModuleState();
@@ -307,7 +366,7 @@ struct MetaWidget : ModuleWidget  {
                     "Complex LFO",
                 };
                 for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
-                    PresetRecallItem *item = MenuItem::create<PresetRecallItem>(presetLabels[i]);
+                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i]);
                     item->module = module;
                     item->preset = module->presetData[i];
                     menu->addChild(item);
@@ -316,8 +375,8 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
-        menu->addChild(MenuEntry::create());
-        StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
+        menu->addChild(new MenuEntry);
+        StockPresetItem *stockPresets = createMenuItem<StockPresetItem>("Stock presets");
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
@@ -326,5 +385,5 @@ struct MetaWidget : ModuleWidget  {
 };
 
 
-Model *modelMeta = Model::create<Meta, MetaWidget>("META");
+Model *modelMeta = createModel<Meta, MetaWidget>("META");
 

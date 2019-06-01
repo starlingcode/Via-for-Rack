@@ -10,6 +10,24 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
         virtualIO = &virtualModule;
 
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Label Me!");
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Label Me!");
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Label Me!");
+        configParam(B_PARAM, -1.0, 1.0, 0.5, "Label Me!");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        configParam(A_PARAM, -5.0, 5.0, 5.0, "Label Me!");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        
+        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
+
         onSampleRateChange();
         presetData[0] = virtualModule.scannerUI.stockPreset1;
         presetData[1] = virtualModule.scannerUI.stockPreset2;
@@ -23,7 +41,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     ViaScanner virtualModule;
 
     void onSampleRateChange() override {
-        float sampleRate = engineGetSampleRate();
+        float sampleRate = APP->engine->getSampleRate();
 
         if (sampleRate == 44100.0) {
             divideAmount = 1;
@@ -41,7 +59,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         
     }
 
-    json_t *toJson() override {
+    json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
 
@@ -50,7 +68,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         return rootJ;
     }
     
-    void fromJson(json_t *rootJ) override {
+    void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "scanner_modes");
         virtualModule.scannerUI.modeStateBuffer = json_integer_value(modesJ);
@@ -77,14 +95,8 @@ void Scanner::step() {
             virtualModule.slowConversionCallback();
             virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
             virtualModule.scannerUI.incrementTimer();
-            // trigger handling
-            int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
-            if (trigButton > lastTrigButton) {
-                virtualModule.buttonPressedCallback();
-            } else if (trigButton < lastTrigButton) {
-                virtualModule.buttonReleasedCallback();
-            } 
-            lastTrigButton = trigButton;
+            processTriggerButton();
+            updateLEDs();
         }
 
         updateAudioRate();
@@ -95,59 +107,57 @@ void Scanner::step() {
 
 struct ScannerWidget : ModuleWidget  {
 
-    ScannerWidget(Scanner *module) : ModuleWidget(module) {
+    ScannerWidget(Scanner *module) {
 
 	box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
-	{
-		SVGPanel *panel = new SVGPanel();
-		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/scanner.svg")));
-		addChild(panel);
-	}
+        setModule(module);
 
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/scanner.svg")));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Scanner::KNOB1_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Scanner::KNOB2_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Scanner::KNOB3_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Scanner::B_PARAM, -1.0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM, 0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM, -5.0, 5.0, -5.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM, 0, 1.0, 1.0));
+
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Scanner::KNOB1_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Scanner::KNOB2_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Scanner::KNOB3_PARAM));
+        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Scanner::B_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM));
+        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM));
         
-        addParam(ParamWidget::create<SH_Button>(Vec(21 + .753, 105), module, Scanner::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Up_Button>(Vec(47 + .753, 77.5), module, Scanner::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Freq_Button>(Vec(75 + .753, 105), module, Scanner::BUTTON6_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Trig_Button>(Vec(7 + .753, 142), module, Scanner::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Down_Button>(Vec(47 + .753, 131.5), module, Scanner::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Loop_Button>(Vec(89 + .753, 142), module, Scanner::BUTTON3_PARAM, 0.0, 1.0, 0.0));
+        addParam(createParam<TransparentButton>(Vec(21 + .753, 105), module, Scanner::BUTTON4_PARAM));
+        addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Scanner::BUTTON2_PARAM));
+        addParam(createParam<TransparentButton>(Vec(75 + .753, 105), module, Scanner::BUTTON6_PARAM));
+        addParam(createParam<TransparentButton>(Vec(7 + .753, 142), module, Scanner::BUTTON1_PARAM));
+        addParam(createParam<TransparentButton>(Vec(47 + .753, 131.5), module, Scanner::BUTTON5_PARAM));
+        addParam(createParam<TransparentButton>(Vec(89 + .753, 142), module, Scanner::BUTTON3_PARAM));
         
-        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Scanner::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+        addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Scanner::TRIGBUTTON_PARAM));
 
 
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Scanner::A_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Scanner::B_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Scanner::MAIN_LOGIC_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Scanner::CV1_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Scanner::CV2_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Scanner::CV3_INPUT));
-        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Scanner::AUX_LOGIC_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Scanner::A_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Scanner::B_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Scanner::MAIN_LOGIC_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Scanner::CV1_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Scanner::CV2_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Scanner::CV3_INPUT));
+        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Scanner::AUX_LOGIC_INPUT));
 
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Scanner::LOGICA_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Scanner::AUX_DAC_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Scanner::MAIN_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Scanner::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Scanner::LOGICA_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Scanner::AUX_DAC_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Scanner::MAIN_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Scanner::AUX_LOGIC_OUTPUT));
 
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Scanner::LED1_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Scanner::LED2_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Scanner::LED3_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Scanner::LED4_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Scanner::OUTPUT_GREEN_LIGHT));
-        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Scanner::RED_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Scanner::LED1_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Scanner::LED2_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Scanner::LED3_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Scanner::LED4_LIGHT));
+        addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Scanner::OUTPUT_GREEN_LIGHT));
+        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Scanner::RED_LIGHT));
 
     };
 
@@ -157,7 +167,7 @@ struct ScannerWidget : ModuleWidget  {
         struct PresetRecallItem : MenuItem {
             Scanner *module;
             int preset;
-            void onAction(EventAction &e) override {
+            void onAction(const event::Action &e) override {
                 module->virtualModule.scannerUI.modeStateBuffer = preset;
                 module->virtualModule.scannerUI.loadFromEEPROM(0);
                 module->virtualModule.scannerUI.recallModuleState();
@@ -177,7 +187,7 @@ struct ScannerWidget : ModuleWidget  {
                     "Blockland",
                 };
                 for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
-                    PresetRecallItem *item = MenuItem::create<PresetRecallItem>(presetLabels[i]);
+                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i]);
                     item->module = module;
                     item->preset = module->presetData[i];
                     menu->addChild(item);
@@ -186,8 +196,8 @@ struct ScannerWidget : ModuleWidget  {
             }
         };
 
-        menu->addChild(MenuEntry::create());
-        StockPresetItem *stockPresets = MenuItem::create<StockPresetItem>("Stock presets");
+        menu->addChild(new MenuEntry);
+        StockPresetItem *stockPresets = createMenuItem<StockPresetItem>("Stock presets");
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
@@ -195,6 +205,6 @@ struct ScannerWidget : ModuleWidget  {
     
 };
 
-Model *modelScanner = Model::create<Scanner, ScannerWidget>("SCANNER");
+Model *modelScanner = createModel<Scanner, ScannerWidget>("SCANNER");
 
 

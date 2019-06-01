@@ -8,16 +8,34 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
     
     Atsr() : Via() {
 
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+
         virtualIO = &virtualModule;
+
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time");
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time");
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time");
+        configParam(B_PARAM, -1.0, 1.0, 0.5, "Sustain level scale");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Transition time CV amount");
+        configParam(A_PARAM, -5.0, 5.0, 5.0, "Attack level normal");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Release time CV amount");
+        
+        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Attack shape");
+        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Transition shape");
+        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Segment gate select");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Toggle A time CV attack or all");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Toggle Level CV sample and hold");
+        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Release shape");
+        
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual gate");
 
         onSampleRateChange();
     }
-    void step() override;
 
     ViaAtsr virtualModule;
 
     void onSampleRateChange() override {
-        float sampleRate = engineGetSampleRate();
+        float sampleRate = APP->engine->getSampleRate();
 
         if (sampleRate == 44100.0) {
             virtualModule.incScale = 71332;
@@ -41,32 +59,32 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         // but its woven pretty deep so is a nagging style thing to fix
 
         if (virtualModule.runtimeDisplay & !virtualModule.shOn) {
-            lights[LED1_LIGHT].setBrightnessSmooth(virtualModule.blueLevelWrite/4095.0, 2);
-            lights[LED3_LIGHT].setBrightnessSmooth(virtualModule.redLevelWrite/4095.0, 2);
+            lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, 1);
+            lights[LED3_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, 1);
         } else {
             ledAState = virtualLogicOut(ledAState, virtualModule.ledAOutput);
             ledBState = virtualLogicOut(ledBState, virtualModule.ledBOutput);
-            lights[LED1_LIGHT].setBrightnessSmooth(ledAState, 2);
-            lights[LED3_LIGHT].setBrightnessSmooth(ledBState, 2);
+            lights[LED1_LIGHT].setSmoothBrightness(ledAState, 1);
+            lights[LED3_LIGHT].setSmoothBrightness(ledBState, 1);
         }
         ledCState = virtualLogicOut(ledCState, virtualModule.ledCOutput);
         ledDState = virtualLogicOut(ledDState, virtualModule.ledDOutput);
 
 
-        lights[LED2_LIGHT].setBrightnessSmooth(ledCState, 2);
-        lights[LED4_LIGHT].setBrightnessSmooth(ledDState, 2);
+        lights[LED2_LIGHT].setSmoothBrightness(ledCState, 1);
+        lights[LED4_LIGHT].setSmoothBrightness(ledDState, 1);
 
-        lights[RED_LIGHT].setBrightnessSmooth(virtualModule.redLevelWrite/4095.0, 2);
-        lights[GREEN_LIGHT].setBrightnessSmooth(virtualModule.greenLevelWrite/4095.0, 2);
-        lights[BLUE_LIGHT].setBrightnessSmooth(virtualModule.blueLevelWrite/4095.0, 2);
+        lights[RED_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, 1);
+        lights[GREEN_LIGHT].setSmoothBrightness(virtualModule.greenLevelWrite/4095.0, 1);
+        lights[BLUE_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, 1);
 
         float output = outputs[MAIN_OUTPUT].value/8.0;
-        lights[OUTPUT_RED_LIGHT].setBrightnessSmooth(clamp(-output, 0.0, 1.0));
-        lights[OUTPUT_GREEN_LIGHT].setBrightnessSmooth(clamp(output, 0.0, 1.0));
+        lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), 1);
+        lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), 1);
 
     }
 
-    json_t *toJson() override {
+    json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
 
@@ -76,7 +94,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         return rootJ;
     }
     
-    void fromJson(json_t *rootJ) override {
+    void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "atsr_modes");
         virtualModule.atsrUI.modeStateBuffer = json_integer_value(modesJ);
@@ -85,10 +103,12 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
 
     }
+
+    void process(const ProcessArgs &args) override;
     
 };
 
-void Atsr::step() {
+void Atsr::process(const ProcessArgs &args) {
 
     // update the "slow IO" (not audio rate) every 16 samples
     // needs to scale with sample rate somehow
@@ -99,60 +119,24 @@ void Atsr::step() {
         virtualModule.slowConversionCallback();
         virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
         virtualModule.atsrUI.incrementTimer();
-        // trigger handling
-        int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].value, 0, 1);
-        if (trigButton > lastTrigButton) {
-            virtualModule.buttonPressedCallback();
-        } else if (trigButton < lastTrigButton) {
-            virtualModule.buttonReleasedCallback();
-        } 
-        lastTrigButton = trigButton;
+        processTriggerButton();
+        updateLEDs();
     }
 
+    acquireCVs();
 
-    // manage audio rate dacs and adcs
+    processLogicInputs();
 
-    // scale -5 - 5 V to -1 to 1 and then convert to 16 bit int;
-    float cv2Scale = (32767.0 * clamp(-inputs[CV2_INPUT].value/5, -1.0, 1.0)) * params[CV2AMT_PARAM].value;
-    float cv3Scale = (32767.0 * clamp(-inputs[CV3_INPUT].value/5, -1.0, 1.0)) * params[CV3AMT_PARAM].value;
-    int16_t cv2Conversion = (int16_t) cv2Scale;
-    int16_t cv3Conversion = (int16_t) cv3Scale;
-
-    // no ADC buffer for now..
-    virtualModule.inputs.cv2Samples[0] = cv2Conversion;
-    virtualModule.inputs.cv3Samples[0] = cv3Conversion;
-
-    // trigger handling
-
-    mainLogic.process(rescale(inputs[MAIN_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
-    bool trigState = mainLogic.isHigh();
-    if (trigState && !lastTrigState) {
-        virtualModule.mainRisingEdgeCallback();
-    } else if (!trigState && lastTrigState) {
-        virtualModule.mainFallingEdgeCallback();
-    }
-    lastTrigState = trigState; 
-
-    auxLogic.process(rescale(inputs[AUX_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
-    bool auxTrigState = auxLogic.isHigh();
-    if (auxTrigState && !lastAuxTrigState) {
-        virtualModule.auxRisingEdgeCallback();
-    } else if (!auxTrigState && lastAuxTrigState) {
-        virtualModule.auxFallingEdgeCallback();
-    }
-    lastAuxTrigState = auxTrigState; 
-
-    // buffer length of 1 ..
+    virtualModule.halfTransferCallback();
     float dac1Sample = (float) virtualModule.outputs.dac1Samples[0];
     float dac2Sample = (float) virtualModule.outputs.dac2Samples[0];
     float dac3Sample = (float) virtualModule.outputs.dac3Samples[0];
     updateLogicOutputs();
-    virtualModule.halfTransferCallback();
 
     // "model" the circuit
     // A and B inputs with normalled reference voltages
-    float aIn = inputs[A_INPUT].value + (!inputs[A_INPUT].active) * params[A_PARAM].value;
-    float bIn = (inputs[B_INPUT].active) * ((inputs[B_INPUT].value) * (params[B_PARAM].value)) + (!inputs[B_INPUT].active) * (5* (params[B_PARAM].value));
+    float aIn = inputs[A_INPUT].getVoltage() + (!inputs[A_INPUT].isConnected()) * params[A_PARAM].getValue();
+    float bIn = (inputs[B_INPUT].isConnected()) * ((inputs[B_INPUT].getVoltage()) * (params[B_PARAM].getValue())) + (!inputs[B_INPUT].isConnected()) * (5* (params[B_PARAM].getValue()));
     
     // sample and holds
     // get a new sample on the rising edge at the sh control output
@@ -172,68 +156,64 @@ void Atsr::step() {
 
     // VCA/mixing stage
     // normalize 12 bits to 0-1
-    outputs[MAIN_OUTPUT].value = bIn*(dac2Sample/32767.0) + aIn*(dac1Sample/32767.0); 
-    outputs[AUX_DAC_OUTPUT].value = (dac3Sample/4095.0 - .5) * -10.666666666;
-    outputs[LOGICA_OUTPUT].value = logicAState * 5.0;
-    outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
-
-    updateLEDs();
+    outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/32767.0) + aIn*(dac1Sample/32767.0)); 
+    outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
+    outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
+    outputs[AUX_LOGIC_OUTPUT].setVoltage(auxLogicState * 5.0);
     
 }
 
 struct AtsrWidget : ModuleWidget  {
 
-    AtsrWidget(Atsr *module) : ModuleWidget(module) {
+    AtsrWidget(Atsr *module) {
+
+        setModule(module);
 
         box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
-        {
-            SVGPanel *panel = new SVGPanel();
-            panel->box.size = box.size;
-            panel->setBackground(SVG::load(assetPlugin(plugin, "res/atsr.svg")));
-            addChild(panel);
-        }
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/atsr.svg")));
 
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Atsr::KNOB1_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Atsr::KNOB2_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Atsr::KNOB3_PARAM, 0, 4095.0, 2048.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Atsr::B_PARAM, -1.0, 1.0, 0.5));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Atsr::CV2AMT_PARAM, 0, 1.0, 1.0));
-        addParam(ParamWidget::create<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Atsr::A_PARAM, -5.0, 5.0, 5.0));
-        addParam(ParamWidget::create<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Atsr::CV3AMT_PARAM, 0, 1.0, 1.0));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Atsr::KNOB1_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Atsr::KNOB2_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Atsr::KNOB3_PARAM));
+        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Atsr::B_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Atsr::CV2AMT_PARAM));
+        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Atsr::A_PARAM));
+        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Atsr::CV3AMT_PARAM));
         
-        addParam(ParamWidget::create<SH_Button>(Vec(9 + .753, 85), module, Atsr::BUTTON1_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Up_Button>(Vec(48 + .753, 75), module, Atsr::BUTTON2_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Freq_Button>(Vec(87 + .753, 86), module, Atsr::BUTTON3_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Trig_Button>(Vec(7 + .753, 132), module, Atsr::BUTTON4_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Down_Button>(Vec(48 + .753, 142), module, Atsr::BUTTON5_PARAM, 0.0, 1.0, 0.0));
-        addParam(ParamWidget::create<Loop_Button>(Vec(88 + .753, 135), module, Atsr::BUTTON6_PARAM, 0.0, 1.0, 0.0));
+        addParam(createParam<TransparentButton>(Vec(9 + .753, 85), module, Atsr::BUTTON1_PARAM));
+        addParam(createParam<TransparentButton>(Vec(48 + .753, 75), module, Atsr::BUTTON2_PARAM));
+        addParam(createParam<TransparentButton>(Vec(87 + .753, 86), module, Atsr::BUTTON3_PARAM));
+        addParam(createParam<TransparentButton>(Vec(7 + .753, 132), module, Atsr::BUTTON4_PARAM));
+        addParam(createParam<TransparentButton>(Vec(48 + .753, 142), module, Atsr::BUTTON5_PARAM));
+        addParam(createParam<TransparentButton>(Vec(88 + .753, 135), module, Atsr::BUTTON6_PARAM));
         
-        addParam(ParamWidget::create<VIA_manual_button>(Vec(132.7 + .753, 320), module, Atsr::TRIGBUTTON_PARAM, 0.0, 5.0, 0.0));
+        addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Atsr::TRIGBUTTON_PARAM));
 
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 241.12), Port::INPUT, module, Atsr::A_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 282.62), Port::INPUT, module, Atsr::B_INPUT));
-        addInput(Port::create<ViaJack>(Vec(8.07 + 1.053, 324.02), Port::INPUT, module, Atsr::MAIN_LOGIC_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 241.12), Port::INPUT, module, Atsr::CV1_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 282.62), Port::INPUT, module, Atsr::CV2_INPUT));
-        addInput(Port::create<ViaJack>(Vec(45.75 + 1.053, 324.02), Port::INPUT, module, Atsr::CV3_INPUT));
-        addInput(Port::create<ViaJack>(Vec(135 + 1.053, 282.62), Port::INPUT, module, Atsr::AUX_LOGIC_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Atsr::A_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Atsr::B_INPUT));
+        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Atsr::MAIN_LOGIC_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Atsr::CV1_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Atsr::CV2_INPUT));
+        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Atsr::CV3_INPUT));
+        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Atsr::AUX_LOGIC_INPUT));
 
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 241.12), Port::OUTPUT, module, Atsr::LOGICA_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 282.62), Port::OUTPUT, module, Atsr::AUX_DAC_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(83.68 + 1.053, 324.02), Port::OUTPUT, module, Atsr::MAIN_OUTPUT));
-        addOutput(Port::create<ViaJack>(Vec(135 + 1.053, 241.12), Port::OUTPUT, module, Atsr::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Atsr::LOGICA_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Atsr::AUX_DAC_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Atsr::MAIN_OUTPUT));
+        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Atsr::AUX_LOGIC_OUTPUT));
 
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Atsr::LED1_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Atsr::LED2_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Atsr::LED3_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Atsr::LED4_LIGHT));
-        addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Atsr::OUTPUT_GREEN_LIGHT));
-        addChild(ModuleLightWidget::create<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Atsr::RED_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Atsr::LED1_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Atsr::LED2_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Atsr::LED3_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Atsr::LED4_LIGHT));
+        addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Atsr::OUTPUT_GREEN_LIGHT));
+        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Atsr::RED_LIGHT));
 
         }
 
@@ -241,6 +221,6 @@ struct AtsrWidget : ModuleWidget  {
 
 
 
-Model *modelAtsr = Model::create<Atsr, AtsrWidget>("ATSR");
+Model *modelAtsr = createModel<Atsr, AtsrWidget>("ATSR");
 
 

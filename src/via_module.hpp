@@ -1,13 +1,11 @@
 #pragma once
 
-#include "dsp/digital.hpp"
 #include "via_ui.hpp"
 #include "via_virtual_module.hpp"
-#include "dsp/decimator.hpp"
 
 template<int OVERSAMPLE_AMOUNT, int OVERSAMPLE_QUALITY> 
 struct Via : Module {
-    
+
     enum ParamIds {
         KNOB1_PARAM,
         KNOB2_PARAM,
@@ -56,7 +54,7 @@ struct Via : Module {
         NUM_LIGHTS
     };
     
-    Via() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+    Via() {
 
         dac1DecimatorBuffer = (float*) malloc(OVERSAMPLE_AMOUNT * sizeof(float));
         dac2DecimatorBuffer = (float*) malloc(OVERSAMPLE_AMOUNT * sizeof(float));
@@ -68,8 +66,8 @@ struct Via : Module {
 
     uint32_t presetData[6];
     
-    SchmittTrigger mainLogic;
-    SchmittTrigger auxLogic;
+    dsp::SchmittTrigger mainLogic;
+    dsp::SchmittTrigger auxLogic;
 
     bool lastTrigState = false;
     bool lastAuxTrigState = false;
@@ -105,26 +103,26 @@ struct Via : Module {
     float * dac2DecimatorBuffer;
     float * dac3DecimatorBuffer;
 
-    Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
-    Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
-    Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
+    dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
+    dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
+    dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
 
     void updateSlowIO(void) {
 
-        virtualIO->button1Input = (int32_t) params[BUTTON1_PARAM].value;
-        virtualIO->button2Input = (int32_t) params[BUTTON2_PARAM].value;
-        virtualIO->button3Input = (int32_t) params[BUTTON3_PARAM].value;
-        virtualIO->button4Input = (int32_t) params[BUTTON4_PARAM].value;
-        virtualIO->button5Input = (int32_t) params[BUTTON5_PARAM].value;
-        virtualIO->button6Input = (int32_t) params[BUTTON6_PARAM].value;
+        virtualIO->button1Input = (int32_t) params[BUTTON1_PARAM].getValue();
+        virtualIO->button2Input = (int32_t) params[BUTTON2_PARAM].getValue();
+        virtualIO->button3Input = (int32_t) params[BUTTON3_PARAM].getValue();
+        virtualIO->button4Input = (int32_t) params[BUTTON4_PARAM].getValue();
+        virtualIO->button5Input = (int32_t) params[BUTTON5_PARAM].getValue();
+        virtualIO->button6Input = (int32_t) params[BUTTON6_PARAM].getValue();
 
         // these have a janky array ordering to correspond with the DMA stream on the hardware
-        virtualIO->controls.controlRateInputs[2] = clamp((int32_t) params[KNOB1_PARAM].value, 0, 4095);
-        virtualIO->controls.controlRateInputs[3] = clamp((int32_t) params[KNOB2_PARAM].value, 0, 4095);
-        virtualIO->controls.controlRateInputs[1] = clamp((int32_t) params[KNOB3_PARAM].value, 0, 4095);
+        virtualIO->controls.controlRateInputs[2] = clamp((int32_t) params[KNOB1_PARAM].getValue(), 0, 4095);
+        virtualIO->controls.controlRateInputs[3] = clamp((int32_t) params[KNOB2_PARAM].getValue(), 0, 4095);
+        virtualIO->controls.controlRateInputs[1] = clamp((int32_t) params[KNOB3_PARAM].getValue(), 0, 4095);
         // model the the 1v/oct input, scale 10.6666666 volts 12 bit adc range
         // it the gain scaling stage is inverting
-        float cv1Conversion = -inputs[CV1_INPUT].value;
+        float cv1Conversion = -inputs[CV1_INPUT].getVoltage();
         // ultimately we want a volt to be a chage of 384 in the adc reading
         cv1Conversion = cv1Conversion * 384.0;
         // offset to unipolar
@@ -133,12 +131,22 @@ struct Via : Module {
         virtualIO->controls.controlRateInputs[0] = clamp((int32_t)cv1Conversion, 0, 4095);
     }
 
+    void processTriggerButton(void) {
+        int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].getValue(), 0, 1);
+        if (trigButton > lastTrigButton) {
+            virtualIO->buttonPressedCallback();
+        } else if (trigButton < lastTrigButton) {
+            virtualIO->buttonReleasedCallback();
+        } 
+        lastTrigButton = trigButton;
+    }
+
     // 2 sets the "GPIO" high, 1 sets it low, 0 is a no-op
     inline int32_t virtualLogicOut(int32_t logicOut, int32_t control) {
         return clamp(logicOut + (control & 2) - (control & 1), 0, 1);
     }
 
-    void updateLEDs(void) {
+    inline void updateLEDs(void) {
 
         // the A B C D enumeration of the LEDs in the Via library makes little to no sense 
         // but its woven pretty deep so is a nagging style thing to fix
@@ -148,18 +156,18 @@ struct Via : Module {
         ledCState = virtualLogicOut(ledCState, virtualIO->ledCOutput);
         ledDState = virtualLogicOut(ledDState, virtualIO->ledDOutput);
 
-        lights[LED1_LIGHT].setBrightnessSmooth(ledAState, 2);
-        lights[LED3_LIGHT].setBrightnessSmooth(ledBState, 2);
-        lights[LED2_LIGHT].setBrightnessSmooth(ledCState, 2);
-        lights[LED4_LIGHT].setBrightnessSmooth(ledDState, 2);
+        lights[LED1_LIGHT].setSmoothBrightness(ledAState, 1);
+        lights[LED3_LIGHT].setSmoothBrightness(ledBState, 1);
+        lights[LED2_LIGHT].setSmoothBrightness(ledCState, 1);
+        lights[LED4_LIGHT].setSmoothBrightness(ledDState, 1);
 
-        lights[RED_LIGHT].setBrightnessSmooth(virtualIO->redLevelWrite/4095.0, 2);
-        lights[GREEN_LIGHT].setBrightnessSmooth(virtualIO->greenLevelWrite/4095.0, 2);
-        lights[BLUE_LIGHT].setBrightnessSmooth(virtualIO->blueLevelWrite/4095.0, 2);
+        lights[RED_LIGHT].setSmoothBrightness(virtualIO->redLevelWrite/4095.0, 2);
+        lights[GREEN_LIGHT].setSmoothBrightness(virtualIO->greenLevelWrite/4095.0, 1);
+        lights[BLUE_LIGHT].setSmoothBrightness(virtualIO->blueLevelWrite/4095.0, 1);
 
         float output = outputs[MAIN_OUTPUT].value/8.0;
-        lights[OUTPUT_RED_LIGHT].setBrightnessSmooth(clamp(-output, 0.0, 1.0));
-        lights[OUTPUT_GREEN_LIGHT].setBrightnessSmooth(clamp(output, 0.0, 1.0));
+        lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), 1);
+        lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), 1);
 
     }
 
@@ -170,23 +178,21 @@ struct Via : Module {
         shBControl = virtualLogicOut(shBControl, virtualIO->shBOutput);
     }
 
-    void updateAudioRate(void) {
-
-        // manage audio rate dacs and adcs
-
+    inline void acquireCVs(void) {
         // scale -5 - 5 V to -1 to 1 and then convert to 16 bit int;
-        float cv2Scale = (32767.0 * clamp(-inputs[CV2_INPUT].value/5, -1.0, 1.0)) * params[CV2AMT_PARAM].value;
-        float cv3Scale = (32767.0 * clamp(-inputs[CV3_INPUT].value/5, -1.0, 1.0)) * params[CV3AMT_PARAM].value;
+        float cv2Scale = (32767.0 * clamp(-inputs[CV2_INPUT].getVoltage()/5, -1.0, 1.0)) * params[CV2AMT_PARAM].getValue();
+        float cv3Scale = (32767.0 * clamp(-inputs[CV3_INPUT].getVoltage()/5, -1.0, 1.0)) * params[CV3AMT_PARAM].getValue();
         int16_t cv2Conversion = (int16_t) cv2Scale;
         int16_t cv3Conversion = (int16_t) cv3Scale;
 
         // no ADC buffer for now..
         virtualIO->inputs.cv2Samples[0] = cv2Conversion;
         virtualIO->inputs.cv3Samples[0] = cv3Conversion;
+    }
 
-        // trigger handling
+    inline void processLogicInputs(void) {
 
-        mainLogic.process(rescale(inputs[MAIN_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
+        mainLogic.process(rescale(inputs[MAIN_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f));
         bool trigState = mainLogic.isHigh();
         if (trigState && !lastTrigState) {
             virtualIO->mainRisingEdgeCallback();
@@ -195,7 +201,7 @@ struct Via : Module {
         }
         lastTrigState = trigState; 
 
-        auxLogic.process(rescale(inputs[AUX_LOGIC_INPUT].value, .2, 1.2, 0.f, 1.f));
+        auxLogic.process(rescale(inputs[AUX_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f));
         bool auxTrigState = auxLogic.isHigh();
         if (auxTrigState && !lastAuxTrigState) {
             virtualIO->auxRisingEdgeCallback();
@@ -203,6 +209,10 @@ struct Via : Module {
             virtualIO->auxFallingEdgeCallback();
         }
         lastAuxTrigState = auxTrigState; 
+
+    }
+
+    inline void updateOutputs(void) {
 
         int32_t samplesRemaining = OVERSAMPLE_AMOUNT;
         int32_t writeIndex = 0;
@@ -228,8 +238,8 @@ struct Via : Module {
 
         // "model" the circuit
         // A and B inputs with normalled reference voltages
-        float aIn = inputs[A_INPUT].value + (!inputs[A_INPUT].active) * params[A_PARAM].value;
-        float bIn = (inputs[B_INPUT].active) * ((inputs[B_INPUT].value) * (params[B_PARAM].value)) + (!inputs[B_INPUT].active) * (5* (params[B_PARAM].value));
+        float aIn = inputs[A_INPUT].getVoltage() + (!inputs[A_INPUT].isConnected()) * params[A_PARAM].getValue();
+        float bIn = (inputs[B_INPUT].isConnected()) * ((inputs[B_INPUT].getVoltage()) * (params[B_PARAM].getValue())) + (!inputs[B_INPUT].isConnected()) * (5* (params[B_PARAM].getValue()));
         
         // sample and holds
         // get a new sample on the rising edge at the sh control output
@@ -249,12 +259,20 @@ struct Via : Module {
 
         // VCA/mixing stage
         // normalize 12 bits to 0-1
-        outputs[MAIN_OUTPUT].value = bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0); 
-        outputs[AUX_DAC_OUTPUT].value = (dac3Sample/4095.0 - .5) * -10.666666666;
-        outputs[LOGICA_OUTPUT].value = logicAState * 5.0;
-        outputs[AUX_LOGIC_OUTPUT].value = auxLogicState * 5.0;
+        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+        outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
+        outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
+        outputs[AUX_LOGIC_OUTPUT].setVoltage(auxLogicState * 5.0);
 
-        updateLEDs();
+    }
+
+    void updateAudioRate(void) {
+
+        acquireCVs();
+
+        processLogicInputs();
+
+        updateOutputs();
 
         clockDivider = 0;
 
