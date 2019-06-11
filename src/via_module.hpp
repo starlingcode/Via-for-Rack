@@ -2,6 +2,7 @@
 
 #include "via_ui.hpp"
 #include "via_virtual_module.hpp"
+// #include "pow2decimator.hpp"
 
 template<int OVERSAMPLE_AMOUNT, int OVERSAMPLE_QUALITY> 
 struct Via : Module {
@@ -146,6 +147,8 @@ struct Via : Module {
         return clamp(logicOut + (control & 2) - (control & 1), 0, 1);
     }
 
+    float ledDecay = 1.0/48000.0;
+
     inline void updateLEDs(void) {
 
         // the A B C D enumeration of the LEDs in the Via library makes little to no sense 
@@ -156,18 +159,18 @@ struct Via : Module {
         ledCState = virtualLogicOut(ledCState, virtualIO->ledCOutput);
         ledDState = virtualLogicOut(ledDState, virtualIO->ledDOutput);
 
-        lights[LED1_LIGHT].setSmoothBrightness(ledAState, 1);
-        lights[LED3_LIGHT].setSmoothBrightness(ledBState, 1);
-        lights[LED2_LIGHT].setSmoothBrightness(ledCState, 1);
-        lights[LED4_LIGHT].setSmoothBrightness(ledDState, 1);
+        lights[LED1_LIGHT].setSmoothBrightness(ledAState, ledDecay);
+        lights[LED3_LIGHT].setSmoothBrightness(ledBState, ledDecay);
+        lights[LED2_LIGHT].setSmoothBrightness(ledCState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness(ledDState, ledDecay);
 
-        lights[RED_LIGHT].setSmoothBrightness(virtualIO->redLevelWrite/4095.0, 2);
-        lights[GREEN_LIGHT].setSmoothBrightness(virtualIO->greenLevelWrite/4095.0, 1);
-        lights[BLUE_LIGHT].setSmoothBrightness(virtualIO->blueLevelWrite/4095.0, 1);
+        lights[RED_LIGHT].setSmoothBrightness(virtualIO->redLevelWrite/4095.0, ledDecay);
+        lights[GREEN_LIGHT].setSmoothBrightness(virtualIO->greenLevelWrite/4095.0, ledDecay);
+        lights[BLUE_LIGHT].setSmoothBrightness(virtualIO->blueLevelWrite/4095.0, ledDecay);
 
         float output = outputs[MAIN_OUTPUT].value/8.0;
-        lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), 1);
-        lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), 1);
+        lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), ledDecay);
+        lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), ledDecay);
 
     }
 

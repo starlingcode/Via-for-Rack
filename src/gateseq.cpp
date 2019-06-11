@@ -5,54 +5,6 @@
 #define GATESEQ_OVERSAMPLE_QUALITY 1
 
 struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
- 
-    enum ParamIds {
-        KNOB1_PARAM,
-        KNOB2_PARAM,
-        KNOB3_PARAM,
-        A_PARAM,
-        B_PARAM,
-        CV2AMT_PARAM,
-        CV3AMT_PARAM,
-        BUTTON1_PARAM,
-        BUTTON2_PARAM,
-        BUTTON3_PARAM,
-        BUTTON4_PARAM,
-        BUTTON5_PARAM,
-        BUTTON6_PARAM,
-        TRIGBUTTON_PARAM,
-        NUM_PARAMS
-    };
-    enum InputIds {
-        A_INPUT,
-        B_INPUT,
-        CV1_INPUT,
-        CV2_INPUT,
-        CV3_INPUT,
-        MAIN_LOGIC_INPUT,
-        AUX_LOGIC_INPUT,
-        NUM_INPUTS
-    };
-    enum OutputIds {
-        MAIN_OUTPUT,
-        LOGICA_OUTPUT,
-        AUX_DAC_OUTPUT,
-        AUX_LOGIC_OUTPUT,
-        NUM_OUTPUTS
-    };
-    enum LightIds {
-        LED1_LIGHT,
-        LED2_LIGHT,
-        LED3_LIGHT,
-        LED4_LIGHT,
-        OUTPUT_GREEN_LIGHT,
-        OUTPUT_RED_LIGHT,
-        RED_LIGHT,
-        GREEN_LIGHT,
-        BLUE_LIGHT,
-        PURPLE_LIGHT,
-        NUM_LIGHTS
-    };
     
     Gateseq() : Via() {
 
@@ -85,6 +37,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         presetData[4] = virtualModule.gateseqUI.stockPreset5;
         presetData[5] = virtualModule.gateseqUI.stockPreset6;
     }
+    
     void process(const ProcessArgs &args) override;
 
     ViaGateseq virtualModule;
@@ -92,6 +45,8 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
     void onSampleRateChange() override {
 
         float sampleRate = APP->engine->getSampleRate();
+
+        ledDecay = 16.0/sampleRate;
 
         if (sampleRate == 44100.0) {
             virtualModule.sequencer.virtualTimer4Overflow = 44;
@@ -105,6 +60,14 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
             virtualModule.sequencer.virtualTimer4Overflow = 176;
         } else if (sampleRate == 192000.0) {
             virtualModule.sequencer.virtualTimer4Overflow = 192;
+        } else if (sampleRate == 352800.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 353;
+        } else if (sampleRate == 384000.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 384;
+        } else if (sampleRate == 705600.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 706;
+        } else if (sampleRate == 768000.0) {
+            virtualModule.sequencer.virtualTimer4Overflow = 768;
         }
         
     }
@@ -142,14 +105,9 @@ void Gateseq::process(const ProcessArgs &args) {
         virtualModule.slowConversionCallback();
         virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
         virtualModule.gateseqUI.incrementTimer();
-        // trigger handling
-        int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].getValue(), 0, 1);
-        if (trigButton > lastTrigButton) {
-            virtualModule.buttonPressedCallback();
-        } else if (trigButton < lastTrigButton) {
-            virtualModule.buttonReleasedCallback();
-        } 
-        lastTrigButton = trigButton;
+        processTriggerButton();
+        updateLEDs();
+
     }
 
     // manage the software timers
@@ -171,7 +129,46 @@ void Gateseq::process(const ProcessArgs &args) {
         virtualModule.sequencer.virtualTimer4Count = 0;
     }
 
-    updateAudioRate();
+    acquireCVs();
+    processLogicInputs();
+    updateOutputs();
+
+    updateLogicOutputs();
+    virtualIO->halfTransferCallback();
+
+    float dac1Sample = (float) virtualIO->outputs.dac1Samples[0];
+    float dac2Sample = (float) virtualIO->outputs.dac2Samples[0];
+    float dac3Sample = (float) virtualIO->outputs.dac3Samples[0];
+
+    // "model" the circuit
+    // A and B inputs with normalled reference voltages
+    float aIn = inputs[A_INPUT].getVoltage() + (!inputs[A_INPUT].isConnected()) * params[A_PARAM].getValue();
+    float bIn = (inputs[B_INPUT].isConnected()) * ((inputs[B_INPUT].getVoltage()) * (params[B_PARAM].getValue())) + (!inputs[B_INPUT].isConnected()) * (5* (params[B_PARAM].getValue()));
+    
+    // sample and holds
+    // get a new sample on the rising edge at the sh control output
+    if (shAControl > shALast) {
+        aSample = aIn;
+    }
+    if (shBControl > shBLast) {
+        bSample = bIn;
+    }
+
+    shALast = shAControl;
+    shBLast = shBControl;
+
+    // either use the sample or track depending on the sh control output
+    aIn = shAControl * aSample + !shAControl * aIn;
+    bIn = shBControl * bSample + !shBControl * bIn;
+
+    // VCA/mixing stage
+    // normalize 12 bits to 0-1
+    outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+    outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
+    outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
+    outputs[AUX_LOGIC_OUTPUT].setVoltage(auxLogicState * 5.0);
+
+    clockDivider = 0;
     
 }
 

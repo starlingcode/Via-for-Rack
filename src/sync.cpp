@@ -90,6 +90,8 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
 
+        ledDecay = 16.0/sampleRate;
+
         if (sampleRate == 44100.0) {
             divideAmount = 1;
             virtualModule.virtualTimerOverflow = 44;
@@ -102,15 +104,25 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         } else if (sampleRate == 96000.0) {
             divideAmount = 2;
             virtualModule.virtualTimerOverflow = 48;
-
         } else if (sampleRate == 176400.0) {
             divideAmount = 4;
             virtualModule.virtualTimerOverflow = 44;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
             virtualModule.virtualTimerOverflow = 48;
+        } else if (sampleRate == 352800.0) {
+            divideAmount = 8;
+            virtualModule.virtualTimerOverflow = 44;
+        } else if (sampleRate == 384000.0) {
+            divideAmount = 8;
+            virtualModule.virtualTimerOverflow = 48;
+        } else if (sampleRate == 705600.0) {
+            divideAmount = 16;
+            virtualModule.virtualTimerOverflow = 44;
+        } else if (sampleRate == 768000.0) {
+            divideAmount = 16;
+            virtualModule.virtualTimerOverflow = 48;
         }
-        
     }
 
     json_t *dataToJson() override {
@@ -150,6 +162,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             // trigger handling
             processTriggerButton();
             updateLEDs();
+
         }
 
         // manage the complex software timer
@@ -161,7 +174,6 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         }
 
         updateAudioRate();
-
         virtualModule.incrementVirtualTimer();
 
         }

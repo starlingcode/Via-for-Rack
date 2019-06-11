@@ -86,6 +86,8 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
 
+        ledDecay = 1.0/sampleRate;
+
         if (sampleRate == 44100.0) {
             divideAmount = 1;
         } else if (sampleRate == 48000.0) {
@@ -98,6 +100,14 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
             divideAmount = 4;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
+        } else if (sampleRate == 352800.0) {
+            divideAmount = 8;
+        } else if (sampleRate == 384000.0) {
+            divideAmount = 8;
+        } else if (sampleRate == 705600.0) {
+            divideAmount = 16;
+        } else if (sampleRate == 768000.0) {
+            divideAmount = 16;
         }
         
     }

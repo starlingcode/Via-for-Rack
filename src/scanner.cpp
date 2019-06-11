@@ -35,6 +35,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         presetData[3] = virtualModule.scannerUI.stockPreset4;
         presetData[4] = virtualModule.scannerUI.stockPreset5;
         presetData[5] = virtualModule.scannerUI.stockPreset6;
+        
     }
     void step() override;
 
@@ -43,6 +44,8 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
 
+        ledDecay = 16.0/sampleRate;
+        
         if (sampleRate == 44100.0) {
             divideAmount = 1;
         } else if (sampleRate == 48000.0) {
@@ -55,6 +58,14 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
             divideAmount = 4;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
+        }  else if (sampleRate == 352800.0) {
+            divideAmount = 8;
+        } else if (sampleRate == 384000.0) {
+            divideAmount = 8;
+        } else if (sampleRate == 705600.0) {
+            divideAmount = 16;
+        } else if (sampleRate == 768000.0) {
+            divideAmount = 16;
         }
         
     }
@@ -97,10 +108,10 @@ void Scanner::step() {
             virtualModule.scannerUI.incrementTimer();
             processTriggerButton();
             updateLEDs();
+
         }
 
         updateAudioRate();
-
     }
     
 }

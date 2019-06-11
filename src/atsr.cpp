@@ -37,6 +37,8 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
 
+        ledDecay = 16.0/sampleRate;
+
         if (sampleRate == 44100.0) {
             virtualModule.incScale = 71332;
         } else if (sampleRate == 48000.0) {
@@ -49,6 +51,14 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
             virtualModule.incScale = 17833;
         } else if (sampleRate == 192000.0) {
             virtualModule.incScale = 16383;
+        } else if (sampleRate == 352800.0) {
+            virtualModule.incScale = 16383;
+        } else if (sampleRate == 384000.0) {
+            virtualModule.incScale = 16383;
+        } else if (sampleRate == 705600.0) {
+            virtualModule.incScale = 16383;
+        } else if (sampleRate == 768000.0) {
+            virtualModule.incScale = 16383;
         }
         
     }
@@ -59,28 +69,28 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         // but its woven pretty deep so is a nagging style thing to fix
 
         if (virtualModule.runtimeDisplay & !virtualModule.shOn) {
-            lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, 1);
-            lights[LED3_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, 1);
+            lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, ledDecay);
+            lights[LED3_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, ledDecay);
         } else {
             ledAState = virtualLogicOut(ledAState, virtualModule.ledAOutput);
             ledBState = virtualLogicOut(ledBState, virtualModule.ledBOutput);
-            lights[LED1_LIGHT].setSmoothBrightness(ledAState, 1);
-            lights[LED3_LIGHT].setSmoothBrightness(ledBState, 1);
+            lights[LED1_LIGHT].setSmoothBrightness(ledAState, ledDecay);
+            lights[LED3_LIGHT].setSmoothBrightness(ledBState, ledDecay);
         }
         ledCState = virtualLogicOut(ledCState, virtualModule.ledCOutput);
         ledDState = virtualLogicOut(ledDState, virtualModule.ledDOutput);
 
 
-        lights[LED2_LIGHT].setSmoothBrightness(ledCState, 1);
-        lights[LED4_LIGHT].setSmoothBrightness(ledDState, 1);
+        lights[LED2_LIGHT].setSmoothBrightness(ledCState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness(ledDState, ledDecay);
 
-        lights[RED_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, 1);
-        lights[GREEN_LIGHT].setSmoothBrightness(virtualModule.greenLevelWrite/4095.0, 1);
-        lights[BLUE_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, 1);
+        lights[RED_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, ledDecay);
+        lights[GREEN_LIGHT].setSmoothBrightness(virtualModule.greenLevelWrite/4095.0, ledDecay);
+        lights[BLUE_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, ledDecay);
 
         float output = outputs[MAIN_OUTPUT].value/8.0;
-        lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), 1);
-        lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), 1);
+        lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), ledDecay);
+        lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), ledDecay);
 
     }
 

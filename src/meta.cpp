@@ -5,54 +5,6 @@
 #define META_OVERSAMPLE_QUALITY 6
 
 struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
-    
-    enum ParamIds {
-        KNOB1_PARAM,
-        KNOB2_PARAM,
-        KNOB3_PARAM,
-        A_PARAM,
-        B_PARAM,
-        CV2AMT_PARAM,
-        CV3AMT_PARAM,
-        BUTTON1_PARAM,
-        BUTTON2_PARAM,
-        BUTTON3_PARAM,
-        BUTTON4_PARAM,
-        BUTTON5_PARAM,
-        BUTTON6_PARAM,
-        TRIGBUTTON_PARAM,
-        NUM_PARAMS
-    };
-    enum InputIds {
-        A_INPUT,
-        B_INPUT,
-        CV1_INPUT,
-        CV2_INPUT,
-        CV3_INPUT,
-        MAIN_LOGIC_INPUT,
-        AUX_LOGIC_INPUT,
-        NUM_INPUTS
-    };
-    enum OutputIds {
-        MAIN_OUTPUT,
-        LOGICA_OUTPUT,
-        AUX_DAC_OUTPUT,
-        AUX_LOGIC_OUTPUT,
-        NUM_OUTPUTS
-    };
-    enum LightIds {
-        LED1_LIGHT,
-        LED2_LIGHT,
-        LED3_LIGHT,
-        LED4_LIGHT,
-        OUTPUT_GREEN_LIGHT,
-        OUTPUT_RED_LIGHT,
-        RED_LIGHT,
-        GREEN_LIGHT,
-        BLUE_LIGHT,
-        PURPLE_LIGHT,
-        NUM_LIGHTS
-    };
 
     Meta() : Via() {
         
@@ -93,6 +45,8 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
 
+        ledDecay = 16.0/sampleRate;
+
         if (sampleRate == 44100.0) {
             divideAmount = 1;
             virtualModule.metaController.audioBaseIncrement = 39562;
@@ -115,6 +69,22 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
             virtualModule.metaController.drumBaseIncrement = 66466;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
+            virtualModule.metaController.audioBaseIncrement = 36347;
+            virtualModule.metaController.drumBaseIncrement = 61065;
+        } else if (sampleRate == 352800.0) {
+            divideAmount = 8;
+            virtualModule.metaController.audioBaseIncrement = 39562;
+            virtualModule.metaController.drumBaseIncrement = 66466;
+        } else if (sampleRate == 384000.0) {
+            divideAmount = 8;
+            virtualModule.metaController.audioBaseIncrement = 36347;
+            virtualModule.metaController.drumBaseIncrement = 61065;
+        } else if (sampleRate == 705600.0) {
+            divideAmount = 16;
+            virtualModule.metaController.audioBaseIncrement = 39562;
+            virtualModule.metaController.drumBaseIncrement = 66466;
+        } else if (sampleRate == 768000.0) {
+            divideAmount = 16;
             virtualModule.metaController.audioBaseIncrement = 36347;
             virtualModule.metaController.drumBaseIncrement = 61065;
         }
@@ -161,7 +131,6 @@ void Meta::process(const ProcessArgs &args) {
             virtualModule.metaUI.incrementTimer();
             
             processTriggerButton();
-            updateLEDs();
             
             virtualModule.blinkTimerCount += virtualModule.blinkTimerEnable;
             virtualModule.blankTimerCount += virtualModule.blankTimerEnable;
@@ -176,6 +145,8 @@ void Meta::process(const ProcessArgs &args) {
                 virtualModule.blankTimerEnable = 0;
                 virtualModule.auxTimer2InterruptCallback();
             }
+
+            updateLEDs();
 
         }
 
