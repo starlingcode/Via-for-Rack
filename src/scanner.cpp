@@ -11,22 +11,22 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "Label Me!");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Label Me!");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Surface shape control", "", 0.0, 1.0/4095.0);
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "X scan input offset", "", 0.0, 1.0/4095.0);
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Y scan input offset", "", 0.0, 1.0/4095.0);
+        configParam(B_PARAM, -1.0, 1.0, 0.5, "B input attenuverter, main AXB output ranges from A to B");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "X scan input amount");
+        configParam(A_PARAM, -5.0, 5.0, 5.0, "Manual A input overriden when patched");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Y scan input amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "JUMP input: teleport or reverse");
+        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Y scan world up");
+        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Select map creation function");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "X scan world right");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Y scan world down");
+        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "X scan world left");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unused (preset select in hardware)");
 
         onSampleRateChange();
         presetData[0] = virtualModule.scannerUI.stockPreset1;

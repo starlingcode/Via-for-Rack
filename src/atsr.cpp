@@ -12,9 +12,9 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
         virtualIO = &virtualModule;
 
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time");
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time");
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time");
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time", "", 0.0, 1.0/4095.0);
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time", "", 0.0, 1.0/4095.0);
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time", "", 0.0, 1.0/4095.0);
         configParam(B_PARAM, -1.0, 1.0, 0.5, "Sustain level scale");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Transition time CV amount");
         configParam(A_PARAM, -5.0, 5.0, 5.0, "Attack level normal");
@@ -23,8 +23,8 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Attack shape");
         configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Transition shape");
         configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Segment gate select");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Toggle A time CV attack or all");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Toggle Level CV sample and hold");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "A time CV: attack or all");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Level CV sample and hold");
         configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Release shape");
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual gate");

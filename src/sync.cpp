@@ -6,75 +6,27 @@
 
 struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
-    enum ParamIds {
-        KNOB1_PARAM,
-        KNOB2_PARAM,
-        KNOB3_PARAM,
-        A_PARAM,
-        B_PARAM,
-        CV2AMT_PARAM,
-        CV3AMT_PARAM,
-        BUTTON1_PARAM,
-        BUTTON2_PARAM,
-        BUTTON3_PARAM,
-        BUTTON4_PARAM,
-        BUTTON5_PARAM,
-        BUTTON6_PARAM,
-        TRIGBUTTON_PARAM,
-        NUM_PARAMS
-    };
-    enum InputIds {
-        A_INPUT,
-        B_INPUT,
-        CV1_INPUT,
-        CV2_INPUT,
-        CV3_INPUT,
-        MAIN_LOGIC_INPUT,
-        AUX_LOGIC_INPUT,
-        NUM_INPUTS
-    };
-    enum OutputIds {
-        MAIN_OUTPUT,
-        LOGICA_OUTPUT,
-        AUX_DAC_OUTPUT,
-        AUX_LOGIC_OUTPUT,
-        NUM_OUTPUTS
-    };
-    enum LightIds {
-        LED1_LIGHT,
-        LED2_LIGHT,
-        LED3_LIGHT,
-        LED4_LIGHT,
-        OUTPUT_GREEN_LIGHT,
-        OUTPUT_RED_LIGHT,
-        RED_LIGHT,
-        GREEN_LIGHT,
-        BLUE_LIGHT,
-        PURPLE_LIGHT,
-        NUM_LIGHTS
-    };
-    
     Sync() : Via() {
 
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "Label Me!");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Label Me!");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        configParam(KNOB1_PARAM,0, 4095.0, 2048.0, "Ratio grid X axis", "", 0.0, 1.0/4095.0);
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Ratio grid Y axis", "", 0.0, 1.0/4095.0);
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
+        configParam(B_PARAM, -1.0, 1.0, 0.5, "B input attenuverter, main AXB output ranges from A to B");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "MOD CV amount");
+        configParam(A_PARAM, -5.0, 5.0, 5.0, "Manual A input overriden when patched");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H at A and B inputs: off, track and hold, resample");
+        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio grid, 4 options per GROUP");
+        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "MOD CV destination: ratio Y, phase, or skew");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Sync speed");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Master group of scales and waves: mult/div, arpeggios, v/oct, rhythms");
+        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Wavetable, 4 options per GROUP");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
 
         onSampleRateChange();
         presetData[0] = virtualModule.syncUI.stockPreset1;

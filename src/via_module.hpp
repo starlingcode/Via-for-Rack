@@ -2,7 +2,7 @@
 
 #include "via_ui.hpp"
 #include "via_virtual_module.hpp"
-// #include "pow2decimator.hpp"
+#include "pow2decimate.hpp"
 
 template<int OVERSAMPLE_AMOUNT, int OVERSAMPLE_QUALITY> 
 struct Via : Module {
@@ -104,9 +104,14 @@ struct Via : Module {
     float * dac2DecimatorBuffer;
     float * dac3DecimatorBuffer;
 
-    dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
-    dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
-    dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
+    pow2Decimate<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
+    pow2Decimate<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
+    pow2Decimate<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
+
+
+    // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
+    // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
+    // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
 
     void updateSlowIO(void) {
 
@@ -118,9 +123,9 @@ struct Via : Module {
         virtualIO->button6Input = (int32_t) params[BUTTON6_PARAM].getValue();
 
         // these have a janky array ordering to correspond with the DMA stream on the hardware
-        virtualIO->controls.controlRateInputs[2] = clamp((int32_t) params[KNOB1_PARAM].getValue(), 0, 4095);
-        virtualIO->controls.controlRateInputs[3] = clamp((int32_t) params[KNOB2_PARAM].getValue(), 0, 4095);
-        virtualIO->controls.controlRateInputs[1] = clamp((int32_t) params[KNOB3_PARAM].getValue(), 0, 4095);
+        virtualIO->controls.controlRateInputs[2] = clamp((int32_t) (params[KNOB1_PARAM].getValue()), 0, 4095);
+        virtualIO->controls.controlRateInputs[3] = clamp((int32_t) (params[KNOB2_PARAM].getValue()), 0, 4095);
+        virtualIO->controls.controlRateInputs[1] = clamp((int32_t) (params[KNOB3_PARAM].getValue()), 0, 4095);
         // model the the 1v/oct input, scale 10.6666666 volts 12 bit adc range
         // it the gain scaling stage is inverting
         float cv1Conversion = -inputs[CV1_INPUT].getVoltage();
@@ -236,6 +241,7 @@ struct Via : Module {
         float dac1Sample = dac1Decimator.process(dac1DecimatorBuffer);
         float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
         float dac3Sample = dac3Decimator.process(dac3DecimatorBuffer);
+        
         updateLogicOutputs();
         virtualIO->halfTransferCallback();
 

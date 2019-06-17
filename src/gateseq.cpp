@@ -11,22 +11,22 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "Label Me!");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Label Me!");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I density", "", 0.0, 1.0/4095.0);
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Pattern II density", "", 0.0, 1.0/4095.0);
+        configParam(B_PARAM, -1.0, 1.0, 0.5, "Pattern II gate level");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");
+        configParam(A_PARAM, -5.0, 5.0, 5.0, "Pattern I gate level");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Pattern II density CV amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I S+H control");
+        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I gate control");
+        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Pattern I mode");
+        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II S+H control");
+        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II gate control");
+        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Pattern II bank");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Pattern reset");
 
         onSampleRateChange();
 

@@ -213,7 +213,7 @@ struct Osc3Widget : ModuleWidget  {
     };
 
     void appendContextMenu(Menu *menu) override {
-        Osc3 *module = dynamic_cast<Osc3*>(this->module);
+        // Osc3 *module = dynamic_cast<Osc3*>(this->module);
 
         struct PresetRecallItem : MenuItem {
             Osc3 *module;
