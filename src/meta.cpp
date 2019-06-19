@@ -4,11 +4,62 @@
 #define META_OVERSAMPLE_AMOUNT 8
 #define META_OVERSAMPLE_QUALITY 6
 
-struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
+
+struct alignas(32) Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
+
+    struct SHButtonQuantity : ParamQuantity {
+
+        std::string modes[6] = {"Off", "Sample and track A", "Resample B", "Sample and track A, resample B", "Sample and track A and B", "Resample A and B"};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Meta * metaModule = (Meta *) module;
+
+            return metaModule->virtualModule.metaUI.button1Mode;
+        }
+
+        std::string getDisplayValueString() override {
+            return modes[(int) getDisplayValue()];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct TableButtonQuantity : ParamQuantity {
+
+        std::string modes[3][8] = {{"", "", "", "", "", "", "", ""},
+                                    {"", "", "", "", "", "", "", ""},
+                                    {"", "", "", "", "", "", "", ""}};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Meta * metaModule = (Meta *) module;
+
+            return metaModule->virtualModule.metaUI.button2Mode;
+        }
+
+        // std::string getDisplayValueString() override {
+        //     return modes[(int) getDisplayValue()];
+        // }
+
+        // std::string getString() override {
+        //     return getDisplayValueString();
+        // }
+
+    };
 
     Meta() : Via() {
         
         virtualIO = &virtualModule;
+
+
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Time/frequency", "", 0.0, 1.0/4095.0);
@@ -19,11 +70,11 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         configParam(A_PARAM, -5.0, 5.0, 5.0, "A input normal (overriden by patch)");
         configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape 2 CV amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "SH behavior at A and B inputs");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable up");
+        configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "");
+        configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable up");
         configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Frequency range");
         configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "TRIG input configuration");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Wavetable down");
+        configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Wavetable down");
         configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Enable/disable looping");
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual trigger");
@@ -155,6 +206,10 @@ void Meta::process(const ProcessArgs &args) {
     }
     
 }
+
+// Custom parameter widgets
+
+
 
 
 struct MetaWidget : ModuleWidget  {

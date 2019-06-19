@@ -157,20 +157,20 @@ struct alignas(32) pow2Decimate {
 		for (int i = 0; i < 32; i += 2) {
 
 			float accumulator = 0.5 * in32Buffer[(workingIndex - 3) & 63];
-			float vectorRead[4];
+			// float vectorRead[4];
 			
-			float_4 work = {in32Buffer[workingIndex], in32Buffer[(workingIndex - 2) & 63], 
-				in32Buffer[(workingIndex - 4) & 63], in32Buffer[(workingIndex - 6) & 63]};
-			work *= from32to16Kernel;
+			// float_4 work = {in32Buffer[workingIndex], in32Buffer[(workingIndex - 2) & 63], 
+			// 	in32Buffer[(workingIndex - 4) & 63], in32Buffer[(workingIndex - 6) & 63]};
+			// work *= from32to16Kernel;
 
-			work.store(vectorRead);
+			// work.store(vectorRead);
 
-			accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
+			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
 
-			// accumulator += from32to16[0] * in32Buffer[workingIndex];
-			// accumulator += from32to16[2] * in32Buffer[(workingIndex - 2) & 63];
-			// accumulator += from32to16[4] * in32Buffer[(workingIndex - 4) & 63];
-			// accumulator += from32to16[6] * in32Buffer[(workingIndex - 6) & 63];
+			accumulator += from32to16[0] * in32Buffer[workingIndex];
+			accumulator += from32to16[2] * in32Buffer[(workingIndex - 2) & 63];
+			accumulator += from32to16[4] * in32Buffer[(workingIndex - 4) & 63];
+			accumulator += from32to16[6] * in32Buffer[(workingIndex - 6) & 63];
 			
 			in16Buffer[in16Index] = accumulator;
 			in16Index = (in16Index + 1) & 31;
@@ -187,20 +187,20 @@ struct alignas(32) pow2Decimate {
 
 			float accumulator = 0.5 * in16Buffer[(workingIndex - 3) & 31];
 
-			float vectorRead[4];
+			// float vectorRead[4];
 			
-			float_4 work = {in16Buffer[workingIndex], in16Buffer[(workingIndex - 2) & 31], 
-				in16Buffer[(workingIndex - 4) & 31], in16Buffer[(workingIndex - 6) & 31]};
-			work *= from16to8Kernel;
+			// float_4 work = {in16Buffer[workingIndex], in16Buffer[(workingIndex - 2) & 31], 
+			// 	in16Buffer[(workingIndex - 4) & 31], in16Buffer[(workingIndex - 6) & 31]};
+			// work *= from16to8Kernel;
 
-			work.store(vectorRead);
+			// work.store(vectorRead);
 
-			accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
+			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
 
-			// accumulator += from16to8[0] * in16Buffer[workingIndex];
-			// accumulator += from16to8[2] * in16Buffer[(workingIndex - 2) & 31];
-			// accumulator += from16to8[4] * in16Buffer[(workingIndex - 4) & 31];
-			// accumulator += from16to8[6] * in16Buffer[(workingIndex - 6) & 31];
+			accumulator += from16to8[0] * in16Buffer[workingIndex];
+			accumulator += from16to8[2] * in16Buffer[(workingIndex - 2) & 31];
+			accumulator += from16to8[4] * in16Buffer[(workingIndex - 4) & 31];
+			accumulator += from16to8[6] * in16Buffer[(workingIndex - 6) & 31];
 			
 			in8Buffer[in8Index] = accumulator;
 			in8Index = (in8Index + 1) & 15;
@@ -218,20 +218,20 @@ struct alignas(32) pow2Decimate {
 			
 			float accumulator = 0.5 * in8Buffer[(workingIndex - 3) & 15];
 
-			float vectorRead[4];
+			// float vectorRead[4];
 			
-			float_4 work = {in8Buffer[workingIndex], in8Buffer[(workingIndex - 2) & 15], 
-				in8Buffer[(workingIndex - 4) & 15], in8Buffer[(workingIndex - 6) & 15]};
-			work *= from8to4Kernel;
+			// float_4 work = {in8Buffer[workingIndex], in8Buffer[(workingIndex - 2) & 15], 
+			// 	in8Buffer[(workingIndex - 4) & 15], in8Buffer[(workingIndex - 6) & 15]};
+			// work *= from8to4Kernel;
 
-			work.store(vectorRead);
+			// work.store(vectorRead);
 
-			accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
+			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
 
-			// accumulator += from8to4[0] * in8Buffer[workingIndex];
-			// accumulator += from8to4[2] * in8Buffer[(workingIndex - 2) & 15];
-			// accumulator += from8to4[4] * in8Buffer[(workingIndex - 4) & 15];
-			// accumulator += from8to4[6] * in8Buffer[(workingIndex - 6) & 15];			
+			accumulator += from8to4[0] * in8Buffer[workingIndex];
+			accumulator += from8to4[2] * in8Buffer[(workingIndex - 2) & 15];
+			accumulator += from8to4[4] * in8Buffer[(workingIndex - 4) & 15];
+			accumulator += from8to4[6] * in8Buffer[(workingIndex - 6) & 15];			
 			
 			in4Buffer[in4Index] = accumulator;
 			in4Index = (in4Index + 1) & 31;
@@ -250,30 +250,30 @@ struct alignas(32) pow2Decimate {
 			
 			float accumulator = 0.5 * in4Buffer[(workingIndex - 7) & 31]; 
 
-			float vectorRead[4];
+			// float vectorRead[4];
 
-			float_4 work = {in4Buffer[workingIndex], in4Buffer[(workingIndex - 2) & 31], 
-				in4Buffer[(workingIndex - 4) & 31], in4Buffer[(workingIndex - 6) & 31]};
-			work *= from4to2Kernel1;
-			float_4 accumulateVector = work;
+			// float_4 work = {in4Buffer[workingIndex], in4Buffer[(workingIndex - 2) & 31], 
+			// 	in4Buffer[(workingIndex - 4) & 31], in4Buffer[(workingIndex - 6) & 31]};
+			// work *= from4to2Kernel1;
+			// float_4 accumulateVector = work;
 
-			work = {in4Buffer[(workingIndex - 8) & 31], in4Buffer[(workingIndex - 10) & 31], 
-				in4Buffer[(workingIndex - 12) & 31], in4Buffer[(workingIndex - 14) & 31]};
-			work *= from4to2Kernel2;
-			accumulateVector += work;
+			// work = {in4Buffer[(workingIndex - 8) & 31], in4Buffer[(workingIndex - 10) & 31], 
+			// 	in4Buffer[(workingIndex - 12) & 31], in4Buffer[(workingIndex - 14) & 31]};
+			// work *= from4to2Kernel2;
+			// accumulateVector += work;
 
-			accumulateVector.store(vectorRead);
+			// accumulateVector.store(vectorRead);
 
-			accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
+			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
 
-			// accumulator += from4to2[0] * in4Buffer[workingIndex];
-			// accumulator += from4to2[2] * in4Buffer[(workingIndex - 2) & 31];
-			// accumulator += from4to2[4] * in4Buffer[(workingIndex - 4) & 31];
-			// accumulator += from4to2[6] * in4Buffer[(workingIndex - 6) & 31];
-			// accumulator += from4to2[8] * in4Buffer[(workingIndex - 8) & 31];
-			// accumulator += from4to2[10] * in4Buffer[(workingIndex - 10) & 31];
-			// accumulator += from4to2[12] * in4Buffer[(workingIndex - 12) & 31];
-			// accumulator += from4to2[14] * in4Buffer[(workingIndex - 14) & 31];
+			accumulator += from4to2[0] * in4Buffer[workingIndex];
+			accumulator += from4to2[2] * in4Buffer[(workingIndex - 2) & 31];
+			accumulator += from4to2[4] * in4Buffer[(workingIndex - 4) & 31];
+			accumulator += from4to2[6] * in4Buffer[(workingIndex - 6) & 31];
+			accumulator += from4to2[8] * in4Buffer[(workingIndex - 8) & 31];
+			accumulator += from4to2[10] * in4Buffer[(workingIndex - 10) & 31];
+			accumulator += from4to2[12] * in4Buffer[(workingIndex - 12) & 31];
+			accumulator += from4to2[14] * in4Buffer[(workingIndex - 14) & 31];
 
 			in2Buffer[in2Index] = accumulator;
 			in2Index = (in2Index + 1) & 63;
@@ -334,89 +334,3 @@ struct alignas(32) pow2Decimate {
 	}
 	
 };
-
-// 		/** `in` must be length 32 */
-// 	float process32(float *in) {
-		
-// 		// copy in the data
-// 		std::memcpy(&in32Buffer[in32Index], in, 32*sizeof(float));
-		
-// 		float accumulator;
-// 		int32_t workingIndex = in32Index;
-		
-// 		// update the write index
-// 		in32Index += 32;
-// 		in32Index &= 63;
-		
-// 		// filter every other sample and write to the x16 buffer
-// 		for (int i = 0; i < 32; i += 2) {
-// 			accumulator = 0.5 * in32Buffer[(workingIndex - 3) & 63];
-// 			accumulator += from32to16[0] * in32Buffer[workingIndex];
-// 			accumulator += from32to16[2] * in32Buffer[(workingIndex - 2) & 63];
-// 			accumulator += from32to16[4] * in32Buffer[(workingIndex - 4) & 63];
-// 			accumulator += from32to16[6] * in32Buffer[(workingIndex - 6) & 63];
-// 			in16Buffer[in16Index] = accumulator;
-// 			in16Index = (in16Index + 1) & 31;
-// 			workingIndex += 2;    
-// 		}
-
-// 		workingIndex = in16Index;
-
-// 		// filter every other sample and write to the x8 buffer
-// 		for (int i = 0; i < 16; i += 2) {
-// 			accumulator = 0.5 * in16Buffer[(workingIndex - 3) & 31]; 
-// 			accumulator += from16to8[0] * in16Buffer[workingIndex];
-// 			accumulator += from16to8[2] * in16Buffer[(workingIndex - 2) & 31];
-// 			accumulator += from16to8[4] * in16Buffer[(workingIndex - 4) & 31];
-// 			accumulator += from16to8[6] * in16Buffer[(workingIndex - 6) & 31];
-// 			in8Buffer[in8Index] = accumulator;
-// 			in8Index = (in8Index + 1) & 15;
-// 			workingIndex += 2;    
-// 		}
-
-// 		workingIndex = in8Index;
-
-// 		// filter every other sample and write to the x4 buffer
-// 		for (int i = 0; i < 7; i += 2) {
-// 			accumulator = 0.5 * in8Buffer[(workingIndex - 3) & 31]; 
-// 			accumulator += from8to4[0] * in8Buffer[workingIndex];
-// 			accumulator += from8to4[2] * in8Buffer[(workingIndex - 2) & 15];
-// 			accumulator += from8to4[4] * in8Buffer[(workingIndex - 4) & 15];
-// 			accumulator += from8to4[6] * in8Buffer[(workingIndex - 6) & 15];
-// 			in4Buffer[in4Index] = accumulator;
-// 			in4Index = (in4Index + 1) & 31;
-// 			workingIndex += 2;    
-// 		}
-
-// 		workingIndex = in4Index;
-
-// 		// filter every other sample and write to the x2 buffer
-// 		for (int i = 0; i < 4; i += 2) {
-// 			accumulator = 0.5 * in4Buffer[(workingIndex - 7) & 31]; 
-// 			accumulator += from4to2[0] * in4Buffer[workingIndex];
-// 			accumulator += from4to2[2] * in4Buffer[(workingIndex - 2) & 31];
-// 			accumulator += from4to2[4] * in4Buffer[(workingIndex - 4) & 31];
-// 			accumulator += from4to2[6] * in4Buffer[(workingIndex - 6) & 31];
-// 			accumulator += from4to2[8] * in4Buffer[(workingIndex - 8) & 31];
-// 			accumulator += from4to2[10] * in4Buffer[(workingIndex - 10) & 31];
-// 			accumulator += from4to2[12] * in4Buffer[(workingIndex - 12) & 31];
-// 			accumulator += from4to2[14] * in4Buffer[(workingIndex - 14) & 31];
-// 			in2Buffer[in2Index] = accumulator;
-// 			in2Index = (in2Index + 1) & 63;
-// 			workingIndex += 2;    
-// 		}
-
-// 		workingIndex = in2Index;
-
-// 		// this time, we only need one sample, so the for loop does the FIR
-
-// 		accumulator = 0.49998081 * in4Buffer[(workingIndex - 23) & 63];
-
-// 		for (int i = 0; i < 47; i += 2) {
-// 			accumulator += from2to1[i] * in2Buffer[(workingIndex - i) & 63];
-// 		}
-
-// 		return accumulator;
-// 	}
-
-// };
