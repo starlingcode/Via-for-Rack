@@ -5,6 +5,215 @@
 #define ATSR_OVERSAMPLE_QUALITY 1
 
 struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
+
+    struct ASlopeButtonQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Expo", "Linear", "Sigmoid", "Log"};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            return atsrModule->virtualModule.atsrUI.button1Mode;
+        }
+
+        std::string getDisplayValueString() override {
+            return modes[(int) getDisplayValue()];
+        }
+
+        std::string getString() override {
+            return "Attack Slope Shape: " + getDisplayValueString();
+        }
+
+    };
+
+    struct TSlopeButtonQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Expo", "Linear", "Sigmoid", "Log"};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            return atsrModule->virtualModule.atsrUI.button2Mode;
+        }
+
+        std::string getDisplayValueString() override {
+            return modes[(int) getDisplayValue()];
+        }
+
+        std::string getString() override {
+            return "Transition Slope Shape: " + getDisplayValueString();
+        }
+
+    };
+
+    struct StageButtonQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Attack", "Transition", "Sustain", "Release"};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            return atsrModule->virtualModule.atsrUI.button3Mode;
+        }
+
+        std::string getDisplayValueString() override {
+            return modes[(int) getDisplayValue()];
+        }
+
+        std::string getString() override {
+            return "Gate High During: " + getDisplayValueString();
+        }
+
+    };
+
+
+    struct AtkAllButtonQuantity : ParamQuantity {
+
+        std::string modes[2] = {"Attack Time", "All Slopes (V/oct)"};
+
+        std::string getDisplayValueString() override {
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            return modes[atsrModule->virtualModule.atsrUI.button4Mode];
+
+        }
+
+        std::string getString() override {
+            return "A CV Destination: " + getDisplayValueString();
+        }
+
+    };
+
+    struct SHButtonQuantity : ParamQuantity {
+
+        std::string modes[2] = {"Enabled", "Disabled"};
+
+        std::string getDisplayValueString() override {
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            return modes[atsrModule->virtualModule.atsrUI.button5Mode];
+
+        }
+
+        std::string getString() override {
+            return "Attack/Sustain Level S+H: " + getDisplayValueString();
+        }
+
+    };
+
+    struct RSlopeButtonQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Expo", "Linear", "Sigmoid", "Log"};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            return atsrModule->virtualModule.atsrUI.button6Mode;
+        }
+
+        std::string getDisplayValueString() override {
+            return modes[(int) getDisplayValue()];
+        }
+
+        std::string getString() override {
+            return "Release Slope Shape: " + getDisplayValueString();
+        }
+
+    };
+
+    struct ATimeQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Attack Time";
+        }
+
+    };
+
+    struct TTimeQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Transition Time";
+        }
+
+    };
+
+    struct RTimeQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Release Time";
+        }
+
+    };
+
+    struct ButtonQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Manual Gate";
+        }
+
+    };
+
+    struct BScaleQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            bool bConnected = atsrModule->inputs[B_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (bConnected) {
+                return "Sustain level scale: " + string::f("%.*g", 2, v);
+            } else {
+                return "Sustain level: " + string::f("%.*g", 2, v * 5.0) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ANormalQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            Atsr * atsrModule = (Atsr *) module;
+
+            bool aConnected = atsrModule->inputs[A_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (aConnected) {
+                return "Overriden by A input";
+            } else {
+                return "Attack level: " + string::f("%.*g", 2, v) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
     
     Atsr() : Via() {
 
@@ -12,22 +221,22 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
         virtualIO = &virtualModule;
 
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time", "", 0.0, 1.0/4095.0);
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time", "", 0.0, 1.0/4095.0);
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time", "", 0.0, 1.0/4095.0);
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "Sustain level scale");
+        configParam<ATimeQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time", "", 0.0, 1.0/4095.0);
+        configParam<TTimeQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time", "", 0.0, 1.0/4095.0);
+        configParam<RTimeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time", "", 0.0, 1.0/4095.0);
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Sustain level scale");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Transition time CV amount");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Attack level normal");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Attack level normal");
         configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Release time CV amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Attack shape");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Transition shape");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Segment gate select");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "A time CV: attack or all");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Level CV sample and hold");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Release shape");
+        configParam<ASlopeButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Attack shape");
+        configParam<TSlopeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Transition shape");
+        configParam<StageButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Segment gate select");
+        configParam<AtkAllButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "A time CV: attack or all");
+        configParam<SHButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Level CV sample and hold");
+        configParam<RSlopeButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Release shape");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual gate");
+        configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual gate");
 
         onSampleRateChange();
     }

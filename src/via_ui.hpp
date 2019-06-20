@@ -1,5 +1,6 @@
 #include "starling.hpp"
 #include "color.hpp"
+#include <app/ParamWidget.hpp>
 
 // Modified light widget for the white LED
 
@@ -58,14 +59,102 @@ struct RGBTriangle : ModuleLightWidget {
     }
 };
 
+struct ViaKnob : RoundKnob {
 
-struct ViaSifamBlack : RoundKnob {
+    void onButton(const event::Button &e) override {
+        OpaqueWidget::onButton(e);
+
+        // Touch parameter
+        if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_LEFT && (e.mods & RACK_MOD_MASK) == 0) {
+            if (paramQuantity) {
+                APP->scene->rack->touchedParam = this;
+            }
+            e.consume(this);
+        }
+
+        // Right click to open context menu
+        if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_RIGHT && (e.mods & RACK_MOD_MASK) == 0) {
+            createViaContextMenu();
+            e.consume(this);
+        }
+    }
+
+    struct ViaParamLabel : ui::MenuLabel {
+        ParamWidget *paramWidget;
+        void step() override {
+            text = paramWidget->paramQuantity->getString();
+            MenuLabel::step();
+        }
+    };
+
+
+    struct ViaParamResetItem : ui::MenuItem {
+        ParamWidget *paramWidget;
+        void onAction(const event::Action &e) override {
+            paramWidget->resetAction();
+        }
+    };
+
+
+    struct ViaParamFineItem : ui::MenuItem {
+    };
+
+
+    struct ViaParamUnmapItem : ui::MenuItem {
+        ParamWidget *paramWidget;
+        void onAction(const event::Action &e) override {
+            engine::ParamHandle *paramHandle = APP->engine->getParamHandle(paramWidget->paramQuantity->module->id, paramWidget->paramQuantity->paramId);
+            if (paramHandle) {
+                APP->engine->updateParamHandle(paramHandle, -1, 0);
+            }
+        }
+    };
+
+    void createViaContextMenu(void) {
+
+        ui::Menu *menu = createMenu();
+
+        ViaParamLabel *paramLabel = new ViaParamLabel;
+        paramLabel->paramWidget = this;
+        menu->addChild(paramLabel);
+
+        // ParamField *paramField = new ParamField;
+        // paramField->box.size.x = 100;
+        // paramField->setParamWidget(this);
+        // menu->addChild(paramField);
+
+        ViaParamResetItem *resetItem = new ViaParamResetItem;
+        resetItem->text = "Initialize";
+        resetItem->rightText = "Double-click";
+        resetItem->paramWidget = this;
+        menu->addChild(resetItem);
+
+        // ViaParamFineItem *fineItem = new ViaParamFineItem;
+        // fineItem->text = "Fine adjust";
+        // fineItem->rightText = RACK_MOD_CTRL_NAME "+drag";
+        // fineItem->disabled = true;
+        // menu->addChild(fineItem);
+
+        engine::ParamHandle *paramHandle = paramQuantity ? APP->engine->getParamHandle(paramQuantity->module->id, paramQuantity->paramId) : NULL;
+        if (paramHandle) {
+            ViaParamUnmapItem *unmapItem = new ViaParamUnmapItem;
+            unmapItem->text = "Unmap";
+            unmapItem->rightText = paramHandle->text;
+            unmapItem->paramWidget = this;
+            menu->addChild(unmapItem);
+        }
+
+    }
+
+};
+
+struct ViaSifamBlack : ViaKnob {
     ViaSifamBlack() {
         setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/knob_sifam_blkcap.svg")));
     }
 };
 
-struct ViaSifamGrey : RoundKnob {
+struct ViaSifamGrey : ViaKnob {
     ViaSifamGrey() {
         setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/knob_sifam_grycap.svg")));
     }
@@ -79,7 +168,97 @@ struct ViaJack : SvgPort {
 
 // Button skins for the manual trigger and touch sensors
 
-struct TransparentButton : SvgSwitch {
+struct ViaSwitch : SvgSwitch {
+
+    void onButton(const event::Button &e) override {
+        OpaqueWidget::onButton(e);
+
+        // Touch parameter
+        if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_LEFT && (e.mods & RACK_MOD_MASK) == 0) {
+            if (paramQuantity) {
+                APP->scene->rack->touchedParam = this;
+            }
+            e.consume(this);
+        }
+
+        // Right click to open context menu
+        if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_RIGHT && (e.mods & RACK_MOD_MASK) == 0) {
+            createViaContextMenu();
+            e.consume(this);
+        }
+    }
+
+    struct ViaParamLabel : ui::MenuLabel {
+        ParamWidget *paramWidget;
+        void step() override {
+            text = paramWidget->paramQuantity->getString();
+            MenuLabel::step();
+        }
+    };
+
+
+    struct ViaParamResetItem : ui::MenuItem {
+        ParamWidget *paramWidget;
+        void onAction(const event::Action &e) override {
+            paramWidget->resetAction();
+        }
+    };
+
+
+    struct ViaParamFineItem : ui::MenuItem {
+    };
+
+
+    struct ViaParamUnmapItem : ui::MenuItem {
+        ParamWidget *paramWidget;
+        void onAction(const event::Action &e) override {
+            engine::ParamHandle *paramHandle = APP->engine->getParamHandle(paramWidget->paramQuantity->module->id, paramWidget->paramQuantity->paramId);
+            if (paramHandle) {
+                APP->engine->updateParamHandle(paramHandle, -1, 0);
+            }
+        }
+    };
+
+    void createViaContextMenu(void) {
+
+        ui::Menu *menu = createMenu();
+
+        ViaParamLabel *paramLabel = new ViaParamLabel;
+        paramLabel->paramWidget = this;
+        menu->addChild(paramLabel);
+
+        // ParamField *paramField = new ParamField;
+        // paramField->box.size.x = 100;
+        // paramField->setParamWidget(this);
+        // menu->addChild(paramField);
+
+        ViaParamResetItem *resetItem = new ViaParamResetItem;
+        resetItem->text = "Initialize";
+        resetItem->rightText = "Double-click";
+        resetItem->paramWidget = this;
+        menu->addChild(resetItem);
+
+        // ViaParamFineItem *fineItem = new ViaParamFineItem;
+        // fineItem->text = "Fine adjust";
+        // fineItem->rightText = RACK_MOD_CTRL_NAME "+drag";
+        // fineItem->disabled = true;
+        // menu->addChild(fineItem);
+
+        engine::ParamHandle *paramHandle = paramQuantity ? APP->engine->getParamHandle(paramQuantity->module->id, paramQuantity->paramId) : NULL;
+        if (paramHandle) {
+            ViaParamUnmapItem *unmapItem = new ViaParamUnmapItem;
+            unmapItem->text = "Unmap";
+            unmapItem->rightText = paramHandle->text;
+            unmapItem->paramWidget = this;
+            menu->addChild(unmapItem);
+        }
+
+    }
+
+};
+
+struct TransparentButton : ViaSwitch {
+
     TransparentButton() {
         momentary = true;
         shadow->opacity = 0.0;
@@ -87,7 +266,7 @@ struct TransparentButton : SvgSwitch {
     }
 };
 
-struct ViaPushButton : SvgSwitch {
+struct ViaPushButton : ViaSwitch {
     ViaPushButton() {
         momentary = true;
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/manual_trig.svg")));

@@ -5,28 +5,252 @@
 #define GATESEQ_OVERSAMPLE_QUALITY 1
 
 struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
+
+    struct SHIButtonQuantity : ParamQuantity {
+
+        std::string modes[3] = {"Off", "Resample A", "Sample and Track A"};
+
+        float getDisplayValue() override {
+            if (!module)
+                return Quantity::getDisplayValue();
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return gateseqModule->virtualModule.gateseqUI.button1Mode;
+        }
+
+        std::string getDisplayValueString() override {
+            return modes[(int) getDisplayValue()];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct GateIButtonQuantity : ParamQuantity {
+
+        std::string modes[3] = {"Open", "Logic Gate A", "Audio Gate A"};
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return modes[gateseqModule->virtualModule.gateseqUI.button2Mode];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct SeqIButtonQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Length 16 Euclidean", "3 vs 2", "Shuffle-Swing", "Multiplier/Divider"};
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct SHIIButtonQuantity : ParamQuantity {
+
+        std::string modes[3] = {"Off", "Resample B", "Sample and Track B"};
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return modes[gateseqModule->virtualModule.gateseqUI.button4Mode];
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct GateIIButtonQuantity : ParamQuantity {
+
+        std::string modes[3] = {"Open", "Logic Gate B", "Audio Gate B"};
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return modes[gateseqModule->virtualModule.gateseqUI.button5Mode];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct SeqIIButtonQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Length 16 Euclidean", "Odd vs Even", "2 or 3 Gates", "Rhythmic Clock Division"};
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return modes[gateseqModule->virtualModule.gateseqUI.button6Mode];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct PtnIDensityQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Pattern I Density";
+        }
+
+    };
+
+    struct ModulationQuantity : ParamQuantity {
+
+        std::string modes[4] = {"Offset", "Offset", "Shuffle to Swing", "Multiplier"};
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];                
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ModulationCVQuantity : ParamQuantity {
+
+        std::string modes[4] = {"(Offset)", "(Offset)", "(Shufle to Swing)", "(Multiplier)"};
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            return "PTN I Modulation CV Attenuator " + modes[gateseqModule->virtualModule.gateseqUI.button3Mode];
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct PtnIIDensityQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Pattern II Density";
+        }
+
+    };
+
+    struct PtnIICVQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Pattern II Density CV Attenuator";
+        }
+
+    };
+
+    struct BScaleQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            bool bConnected = gateseqModule->inputs[B_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (bConnected) {
+                return "B scale: " + string::f("%.*g", 2, v);
+            } else {
+                return "B manual: " + string::f("%.*g", 2, v * 5.0) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ANormalQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            Gateseq * gateseqModule = (Gateseq *) module;
+
+            bool aConnected = gateseqModule->inputs[A_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (aConnected) {
+                return "Overriden by input patch";
+            } else {
+                return "A manual: " + string::f("%.*g", 2, v) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ButtonQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Manual Trigger";
+        }
+
+    };
     
     Gateseq() : Via() {
 
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I density", "", 0.0, 1.0/4095.0);
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Pattern II density", "", 0.0, 1.0/4095.0);
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "Pattern II gate level");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Pattern I gate level");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Pattern II density CV amount");
+        configParam<PtnIDensityQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I density", "", 0.0, 1.0/4095.0);
+        configParam<ModulationQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
+        configParam<PtnIIDensityQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Pattern II density", "", 0.0, 1.0/4095.0);
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Pattern II gate level");
+        configParam<ModulationCVQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Pattern I gate level");
+        configParam<PtnIICVQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Pattern II density CV amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I S+H control");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I gate control");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Pattern I mode");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II S+H control");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II gate control");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Pattern II bank");
+        configParam<SHIButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I S+H control");
+        configParam<GateIButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I gate control");
+        configParam<SeqIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Pattern I mode");
+        configParam<SHIIButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II S+H control");
+        configParam<GateIIButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II gate control");
+        configParam<SeqIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Pattern II bank");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Pattern reset");
+        configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Pattern reset");
 
         onSampleRateChange();
 

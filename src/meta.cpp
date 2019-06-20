@@ -5,7 +5,7 @@
 #define META_OVERSAMPLE_QUALITY 6
 
 
-struct alignas(32) Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
+struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     struct SHButtonQuantity : ParamQuantity {
 
@@ -32,26 +32,218 @@ struct alignas(32) Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     struct TableButtonQuantity : ParamQuantity {
 
-        std::string modes[3][8] = {{"", "", "", "", "", "", "", ""},
-                                    {"", "", "", "", "", "", "", ""},
-                                    {"", "", "", "", "", "", "", ""}};
+        std::string modes[3][8] = {{"Impulse", "Additive", "Trifold", "Ridges", "Perlin", "Synthesized Formants", "Sampled Formants", "Trains"},
+                                    {"Expo/Log Symmetrical", "Expo/Log Aymmetrical", "Plateau Symmetrical", "Plateau Asymmetrical", "Fixed Lump", "Moving Lump", "Compressed", "Fake ADSR"},
+                                    {"Waves", "Euclidean Waves", "Rubberband", "Bounce", "Mountains", "Half Sines", "Steps", "Sequences"}};
 
-        float getDisplayValue() override {
-            if (!module)
-                return Quantity::getDisplayValue();
+        std::string getDisplayValueString() override {
 
             Meta * metaModule = (Meta *) module;
 
-            return metaModule->virtualModule.metaUI.button2Mode;
+            return modes[metaModule->virtualModule.metaUI.button3Mode][metaModule->virtualModule.metaUI.button2Mode];
         }
 
-        // std::string getDisplayValueString() override {
-        //     return modes[(int) getDisplayValue()];
-        // }
+        std::string getString() override {
+            return getDisplayValueString();
+        }
 
-        // std::string getString() override {
-        //     return getDisplayValueString();
-        // }
+    };
+
+    struct FreqButtonQuantity : ParamQuantity {
+
+        std::string modes[3] = {"Audio","Envelope","Sequence"};
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            return modes[metaModule->virtualModule.metaUI.button3Mode];
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct TrigButtonQuantity : ParamQuantity {
+
+        std::string modes[5] = {"No Retrigger","Hard Reset","Analog A/R Model","Gated A/R Model","Pendulum"};
+        std::string drumModes[4] = {"808 Kick","Tom","Pluck","Tone"};
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+            if (drumMode) {
+                return drumModes[metaModule->virtualModule.metaUI.aux1Mode];
+            } else {
+                return modes[metaModule->virtualModule.metaUI.button4Mode];
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct LoopButtonQuantity : ParamQuantity {
+
+        std::string modes[2] = {"Loop Off", "Loop On"};
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            return modes[metaModule->virtualModule.metaUI.button6Mode];
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct Time1Quantity : ParamQuantity {
+
+        std::string modes[3] = {"Coarse Tune", "Attack Time", "Cycle Time"};
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            return modes[metaModule->virtualModule.metaUI.button3Mode];
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct Time2Quantity : ParamQuantity {
+
+        std::string modes[3] = {"Fine Tune", "Release Time", "Skew"};
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+            if (drumMode) {
+                return "Drum Decay";
+            } else {
+                return modes[metaModule->virtualModule.metaUI.button3Mode];                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct Time2CVQuantity : ParamQuantity {
+
+        std::string modes[3] = {"(Linear FM)", "(Release Time)", "(Skew)"};
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+            if (drumMode) {
+                return "T2 CV Attenuator (Drum Decay)";
+            } else {
+                return "T2 CV Attenuator " + modes[metaModule->virtualModule.metaUI.button3Mode];                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct WaveshapeQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Waveshape";
+        }
+
+    };
+
+    struct WaveshapeCVQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Waveshape CV Attenuator";
+        }
+
+    };
+
+    struct BScaleQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            bool bConnected = metaModule->inputs[B_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (bConnected) {
+                return "B scale: " + string::f("%.*g", 2, v);
+            } else {
+                return "B manual: " + string::f("%.*g", 2, v * 5.0) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ANormalQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            Meta * metaModule = (Meta *) module;
+
+            bool aConnected = metaModule->inputs[A_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (aConnected) {
+                return "Overriden by input patch";
+            } else {
+                return "A manual: " + string::f("%.*g", 2, v) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ButtonQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return "Manual Trigger";
+        }
 
     };
 
@@ -59,25 +251,23 @@ struct alignas(32) Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         
         virtualIO = &virtualModule;
 
-
-
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Time/frequency", "", 0.0, 1.0/4095.0);
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Time/frequency", "", 0.0, 1.0/4095.0);
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "B input scale");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Time 2 CV amount");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "A input normal (overriden by patch)");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape 2 CV amount");
+        configParam<Time1Quantity>(KNOB1_PARAM, 0, 4095.0, 2048.0);
+        configParam<Time2Quantity>(KNOB2_PARAM, 0, 4095.0, 2048.0);
+        configParam<WaveshapeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0);
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5);
+        configParam<Time2CVQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0);
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0);
+        configParam<WaveshapeCVQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0);
         
-        configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "");
-        configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable up");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Frequency range");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "TRIG input configuration");
-        configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Wavetable down");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Enable/disable looping");
+        configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0);
+        configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0);
+        configParam<FreqButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0);
+        configParam<TrigButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0);
+        configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0);
+        configParam<LoopButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0);
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual trigger");
+        configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0);
 
         onSampleRateChange();
         presetData[0] = virtualModule.metaUI.stockPreset1;
@@ -303,18 +493,6 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
-        menu->addChild(createMenuLabel("Signal out"));
-        const std::string signalLabels[] = {
-            "Triangle",
-            "Contour",
-        };
-        for (int i = 0; i < (int) LENGTHOF(signalLabels); i++) {
-            MetaAux4ModeHandler *aux4Item = createMenuItem<MetaAux4ModeHandler>(signalLabels[i], CHECKMARK(module->virtualModule.metaUI.aux4Mode == i));
-            aux4Item->module = module;
-            aux4Item->signalMode = i;
-            menu->addChild(aux4Item);
-        }
-
         struct MetaAux1ModeHandler : MenuItem {
             Meta *module;
             int32_t drumMode;
@@ -327,20 +505,37 @@ struct MetaWidget : ModuleWidget  {
             }
         };
 
-        menu->addChild(createMenuLabel("Drum signal out"));
-        const std::string drumOutLabels[] = {
-            "Triangle",
-            "Contour",
-            "Envelope",
-            "Noise"
-        };
-        for (int i = 0; i < (int) LENGTHOF(drumOutLabels); i++) {
-            MetaAux1ModeHandler *aux1Item = createMenuItem<MetaAux1ModeHandler>(drumOutLabels[i], CHECKMARK(module->virtualModule.metaUI.aux1Mode == i));
-            aux1Item->module = module;
-            aux1Item->drumMode = i;
-            menu->addChild(aux1Item);
-        }
+        if ((module->virtualModule.metaUI.button3Mode) || (module->virtualModule.metaUI.button6Mode)) {
 
+            menu->addChild(createMenuLabel("Signal out"));
+            const std::string signalLabels[] = {
+                "Triangle",
+                "Contour",
+            };
+            for (int i = 0; i < (int) LENGTHOF(signalLabels); i++) {
+                MetaAux4ModeHandler *aux4Item = createMenuItem<MetaAux4ModeHandler>(signalLabels[i], CHECKMARK(module->virtualModule.metaUI.aux4Mode == i));
+                aux4Item->module = module;
+                aux4Item->signalMode = i;
+                menu->addChild(aux4Item);
+            }
+
+        } else {
+
+            menu->addChild(createMenuLabel("Drum signal out"));
+            const std::string drumOutLabels[] = {
+                "Triangle",
+                "Contour",
+                "Envelope",
+                "Noise"
+            };
+            for (int i = 0; i < (int) LENGTHOF(drumOutLabels); i++) {
+                MetaAux1ModeHandler *aux1Item = createMenuItem<MetaAux1ModeHandler>(drumOutLabels[i], CHECKMARK(module->virtualModule.metaUI.aux1Mode == i));
+                aux1Item->module = module;
+                aux1Item->drumMode = i;
+                menu->addChild(aux1Item);
+            }
+
+        }
 
         struct MetaTuneC4 : MenuItem {
             Meta *module;
