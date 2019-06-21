@@ -174,54 +174,6 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     };
 
-    struct BScaleQuantity : ParamQuantity {
-
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            bool bConnected = gateseqModule->inputs[B_INPUT].isConnected();
-
-            float v = getSmoothValue();
-
-            if (bConnected) {
-                return "B scale: " + string::f("%.*g", 2, v);
-            } else {
-                return "B manual: " + string::f("%.*g", 2, v * 5.0) + "V";                
-            }
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
-        }
-
-    };
-
-    struct ANormalQuantity : ParamQuantity {
-
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            bool aConnected = gateseqModule->inputs[A_INPUT].isConnected();
-
-            float v = getSmoothValue();
-
-            if (aConnected) {
-                return "Overriden by input patch";
-            } else {
-                return "A manual: " + string::f("%.*g", 2, v) + "V";                
-            }
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
-        }
-
-    };
-
     struct ButtonQuantity : ParamQuantity {
 
         std::string getString() override {

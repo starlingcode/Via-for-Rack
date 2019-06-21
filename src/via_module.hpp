@@ -287,5 +287,99 @@ struct Via : Module {
 
     };
 
+    struct BScaleQuantity : ParamQuantity {
+
+        bool bConnected(void) {
+
+            Via * module = dynamic_cast<Via *>(this->module);
+
+            return module->inputs[B_INPUT].isConnected();
+
+        } 
+
+        std::string getDisplayValueString() override {
+
+            if (!module)
+                return "";
+
+            float v = getSmoothValue();
+
+            if (bConnected()) {
+                return getLabel() + " scale: " + string::f("%.*g", 2, v);
+            } else {
+                return getLabel() + ": " + string::f("%.*g", 2, v * 5.0) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+        void setDisplayValueString(std::string s) override {
+
+            float v = 0.f;
+            char suffix[2];
+            int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
+            if (n >= 2) {
+                // Parse SI prefixes
+                switch (suffix[0]) {
+                    case 'n': v *= 1e-9f; break;
+                    case 'u': v *= 1e-6f; break;
+                    case 'm': v *= 1e-3f; break;
+                    case 'k': v *= 1e3f; break;
+                    case 'M': v *= 1e6f; break;
+                    case 'G': v *= 1e9f; break;
+                    default: break;
+                }
+            }
+            if (n >= 1) {
+                if (bConnected()) {
+                    setValue(v);
+                } else {
+                    setValue(v/5.0);
+                }
+            }
+        }
+
+    };
+
+    struct ANormalQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            if (!module)
+                return "";
+
+            Via * module = dynamic_cast<Via *>(this->module);
+
+            bool aConnected = module->inputs[A_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (aConnected) {
+                return "Overriden by A input";
+            } else {
+                return getLabel() + ": " + string::f("%.*g", 2, v) + "V";                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct ButtonQuantity : ParamQuantity {
+
+        std::string getString() override {
+            return getLabel();
+        }
+
+        void setDisplayValueString(std::string s) override {}
+        
+    };
+
 };
 

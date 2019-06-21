@@ -191,54 +191,6 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     };
 
-    struct BScaleQuantity : ParamQuantity {
-
-        std::string getDisplayValueString() override {
-
-            Meta * metaModule = (Meta *) module;
-
-            bool bConnected = metaModule->inputs[B_INPUT].isConnected();
-
-            float v = getSmoothValue();
-
-            if (bConnected) {
-                return "B scale: " + string::f("%.*g", 2, v);
-            } else {
-                return "B manual: " + string::f("%.*g", 2, v * 5.0) + "V";                
-            }
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
-        }
-
-    };
-
-    struct ANormalQuantity : ParamQuantity {
-
-        std::string getDisplayValueString() override {
-
-            Meta * metaModule = (Meta *) module;
-
-            bool aConnected = metaModule->inputs[A_INPUT].isConnected();
-
-            float v = getSmoothValue();
-
-            if (aConnected) {
-                return "Overriden by input patch";
-            } else {
-                return "A manual: " + string::f("%.*g", 2, v) + "V";                
-            }
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
-        }
-
-    };
-
     struct ButtonQuantity : ParamQuantity {
 
         std::string getString() override {
