@@ -1,6 +1,8 @@
 #include "starling.hpp"
 #include "color.hpp"
 #include <app/ParamWidget.hpp>
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
 
 // Modified light widget for the white LED
 
@@ -136,4 +138,70 @@ struct ViaButtonQuantity : ParamQuantity {
 
 };
 
-// struct ViaKnobQuantity : ParamQuantity {};
+struct ViaComplexButtonQuantity : ParamQuantity {
+
+    std::string * modes;
+    int numModes = 0;
+
+    virtual int getModeEnumeration(void) {return 0;}
+    virtual void getModeArray(void) {}
+    virtual void setMode(int mode) {}
+
+    float getDisplayValue() override {
+        if (!module)
+            return Quantity::getDisplayValue();
+
+        return getModeEnumeration();
+    }
+
+    std::string getDisplayValueString() override {
+        if (!module)
+            return Quantity::getDisplayValueString();
+
+        int mode = getDisplayValue();
+
+        getModeArray();
+
+        return modes[mode] + " (" + std::to_string(mode + 1) + ")";
+    }
+
+    void setDisplayValueString(std::string s) override {
+        if (!module)
+            return;
+
+        for (int i = 0; i < numModes; i++) {
+            if (s == modes[i] || s == std::to_string(i + 1)) {
+                setMode(i);
+            } 
+        }
+
+    }
+
+};
+
+struct ViaKnobQuantity : ParamQuantity {
+
+    virtual float translateParameter(float value) {return 0;}
+    virtual float translateInput(float userInput) {return 0;}
+    virtual void setLabel(void) {};
+
+    float getDisplayValue() override {
+        if (!module)
+            return Quantity::getDisplayValue();
+
+        return translateParameter(getSmoothValue());
+    }
+
+    int getDisplayPrecision() override {
+        return 5;
+    }
+
+    void setDisplayValueString(std::string s) override {
+        if (!module)
+            return;
+
+        setValue(translateInput(std::stof(s)));
+
+    }
+
+};

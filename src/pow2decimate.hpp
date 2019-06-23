@@ -282,6 +282,9 @@ struct alignas(32) pow2Decimate {
 
 	}
 
+	// Elliptic filter will make this faster with more passband ripple
+	// Higher order butterworth might still be faster
+
 	float inline process2to1(void) {
 
 		int workingIndex = (in2Index - 2) & 63;

@@ -6,118 +6,216 @@
 
 struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
-    struct SHIButtonQuantity : ParamQuantity {
+    struct PatternIQuantity : ViaKnobQuantity {
 
-        std::string modes[3] = {"Off", "Resample A", "Sample and Track A"};
+        virtual float translateParameter(float value) {
 
-        float getDisplayValue() override {
-            if (!module)
-                return Quantity::getDisplayValue();
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
-            Gateseq * gateseqModule = (Gateseq *) module;
+            return 1 + (gateseqModule->virtualModule.controls.knob1Value >> 8);            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            return (userInput - 1) * 256.0;
+
+        };
+
+    };
+
+    struct PatternIIQuantity : ViaKnobQuantity {
+
+        virtual float translateParameter(float value) {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            return 1 + (gateseqModule->virtualModule.controls.knob3Value >> 8);            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            return (userInput - .5)  * 256.0;
+
+        };
+
+    };
+
+    struct SHIButtonQuantity : ViaButtonQuantity<3> {
+
+        std::string buttonModes[3] = {"Off", "Resample A", "Sample and Track A"};
+
+        SHIButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
             return gateseqModule->virtualModule.gateseqUI.button1Mode;
+
         }
 
-        std::string getDisplayValueString() override {
-            return modes[(int) getDisplayValue()];
-        }
+        void setMode(int mode) override {
 
-        std::string getString() override {
-            return getDisplayValueString();
-        }
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
-    };
+            gateseqModule->virtualModule.gateseqUI.button1Mode = mode;
+            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+            gateseqModule->virtualModule.handleButton1ModeChange(mode);
 
-    struct GateIButtonQuantity : ParamQuantity {
-
-        std::string modes[3] = {"Open", "Logic Gate A", "Audio Gate A"};
-
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            return modes[gateseqModule->virtualModule.gateseqUI.button2Mode];
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
         }
 
     };
 
-    struct SeqIButtonQuantity : ParamQuantity {
+    struct GateIButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string modes[4] = {"Length 16 Euclidean", "3 vs 2", "Shuffle-Swing", "Multiplier/Divider"};
+        std::string buttonModes[3] = {"Open", "Logic Gate A", "Audio Gate A"};
 
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];
+        GateIButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
         }
+        
+        int getModeEnumeration(void) override {
 
-        std::string getString() override {
-            return getDisplayValueString();
-        }
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
-    };
-
-    struct SHIIButtonQuantity : ParamQuantity {
-
-        std::string modes[3] = {"Off", "Resample B", "Sample and Track B"};
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            return modes[gateseqModule->virtualModule.gateseqUI.button4Mode];
+            return gateseqModule->virtualModule.gateseqUI.button2Mode;
 
         }
 
-        std::string getString() override {
-            return getDisplayValueString();
+        void setMode(int mode) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            gateseqModule->virtualModule.gateseqUI.button2Mode = mode;
+            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+            gateseqModule->virtualModule.handleButton2ModeChange(mode);
+
         }
 
     };
 
-    struct GateIIButtonQuantity : ParamQuantity {
+    struct SeqIButtonQuantity : ViaButtonQuantity<4> {
 
-        std::string modes[3] = {"Open", "Logic Gate B", "Audio Gate B"};
+        std::string buttonModes[4] = {"Length 16 Euclidean", "3 vs 2", "Shuffle-Swing", "Multiplier/Divider"};
 
-        std::string getDisplayValueString() override {
+        SeqIButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
 
-            Gateseq * gateseqModule = (Gateseq *) module;
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
-            return modes[gateseqModule->virtualModule.gateseqUI.button5Mode];
+            return gateseqModule->virtualModule.gateseqUI.button3Mode;
+
         }
 
-        std::string getString() override {
-            return getDisplayValueString();
-        }
+        void setMode(int mode) override {
 
-    };
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
-    struct SeqIIButtonQuantity : ParamQuantity {
+            gateseqModule->virtualModule.gateseqUI.button3Mode = mode;
+            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+            gateseqModule->virtualModule.handleButton3ModeChange(mode);
 
-        std::string modes[4] = {"Length 16 Euclidean", "Odd vs Even", "2 or 3 Gates", "Rhythmic Clock Division"};
-
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            return modes[gateseqModule->virtualModule.gateseqUI.button6Mode];
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
         }
 
     };
 
-    struct PtnIDensityQuantity : ParamQuantity {
+    struct SHIIButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string getString() override {
-            return "Pattern I Density";
+        std::string buttonModes[3] = {"Off", "Resample B", "Sample and Track B"};
+        
+        SHIIButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            return gateseqModule->virtualModule.gateseqUI.button4Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            gateseqModule->virtualModule.gateseqUI.button4Mode = mode;
+            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+            gateseqModule->virtualModule.handleButton4ModeChange(mode);
+
+        }
+
+    };
+
+    struct GateIIButtonQuantity : ViaButtonQuantity<3> {
+
+        std::string buttonModes[4] = {"Open", "Logic Gate B", "Audio Gate B"};
+
+        GateIIButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            return gateseqModule->virtualModule.gateseqUI.button5Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            gateseqModule->virtualModule.gateseqUI.button5Mode = mode;
+            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
+            gateseqModule->virtualModule.handleButton5ModeChange(mode);
+
+        }
+
+    };
+
+    struct SeqIIButtonQuantity : ViaButtonQuantity<4> {
+
+        std::string buttonModes[4] = {"Length 16 Euclidean", "Odd vs Even", "2 or 3 Gates", "Rhythmic Clock Division"};
+
+        SeqIIButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            return gateseqModule->virtualModule.gateseqUI.button6Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            gateseqModule->virtualModule.gateseqUI.button6Mode = mode;
+            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+            gateseqModule->virtualModule.handleButton6ModeChange(mode);
+
         }
 
     };
@@ -158,22 +256,6 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     };
 
-    struct PtnIIDensityQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Pattern II Density";
-        }
-
-    };
-
-    struct PtnIICVQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Pattern II Density CV Attenuator";
-        }
-
-    };
-
     struct ButtonQuantity : ParamQuantity {
 
         std::string getString() override {
@@ -187,13 +269,13 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam<PtnIDensityQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I density", "", 0.0, 1.0/4095.0);
+        configParam<PatternIQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I select", "", 0.0, 1.0/4095.0);
         configParam<ModulationQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
-        configParam<PtnIIDensityQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Pattern II density", "", 0.0, 1.0/4095.0);
+        configParam<PatternIIQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Pattern II select", "", 0.0, 1.0/4095.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Pattern II gate level");
-        configParam<ModulationCVQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Pattern I gate level");
-        configParam<PtnIICVQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Pattern II density CV amount");
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Pattern II density CV amount");
         
         configParam<SHIButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I S+H control");
         configParam<GateIButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I gate control");

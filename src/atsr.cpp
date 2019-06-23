@@ -6,6 +6,113 @@
 
 struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
+#define PHASE_LENGTH ((float) 0xFFFFFFF)
+#define NUM_SAMPLES 4096.0
+
+    struct ATimeQuantity : ViaKnobQuantity {
+
+        virtual float translateParameter(float value) {
+
+            Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
+
+            int32_t cycleMod = atsrModule->virtualModule.expo.convert(2048) >> 5;
+
+            float timeBase = __USAT(fix16_mul(cycleMod,
+                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob1Value) >> 6), 25);
+
+            return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
+
+            float lengthInSamples = userInput * atsrModule->sampleRateStore;
+            float desiredIncrement = NUM_SAMPLES/lengthInSamples;
+            float normalizedCycleMod = ((float) (atsrModule->virtualModule.expo.convert(2048) >> 5))/65536.0;
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 64.0;
+
+            return (4095 - (atsrModule->reverseExpo(desiredIncrement))*384);
+
+        };
+
+    };
+
+    struct TTimeQuantity : ViaKnobQuantity {
+
+        virtual float translateParameter(float value) {
+
+            Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
+
+            int32_t cycleMod = atsrModule->virtualModule.expo.convert(2048) >> 5;
+
+            if (atsrModule->virtualModule.cycleTime) {
+                cycleMod = fix16_mul(cycleMod, cycleMod);
+            }
+
+            float timeBase = __USAT(fix16_mul(cycleMod,
+                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob2Value) >> 6), 25);
+
+            return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
+
+            float lengthInSamples = userInput * atsrModule->sampleRateStore;
+            float desiredIncrement = NUM_SAMPLES/lengthInSamples;
+            float normalizedCycleMod = ((float) (atsrModule->virtualModule.expo.convert(2048) >> 5))/65536.0;
+            if (atsrModule->virtualModule.cycleTime) {
+                normalizedCycleMod *= normalizedCycleMod;
+            }
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 64.0;
+
+            return (4095 - (atsrModule->reverseExpo(desiredIncrement))*384);
+
+        };
+
+    };
+
+    struct RTimeQuantity : ViaKnobQuantity {
+
+        virtual float translateParameter(float value) {
+
+            Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
+
+            int32_t cycleMod = atsrModule->virtualModule.expo.convert(2048) >> 5;
+
+            if (atsrModule->virtualModule.cycleTime) {
+                cycleMod = fix16_mul(cycleMod, cycleMod);
+            }
+
+            float timeBase = __USAT(fix16_mul(cycleMod,
+                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob3Value) >> 6), 25);
+
+            return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
+
+            float lengthInSamples = userInput * atsrModule->sampleRateStore;
+            float desiredIncrement = NUM_SAMPLES/lengthInSamples;
+            float normalizedCycleMod = ((float) (atsrModule->virtualModule.expo.convert(2048) >> 5))/65536.0;
+            if (atsrModule->virtualModule.cycleTime) {
+                normalizedCycleMod *= normalizedCycleMod;
+            }
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 64.0;
+
+            return (4095 - (atsrModule->reverseExpo(desiredIncrement))*384);
+
+        };
+
+    };
+
     // Buttons
 
     struct ASlopeButtonQuantity : ViaButtonQuantity<4> {
@@ -188,30 +295,6 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         }
 
     };
-
-    struct ATimeQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Attack Time";
-        }
-
-    };
-
-    struct TTimeQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Transition Time";
-        }
-
-    };
-
-    struct RTimeQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Release Time";
-        }
-
-    };
     
     Atsr() : Via() {
 
@@ -219,9 +302,9 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
         virtualIO = &virtualModule;
 
-        configParam<ATimeQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time", "", 0.0, 1.0/4095.0);
-        configParam<TTimeQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time", "", 0.0, 1.0/4095.0);
-        configParam<RTimeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time", "", 0.0, 1.0/4095.0);
+        configParam<ATimeQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Attack time", "s", 0.0, 1.0/4095.0);
+        configParam<TTimeQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time", "s", 0.0, 1.0/4095.0);
+        configParam<RTimeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time", "s", 0.0, 1.0/4095.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Sustain level");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Transition time CV amount");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Attack level");
@@ -231,7 +314,6 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         configParam<TSlopeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Transition slope shape");
         configParam<StageButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "SEG gate high during");
         configParam<AtkAllButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "A time CV destination");
-        //paramQuantities[BUTTON4_PARAM]->description = "";
         configParam<SHButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Level CV S+H");
         configParam<RSlopeButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Release slope shape");
         
@@ -242,10 +324,14 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
     ViaAtsr virtualModule;
 
+    float sampleRateStore = 48000.0;
+
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
 
         ledDecay = 16.0/sampleRate;
+
+        sampleRateStore = sampleRate;
 
         if (sampleRate == 44100.0) {
             virtualModule.incScale = 71332;

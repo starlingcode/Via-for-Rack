@@ -7,104 +7,193 @@
 
 struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
-    struct SHButtonQuantity : ParamQuantity {
+    struct SHButtonQuantity : ViaButtonQuantity<6> {
 
-        std::string modes[6] = {"Off", "Sample and track A", "Resample B", "Sample and track A, resample B", "Sample and track A and B", "Resample A and B"};
+        std::string buttonModes[6] = {"Off", "Sample and track A", "Resample B", "Sample and track A, resample B", "Sample and track A and B", "Resample A and B"};
 
-        float getDisplayValue() override {
-            if (!module)
-                return Quantity::getDisplayValue();
+        SHButtonQuantity() {
+            for (int i = 0; i < 6; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
 
-            Meta * metaModule = (Meta *) module;
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
             return metaModule->virtualModule.metaUI.button1Mode;
+
         }
 
-        std::string getDisplayValueString() override {
-            return modes[(int) getDisplayValue()];
-        }
+        void setMode(int mode) override {
 
-        std::string getString() override {
-            return getDisplayValueString();
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+            metaModule->virtualModule.metaUI.button1Mode = mode;
+            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+            metaModule->virtualModule.handleButton1ModeChange(mode);
+
         }
 
     };
 
-    struct TableButtonQuantity : ParamQuantity {
+    struct TableButtonQuantity : ViaComplexButtonQuantity {
 
-        std::string modes[3][8] = {{"Impulse", "Additive", "Trifold", "Ridges", "Perlin", "Synthesized Formants", "Sampled Formants", "Trains"},
+        std::string buttonModes[3][8] = {{"Impulse", "Additive", "Trifold", "Ridges", "Perlin", "Synthesized Formants", "Sampled Formants", "Trains"},
                                     {"Expo/Log Symmetrical", "Expo/Log Aymmetrical", "Plateau Symmetrical", "Plateau Asymmetrical", "Fixed Lump", "Moving Lump", "Compressed", "Fake ADSR"},
                                     {"Waves", "Euclidean Waves", "Rubberband", "Bounce", "Mountains", "Half Sines", "Steps", "Sequences"}};
 
-        std::string getDisplayValueString() override {
+        TableButtonQuantity() {
+            modes = buttonModes[0];
+            numModes = 8;
+        }
+        
+        int getModeEnumeration(void) override {
 
-            Meta * metaModule = (Meta *) module;
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
-            return modes[metaModule->virtualModule.metaUI.button3Mode][metaModule->virtualModule.metaUI.button2Mode];
+            return metaModule->virtualModule.metaUI.button2Mode;
+
         }
 
-        std::string getString() override {
-            return getDisplayValueString();
+        void getModeArray(void) override {
+
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+            modes = buttonModes[metaModule->virtualModule.metaUI.button3Mode];
+
+            numModes = 8;
+
+        }
+
+        void setMode(int mode) override {
+
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+            metaModule->virtualModule.metaUI.button2Mode = mode;
+            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+            metaModule->virtualModule.handleButton2ModeChange(mode);
+
         }
 
     };
 
-    struct FreqButtonQuantity : ParamQuantity {
+    struct FreqButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string modes[3] = {"Audio","Envelope","Sequence"};
+        std::string buttonModes[3] = {"Audio","Envelope","Sequence"};
 
-        std::string getDisplayValueString() override {
+        FreqButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
 
-            Meta * metaModule = (Meta *) module;
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
-            return modes[metaModule->virtualModule.metaUI.button3Mode];
+            return metaModule->virtualModule.metaUI.button3Mode;
+
         }
 
-        std::string getString() override {
-            return getDisplayValueString();
+        void setMode(int mode) override {
+
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+            metaModule->virtualModule.metaUI.button3Mode = mode;
+            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+            metaModule->virtualModule.handleButton3ModeChange(mode);
+
         }
 
     };
 
-    struct TrigButtonQuantity : ParamQuantity {
+    struct TrigButtonQuantity : ViaComplexButtonQuantity {
 
-        std::string modes[5] = {"No Retrigger","Hard Reset","Analog A/R Model","Gated A/R Model","Pendulum"};
+        std::string trigModes[5] = {"No Retrigger","Hard Reset","Analog A/R Model","Gated A/R Model","Pendulum"};
         std::string drumModes[4] = {"808 Kick","Tom","Pluck","Tone"};
 
-        std::string getDisplayValueString() override {
+        TrigButtonQuantity() {
+            modes = trigModes;
+            numModes = 0;
+        }
+        
+        int getModeEnumeration(void) override {
 
-            Meta * metaModule = (Meta *) module;
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
             int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
 
             if (drumMode) {
-                return drumModes[metaModule->virtualModule.metaUI.aux1Mode];
+                return metaModule->virtualModule.metaUI.aux3Mode;
             } else {
-                return modes[metaModule->virtualModule.metaUI.button4Mode];
+                return metaModule->virtualModule.metaUI.button4Mode;
             }
 
         }
 
-        std::string getString() override {
-            return getDisplayValueString();
+        void getModeArray(void) override {
+
+            Meta * metaModule = dynamic_cast<Meta *>(module);
+
+            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+            if (drumMode) {
+                modes = drumModes;
+                numModes = 4;
+            } else {
+                modes = trigModes;
+                numModes = 5;
+            }
+
+        }
+
+        void setMode(int mode) override {
+
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+            if (drumMode) {
+                metaModule->virtualModule.metaUI.aux3Mode = mode;
+                metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
+                metaModule->virtualModule.handleAux3ModeChange(mode);
+            } else {
+                metaModule->virtualModule.metaUI.button4Mode = mode;
+                metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+                metaModule->virtualModule.handleButton4ModeChange(mode);
+            }
+
         }
 
     };
 
-    struct LoopButtonQuantity : ParamQuantity {
+    struct LoopButtonQuantity : ViaButtonQuantity<2> {
 
-        std::string modes[2] = {"Loop Off", "Loop On"};
+        std::string buttonModes[2] = {"Off", "On"};
 
-        std::string getDisplayValueString() override {
+        LoopButtonQuantity() {
+            for (int i = 0; i < 2; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
 
-            Meta * metaModule = (Meta *) module;
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
-            return modes[metaModule->virtualModule.metaUI.button6Mode];
+            return metaModule->virtualModule.metaUI.button6Mode;
 
         }
 
-        std::string getString() override {
-            return getDisplayValueString();
+        void setMode(int mode) override {
+
+            Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+            metaModule->virtualModule.metaUI.button6Mode = mode;
+            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+            metaModule->virtualModule.handleButton6ModeChange(mode);
+
         }
 
     };
@@ -191,14 +280,6 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     };
 
-    struct ButtonQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Manual Trigger";
-        }
-
-    };
-
     Meta() : Via() {
         
         virtualIO = &virtualModule;
@@ -212,14 +293,14 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0);
         configParam<WaveshapeCVQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0);
         
-        configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0);
-        configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0);
-        configParam<FreqButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0);
-        configParam<TrigButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0);
-        configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0);
-        configParam<LoopButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0);
+        configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H");
+        configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable");
+        configParam<FreqButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Frequency Range");
+        configParam<TrigButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "TRIG response");
+        configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Wavetable");
+        configParam<LoopButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Loop");
         
-        configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0);
+        configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual Trigger");
 
         onSampleRateChange();
         presetData[0] = virtualModule.metaUI.stockPreset1;

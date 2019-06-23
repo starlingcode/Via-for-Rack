@@ -6,6 +6,219 @@
 
 struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
+    // Buttons
+
+    struct SHButtonQuantity : ViaButtonQuantity<3> {
+
+        std::string buttonModes[3] = {"Off", "Sample and Track", "Resample"};
+
+        SHButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncUI.button1Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            syncModule->virtualModule.syncUI.button1Mode = mode;
+            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+            syncModule->virtualModule.handleButton1ModeChange(mode);
+
+        }
+
+    };
+
+    struct ScaleButtonQuantity : ViaComplexButtonQuantity {
+
+        std::string buttonModes[4][4] = {{"Integers", "Evens", "Threes", "Odds"},
+                                        {"Modal Sevenths", "Maj to Min", "Impressionist", "Bohlen-Pierce"},
+                                        {"Modes", "Sevenths", "Harmonic Entropy", "Bohlen-Pierce"},
+                                        {"All Rhythms", "No Triplets", "Triplets", "Dotted"}};
+
+
+        ScaleButtonQuantity() {
+            modes = buttonModes[0];
+            numModes = 4;
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncUI.button2Mode;
+
+        }
+
+        void getModeArray(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            modes = buttonModes[syncModule->virtualModule.syncUI.button5Mode];
+
+            numModes = 4;
+
+        }
+
+        void setMode(int mode) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            syncModule->virtualModule.syncUI.button2Mode = mode;
+            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+            syncModule->virtualModule.handleButton2ModeChange(mode);
+
+        }
+
+    };
+
+    struct ModButtonQuantity : ViaButtonQuantity<3> {
+
+        std::string buttonModes[3] = {"Y Ratio", "Phase", "Skew"};
+
+        ModButtonQuantity() {
+            for (int i = 0; i < 3; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncUI.button3Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            syncModule->virtualModule.syncUI.button3Mode = mode;
+            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+            syncModule->virtualModule.handleButton3ModeChange(mode);
+
+        }
+
+    };
+
+    struct SyncButtonQuantity : ViaButtonQuantity<4> {
+
+        std::string buttonModes[4] = {"Wiggly", "Smooth", "Fast", "Snap"};
+
+        SyncButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncUI.button4Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            syncModule->virtualModule.syncUI.button4Mode = mode;
+            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+            syncModule->virtualModule.handleButton4ModeChange(mode);
+
+        }
+
+    };
+
+    struct GroupButtonQuantity : ViaButtonQuantity<4> {
+
+        std::string buttonModes[4] = {"Mult/div", "Arps", "V/Oct", "Rhythms"};
+
+        GroupButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncUI.button5Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            syncModule->virtualModule.syncUI.button5Mode = mode;
+            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
+            syncModule->virtualModule.handleButton5ModeChange(mode);
+
+        }
+
+    };
+
+    struct TableButtonQuantity : ViaComplexButtonQuantity {
+
+        std::string buttonModes[5][4] = {{"Additive", "Ramps", "Bounce", "Plateaus"},
+                                        {"Impulse", "Additive Tri to Square", "Perlin", "Synthesized Vowels"},
+                                        {"Additive Pairs", "Fake Filter", "FM", "Trains"},
+                                        {"Expo/Log Symmetric", "Expo/Log Asymmetric", "Steps", "Sequences"},
+                                        {"Odd Triangles", "Odd Sines", "Euclidean Ridges", "Saw Ridges"}};
+
+
+        TableButtonQuantity() {
+            modes = buttonModes[0];
+            numModes = 4;
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncUI.button6Mode;
+
+        }
+
+        void getModeArray(void) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            if (syncModule->virtualModule.syncUI.aux4Mode) {
+                modes = buttonModes[4];
+            } else {
+                modes = buttonModes[syncModule->virtualModule.syncUI.button5Mode];
+            }
+
+        }
+
+        void setMode(int mode) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            syncModule->virtualModule.syncUI.button6Mode = mode;
+            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+            syncModule->virtualModule.handleButton6ModeChange(mode);
+
+        }
+
+    };
+
+
+
     Sync() : Via() {
 
         virtualIO = &virtualModule;
@@ -14,19 +227,20 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         configParam(KNOB1_PARAM,0, 4095.0, 2048.0, "Ratio grid X axis", "", 0.0, 1.0/4095.0);
         configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Ratio grid Y axis", "", 0.0, 1.0/4095.0);
         configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "B input attenuverter, main AXB output ranges from A to B");
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "B input");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "MOD CV amount");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Manual A input overriden when patched");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Manual A input");
         configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV amount");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H at A and B inputs: off, track and hold, resample");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio grid, 4 options per GROUP");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "MOD CV destination: ratio Y, phase, or skew");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Sync speed");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Master group of scales and waves: mult/div, arpeggios, v/oct, rhythms");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Wavetable, 4 options per GROUP");
+        configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H at A and B inputs");
+        configParam<ScaleButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio grid");
+        configParam<ModButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "MOD CV destination");
+        configParam<SyncButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Sync speed");
+        configParam<GroupButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Group");
+        paramQuantities[BUTTON5_PARAM]->description = "Purpose specific set of scales and waves";
+        configParam<TableButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Wavetable");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
+        configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
 
         onSampleRateChange();
         presetData[0] = virtualModule.syncUI.stockPreset1;

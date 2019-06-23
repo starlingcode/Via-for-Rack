@@ -5,28 +5,154 @@
 #define SCANNER_OVERSAMPLE_QUALITY 6
 
 struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
+
+        // Buttons
+
+    struct JumpQuantity : ViaButtonQuantity<2> {
+
+        std::string buttonModes[2] = {"Reverse", "Teleport"};
+
+        JumpQuantity() {
+            for (int i = 0; i < 2; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            return scannerModule->virtualModule.scannerUI.button1Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            scannerModule->virtualModule.scannerUI.button1Mode = mode;
+            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+            scannerModule->virtualModule.handleButton1ModeChange(mode);
+
+        }
+
+    };
+
+    struct YWorldQuantity : ViaButtonQuantity<8> {
+
+        std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
+
+        YWorldQuantity() {
+            for (int i = 0; i < 8; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            return scannerModule->virtualModule.scannerUI.button2Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            scannerModule->virtualModule.scannerUI.button2Mode = mode;
+            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+            scannerModule->virtualModule.handleButton2ModeChange(mode);
+
+        }
+
+    };
+
+    struct MapQuantity : ViaButtonQuantity<8> {
+
+        std::string buttonModes[4] = {"Add", "Multiply", "Lighten", "Difference"};
+
+        MapQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            return scannerModule->virtualModule.scannerUI.button3Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            scannerModule->virtualModule.scannerUI.button3Mode = mode;
+            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+            scannerModule->virtualModule.handleButton3ModeChange(mode);
+
+        }
+
+    };
+
+    struct XWorldQuantity : ViaButtonQuantity<8> {
+
+        std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
+
+        XWorldQuantity() {
+            for (int i = 0; i < 8; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            return scannerModule->virtualModule.scannerUI.button4Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+            scannerModule->virtualModule.scannerUI.button4Mode = mode;
+            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+            scannerModule->virtualModule.handleButton4ModeChange(mode);
+
+        }
+
+    };
     
     Scanner() : Via() {
 
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Surface shape control", "", 0.0, 1.0/4095.0);
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "X scan input offset", "", 0.0, 1.0/4095.0);
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Y scan input offset", "", 0.0, 1.0/4095.0);
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "B input attenuverter, main AXB output ranges from A to B");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "X scan input amount");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Manual A input overriden when patched");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Y scan input amount");
+        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Surface shape control", "", 0.0, 4.0/4095.0);
+        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "X scan offset", "", 0.0, 2.0/4095.0, -1.0);
+        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Y scan offset", "", 0.0, 2.0/4095.0, -1.0);
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "B level");
+        paramQuantities[B_PARAM]->description = "Main scan out is bounded between A and B levels";
+        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "X input attenuation");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "A level");
+        paramQuantities[A_PARAM]->description = "Main scan out is bounded between A and B levels";
+        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Y input attenuation");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "JUMP input: teleport or reverse");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Y scan world up");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Select map creation function");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "X scan world right");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Y scan world down");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "X scan world left");
+        configParam<JumpQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "JUMP input response");
+        configParam<YWorldQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Y scan world");
+        configParam<MapQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Map creation function");
+        configParam<XWorldQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "X scan world");
+        configParam<YWorldQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Y scan world");
+        configParam<XWorldQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "X scan world");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unused (preset select in hardware)");
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unused");
+        paramQuantities[TRIGBUTTON_PARAM]->description = "Enter preset menu on hardware module";
+
 
         onSampleRateChange();
         presetData[0] = virtualModule.scannerUI.stockPreset1;

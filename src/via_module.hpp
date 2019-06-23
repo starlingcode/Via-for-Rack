@@ -113,7 +113,7 @@ struct Via : Module {
     // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
     // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
 
-    void updateSlowIO(void) {
+    inline void updateSlowIO(void) {
 
         virtualIO->button1Input = (int32_t) params[BUTTON1_PARAM].getValue();
         virtualIO->button2Input = (int32_t) params[BUTTON2_PARAM].getValue();
@@ -137,7 +137,7 @@ struct Via : Module {
         virtualIO->controls.controlRateInputs[0] = clamp((int32_t)cv1Conversion, 0, 4095);
     }
 
-    void processTriggerButton(void) {
+    inline void processTriggerButton(void) {
         int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].getValue(), 0, 1);
         if (trigButton > lastTrigButton) {
             virtualIO->buttonPressedCallback();
@@ -179,7 +179,7 @@ struct Via : Module {
 
     }
 
-    void updateLogicOutputs(void) {
+    inline void updateLogicOutputs(void) {
         logicAState = virtualLogicOut(logicAState, virtualIO->aLogicOutput);
         auxLogicState = virtualLogicOut(auxLogicState, virtualIO->auxLogicOutput);
         shAControl = virtualLogicOut(shAControl, virtualIO->shAOutput);
@@ -247,8 +247,9 @@ struct Via : Module {
 
         // "model" the circuit
         // A and B inputs with normalled reference voltages
-        float aIn = inputs[A_INPUT].getVoltage() + (!inputs[A_INPUT].isConnected()) * params[A_PARAM].getValue();
-        float bIn = (inputs[B_INPUT].isConnected()) * ((inputs[B_INPUT].getVoltage()) * (params[B_PARAM].getValue())) + (!inputs[B_INPUT].isConnected()) * (5* (params[B_PARAM].getValue()));
+        float aIn = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
+        float bIn = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : 5.0;
+        bIn *= params[B_PARAM].getValue();
         
         // sample and holds
         // get a new sample on the rising edge at the sh control output
@@ -263,8 +264,8 @@ struct Via : Module {
         shBLast = shBControl;
 
         // either use the sample or track depending on the sh control output
-        aIn = shAControl * aSample + !shAControl * aIn;
-        bIn = shBControl * bSample + !shBControl * bIn;
+        aIn = shAControl ? aSample : aIn;
+        bIn = shBControl ? bSample : bIn;
 
         // VCA/mixing stage
         // normalize 12 bits to 0-1
@@ -286,6 +287,16 @@ struct Via : Module {
         clockDivider = 0;
 
     };
+
+
+    // Parameter quantity stuff
+
+    float reverseExpo(float expoScaled) {
+
+        return log2(expoScaled/65536.0);
+
+    }
+
 
     struct BScaleQuantity : ParamQuantity {
 
