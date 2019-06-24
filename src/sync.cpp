@@ -1,10 +1,78 @@
 #include "sync.hpp"
 #include "via_module.hpp"
+#include "sync_scale_key.hpp"
 
 #define SYNC_OVERSAMPLE_AMOUNT 8
 #define SYNC_OVERSAMPLE_QUALITY 6
 
 struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
+
+    // not working, takes forever to compile
+    // SyncScaleKey scaleKey;
+
+    struct RatioXQuantity : ViaKnobQuantity {
+        
+        float translateParameter(float value) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            int group = syncModule->virtualModule.syncUI.button5Mode;
+            int scale = syncModule->virtualModule.syncUI.button2Mode;
+            int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
+            int yIndex = syncModule->virtualModule.controls.knob2Value >> 5;
+
+            // description = syncModule->scaleKey.scaleArray[group][scale][yIndex][xIndex];
+
+            return xIndex;         
+        
+        }
+        float translateInput(float userInput) override {
+
+            // Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return (userInput * 32.0);
+
+        };
+
+    };
+
+    struct RatioYQuantity : ViaKnobQuantity {
+        
+        float translateParameter(float value) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.pllController.scale->t2Bitshift;            
+        
+        }
+        float translateInput(float userInput) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return userInput * pow(2, syncModule->virtualModule.pllController.scale->t2Bitshift);
+
+        };
+
+    };
+
+    struct WaveshapeQuantity : ViaKnobQuantity {
+        
+        float translateParameter(float value) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return syncModule->virtualModule.syncWavetable.tableSize * value/4095.0;            
+        
+        }
+        float translateInput(float userInput) override {
+
+            Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+            return (userInput * 4095.0)/((float) syncModule->virtualModule.syncWavetable.tableSize);
+
+        };
+
+    };
 
     // Buttons
 
@@ -224,9 +292,9 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM,0, 4095.0, 2048.0, "Ratio grid X axis", "", 0.0, 1.0/4095.0);
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Ratio grid Y axis", "", 0.0, 1.0/4095.0);
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
+        configParam<RatioXQuantity>(KNOB1_PARAM,0, 4095.0, 2048.0, "Ratio grid X index", "", 0.0, 1.0/4095.0);
+        configParam<RatioYQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Ratio grid Y index", "", 0.0, 1.0/4095.0);
+        configParam<WaveshapeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "B input");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "MOD CV amount");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Manual A input");
@@ -347,7 +415,6 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     }
     
 };
-
 
 struct Sync_Widget : ModuleWidget  {
 

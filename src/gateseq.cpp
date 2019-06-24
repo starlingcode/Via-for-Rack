@@ -8,14 +8,24 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     struct PatternIQuantity : ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+        float translateParameter(float value) override {
 
             Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            description = "";
+
+            for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.aLength; i ++) {
+                if (gateseqModule->virtualModule.sequencer.currentABank->patternBank[gateseqModule->virtualModule.sequencer.aPatternMorph][i]) {
+                    description += "^";
+                } else {
+                    description += "~";
+                }
+            }
 
             return 1 + (gateseqModule->virtualModule.controls.knob1Value >> 8);            
         
         }
-        virtual float translateInput(float userInput) {
+        float translateInput(float userInput) override {
 
             return (userInput - 1) * 256.0;
 
@@ -23,16 +33,91 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     };
 
-    struct PatternIIQuantity : ViaKnobQuantity {
+    struct PatternIModQuantity : ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+        std::string labels[3] = {"Pattern I Offset", "Pattern I Shuffle - Swing", "Pattern I Multiplier"};
+
+        float multiplierLookup[8] = {0.5, 1, 1.5, 2, 3, 4, 6, 8};
+
+        float translateParameter(float value) override {
 
             Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
+
+                int multIndex = gateseqModule->virtualModule.controls.knob2Value >> 9;
+                return (gateseqModule->virtualModule.sequencer.multipliers[multIndex]) * 0.5;
+
+            } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
+                int swing = gateseqModule->virtualModule.controls.knob2Value << 3;
+                return ((swing/65535.0) + 0.25) * 100.0;
+            } else {
+                return gateseqModule->virtualModule.controls.knob2Value >> 9;
+            }            
+        
+        }
+        float translateInput(float userInput) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
+                for (int i = 0; i < 8; i++) {
+                    if (userInput == multiplierLookup[i]) {
+                        return i * 512.0;
+                    }
+                }
+
+                return getValue();
+
+            } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
+                return (userInput - 25.0) * 4095.0/50.0;
+            } else {
+                return userInput * 512.0;
+            }
+
+        };
+        void setLabel(void) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
+                label = labels[2];
+                unit = "x";
+            } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
+                label = labels[1];
+                unit = "%";
+            } else {
+                label = labels[0];
+                unit = " steps";
+            }
+
+        }
+        int getDisplayPrecision(void) override {
+            return 2;
+        }
+ 
+    };
+
+    struct PatternIIQuantity : ViaKnobQuantity {
+
+        float translateParameter(float value) override {
+
+            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+            description = "";
+
+            for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.bLength; i ++) {
+                if (gateseqModule->virtualModule.sequencer.currentBBank->patternBank[gateseqModule->virtualModule.sequencer.bPatternMorph][i]) {
+                    description += "^";
+                } else {
+                    description += "~";
+                }
+            }
 
             return 1 + (gateseqModule->virtualModule.controls.knob3Value >> 8);            
         
         }
-        virtual float translateInput(float userInput) {
+        float translateInput(float userInput) override {
 
             return (userInput - .5)  * 256.0;
 
@@ -270,7 +355,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam<PatternIQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I select", "", 0.0, 1.0/4095.0);
-        configParam<ModulationQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
+        configParam<PatternIModQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
         configParam<PatternIIQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Pattern II select", "", 0.0, 1.0/4095.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Pattern II gate level");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");

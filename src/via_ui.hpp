@@ -181,6 +181,10 @@ struct ViaComplexButtonQuantity : ParamQuantity {
 
 struct ViaKnobQuantity : ParamQuantity {
 
+    std::string stripScientificNotation(std::string s) {
+        return s.substr(0, s.size() - 4);
+    }
+
     virtual float translateParameter(float value) {return 0;}
     virtual float translateInput(float userInput) {return 0;}
     virtual void setLabel(void) {};
@@ -189,18 +193,46 @@ struct ViaKnobQuantity : ParamQuantity {
         if (!module)
             return Quantity::getDisplayValue();
 
+        setLabel();
+
         return translateParameter(getSmoothValue());
     }
 
     int getDisplayPrecision() override {
-        return 5;
+        return 3;
     }
 
-    void setDisplayValueString(std::string s) override {
+    void setDisplayValue(float v) override {
         if (!module)
             return;
 
-        setValue(translateInput(std::stof(s)));
+        setValue(translateInput(v));
+
+    }
+
+    std::string getDisplayValueString(void) override {
+
+        std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+        if (displayValueRaw.size() > 4) {
+
+            if (string::endsWith(displayValueRaw, "e+03")) {
+                return stripScientificNotation(displayValueRaw) + "k";
+            } else if (string::startsWith(displayValueRaw.c_str(), "0.")) {
+                return string::f("%.*g", getDisplayPrecision(), std::stof(displayValueRaw) * 1000.0) + "m";
+            } else {
+                return displayValueRaw;
+            }
+
+        } else if (displayValueRaw.size() > 2) {
+            if (string::startsWith(displayValueRaw, "0.")) {
+                return string::f("%.*g", getDisplayPrecision(), std::stof(displayValueRaw) * 1000.0) + "m";
+            } else {
+              return displayValueRaw;
+            }
+        } else {
+            return displayValueRaw;
+        }
 
     }
 
