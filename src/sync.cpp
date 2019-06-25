@@ -8,7 +8,7 @@
 struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
     // not working, takes forever to compile
-    // SyncScaleKey scaleKey;
+    SyncScaleKey scaleKey;
 
     struct RatioXQuantity : ViaKnobQuantity {
         
@@ -19,11 +19,18 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int group = syncModule->virtualModule.syncUI.button5Mode;
             int scale = syncModule->virtualModule.syncUI.button2Mode;
             int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
-            int yIndex = syncModule->virtualModule.controls.knob2Value >> 5;
+            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.pllController.scale->t2Bitshift;
 
-            // description = syncModule->scaleKey.scaleArray[group][scale][yIndex][xIndex];
+            ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
 
-            return xIndex;         
+            ScaleRow row = grid[yIndex];
+
+            int numerator = row[0][xIndex][0];
+            int denominator = row[0][xIndex][1];
+
+            description = "Selected frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator);
+
+            return xIndex >> 1;         
         
         }
         float translateInput(float userInput) override {
@@ -42,7 +49,21 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
             Sync * syncModule = dynamic_cast<Sync *>(this->module);
 
-            return syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.pllController.scale->t2Bitshift;            
+            int group = syncModule->virtualModule.syncUI.button5Mode;
+            int scale = syncModule->virtualModule.syncUI.button2Mode;
+            int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
+            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.pllController.scale->t2Bitshift;
+
+            ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
+
+            ScaleRow row = grid[yIndex];
+
+            int numerator = row[0][xIndex][0];
+            int denominator = row[0][xIndex][1];
+
+            description = "Selected frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator);
+
+            return yIndex;            
         
         }
         float translateInput(float userInput) override {
@@ -295,9 +316,9 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         configParam<RatioXQuantity>(KNOB1_PARAM,0, 4095.0, 2048.0, "Ratio grid X index", "", 0.0, 1.0/4095.0);
         configParam<RatioYQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Ratio grid Y index", "", 0.0, 1.0/4095.0);
         configParam<WaveshapeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
-        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "B input");
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 1.0, "B input");
         configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "MOD CV amount");
-        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Manual A input");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, -5.0, "Manual A input");
         configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV amount");
         
         configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H at A and B inputs");
