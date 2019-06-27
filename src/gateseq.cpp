@@ -95,6 +95,14 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         int getDisplayPrecision(void) override {
             return 2;
         }
+
+        std::string getDisplayValueString(void) override {
+
+            std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+            return displayValueRaw;
+
+        }
  
     };
 
@@ -127,7 +135,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     struct SHIButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string buttonModes[3] = {"Off", "Resample A", "Sample and Track A"};
+        std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
 
         SHIButtonQuantity() {
             for (int i = 0; i < 3; i++) {
@@ -157,7 +165,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     struct GateIButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string buttonModes[3] = {"Open", "Logic Gate A", "Audio Gate A"};
+        std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
 
         GateIButtonQuantity() {
             for (int i = 0; i < 3; i++) {
@@ -217,7 +225,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     struct SHIIButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string buttonModes[3] = {"Off", "Resample B", "Sample and Track B"};
+        std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
         
         SHIIButtonQuantity() {
             for (int i = 0; i < 3; i++) {
@@ -247,7 +255,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     struct GateIIButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string buttonModes[4] = {"Open", "Logic Gate B", "Audio Gate B"};
+        std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
 
         GateIIButtonQuantity() {
             for (int i = 0; i < 3; i++) {
@@ -616,8 +624,8 @@ struct GateseqWidget : ModuleWidget  {
                     "Euclidean",
                     "2 vs 3",
                     "Shuffle Swing",
-                    "Multiplier",
-                    "Logic",
+                    "Clock Multiplier/Divider",
+                    "Logic Processing",
                     "Resample",
                 };
                 for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {

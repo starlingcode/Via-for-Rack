@@ -41,6 +41,17 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     struct YWorldQuantity : ViaButtonQuantity<8> {
 
         std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
+        std::string descriptions[8] = {
+            "Exponential to logarithmic shaping",
+            "Evenly spaced half-sine peaks and valleys",
+            "Samples of a vibrating string model",
+            "A trio of peaks with changing shape",
+            "Linear slopes with dropoffs",
+            "Modeled lowpass filter with increasing cutoff",
+            "Bitcrushing from 1-5 bits",
+            "Ascending/descending 16 step patterns"
+        };
+
 
         YWorldQuantity() {
             for (int i = 0; i < 8; i++) {
@@ -52,7 +63,11 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
             Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
 
-            return scannerModule->virtualModule.scannerUI.button2Mode;
+            int mode = scannerModule->virtualModule.scannerUI.button2Mode;
+
+            description = descriptions[mode];
+
+            return mode;
 
         }
 
@@ -70,7 +85,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
     struct MapQuantity : ViaButtonQuantity<8> {
 
-        std::string buttonModes[4] = {"Add", "Multiply", "Lighten", "Difference"};
+        std::string buttonModes[4] = {"Add", "Multiply", "Difference", "Lighten"};
 
         MapQuantity() {
             for (int i = 0; i < 4; i++) {
@@ -102,6 +117,17 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
         std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
 
+        std::string descriptions[8] = {
+            "Smooth tanh waveshaping",
+            "A steep slope followed by gentler hills",
+            "A bouncing ball trajectory",
+            "Add peaks and valleys to a simple slope",
+            "Sinusoidal slopes with steep dropoffs",
+            "Waveforms from 2 op FM with increasing mod freq",
+            "Staircases with 1-5 steps",
+            "Ascending patterns of 8 steps"
+        };
+
         XWorldQuantity() {
             for (int i = 0; i < 8; i++) {
                 modes[i] = buttonModes[i];
@@ -112,7 +138,11 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
             Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
 
-            return scannerModule->virtualModule.scannerUI.button4Mode;
+            int mode = scannerModule->virtualModule.scannerUI.button4Mode;
+
+            description = descriptions[mode];
+
+            return mode;
 
         }
 

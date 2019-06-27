@@ -4,29 +4,28 @@ using simd::float_4;
 
 /** Decimate by a factor of 32 with cascaded half band filters. */
 template <int OVERSAMPLE, int QUALITY>
-struct alignas(32) pow2Decimate {
+struct pow2Decimate {
 	
 	float in32Buffer[64];
 	int in32Index;
 	float from32to16[7] = {-0.03147689, 0.0, 0.28147607, 0.5, 0.28147607, 0.0, -0.03147689};
-	float_4 from32to16Kernel = {-0.03147689f, 0.28147607f, 0.28147607f, -0.03147689f};
+	// float_4 from32to16Kernel = {-0.03147689f, 0.28147607f, 0.28147607f, -0.03147689f};
 	
 	float in16Buffer[32];
 	int in16Index;
 	float from16to8[7] = {-0.03216907, 0.0, 0.28215172, 0.5, 0.28215172, 0.0, -0.03216907};
-	float_4 from16to8Kernel = {-0.03216907, 0.28215172, 0.28215172, -0.03216907};
+	// float_4 from16to8Kernel = {-0.03216907, 0.28215172, 0.28215172, -0.03216907};
 	
 	float in8Buffer[16];
 	int in8Index;
 	float from8to4[7] = {-0.03512255, 0.0, 0.28483447, 0.5, 0.28483447,  0.0, -0.03512255};
-	float_4 from8to4Kernel = {-0.03512255, 0.28483447, 0.28483447, -0.03512255};
+	// float_4 from8to4Kernel = {-0.03512255, 0.28483447, 0.28483447, -0.03512255};
 	
 	float in4Buffer[32];
 	int in4Index;
 	float from4to2[15] = {-0.00373676, 0.0, 0.02056883, 0.0, -0.0723208, 0.0, 0.30536937, 0.5, 0.30536937, 0.0, -0.0723208, 0.0, 0.02056883, 0.0, -0.00373676};
-	float_4 from4to2Kernel1 = {-0.00373676, 0.02056883, -0.0723208, 0.30536937};
-	float_4 from4to2Kernel2 = {0.30536937, -0.0723208, 0.02056883, -0.00373676};
-
+	// float_4 from4to2Kernel1 = {-0.00373676, 0.02056883, -0.0723208, 0.30536937};
+	// float_4 from4to2Kernel2 = {0.30536937, -0.0723208, 0.02056883, -0.00373676};
 
 	float in2Buffer[64];
 	int in2Index;
@@ -90,11 +89,11 @@ struct alignas(32) pow2Decimate {
 
 	}
 
-	/** `in` must be length 32 */
+	/** `in` must be length 16 */
 	float process16x(float *in) {
 		
 		// copy in the data
-		std::memcpy(&in32Buffer[in32Index], in, 16*sizeof(float));		
+		std::memcpy(&in16Buffer[in16Index], in, 16*sizeof(float));		
 		// update the write index
 		in32Index += 16;
 		in32Index &= 31;
@@ -121,11 +120,11 @@ struct alignas(32) pow2Decimate {
 
 	}
 
-	/** `in` must be length 8 */
+	/** `in` must be length 4 */
 	float process4x(float *in) {
 		
 		// copy in the data
-		std::memcpy(&in8Buffer[in8Index], in, 4*sizeof(float));
+		std::memcpy(&in4Buffer[in4Index], in, 4*sizeof(float));
 		// update the write index
 		in8Index += 4;
 		in8Index &= 31;
@@ -135,16 +134,15 @@ struct alignas(32) pow2Decimate {
 
 	}
 
-	/** `in` must be length 8 */
+	/** `in` must be length 2 */
 	float process2x(float *in) {
 		
 		// copy in the data
-		std::memcpy(&in8Buffer[in8Index], in, 2*sizeof(float));
+		std::memcpy(&in2Buffer[in2Index], in, 2*sizeof(float));
 		// update the write index
 		in8Index += 2;
 		in8Index &= 63;
 
-		process4to2();
 		return process2to1();
 
 	}

@@ -5,7 +5,7 @@ FLAGS += \
 	-I./Via/modules/inc \
 	-I./Via/synthesis/inc \
 	-I./Via/io/inc \
-	-I./Via/ui/inc
+	-I./Via/ui/inc \
 
 CFLAGS +=
 CXXFLAGS +=

@@ -394,11 +394,19 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
         };
 
+        std::string getDisplayValueString(void) override {
+
+            std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+            return displayValueRaw;
+
+        }
+
     };
 
     struct SHButtonQuantity : ViaButtonQuantity<6> {
 
-        std::string buttonModes[6] = {"Off", "Sample and track A", "Resample B", "Sample and track A, resample B", "Sample and track A and B", "Resample A and B"};
+        std::string buttonModes[6] = {"Off", "Track and hold A", "Resample B", "Track and hold A, resample B", "Track and hold A and B", "Resample A and B (Decimate)"};
 
         SHButtonQuantity() {
             for (int i = 0; i < 6; i++) {
@@ -428,9 +436,9 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     struct TableButtonQuantity : ViaComplexButtonQuantity {
 
-        std::string buttonModes[3][8] = {{"Impulse", "Additive", "Trifold", "Ridges", "Perlin", "Synthesized Formants", "Sampled Formants", "Trains"},
-                                    {"Expo/Log Symmetrical", "Expo/Log Aymmetrical", "Plateau Symmetrical", "Plateau Asymmetrical", "Fixed Lump", "Moving Lump", "Compressed", "Fake ADSR"},
-                                    {"Waves", "Euclidean Waves", "Rubberband", "Bounce", "Mountains", "Half Sines", "Steps", "Sequences"}};
+        std::string buttonModes[3][8] = {{"Impulse", "Additive", "Linear Folds", "Skip Saw", "Perlin Noise", "Synthesized Vowels", "Sampled Vowels", "Trains"},
+                                    {"Expo/Log Asymmetrical", "Expo/Log Symmetrical", "Circular Symmetrical", "Plateaus and Cliffs", "Moving Lump", "Fixed Lump", "Compressor", "Variable Sustain"},
+                                    {"Ridges", "Euclidean Ridges", "Bounce", "Spring", "Ramps", "Sinusoids", "Sequences", "Steps"}};
 
         TableButtonQuantity() {
             modes = buttonModes[0];
@@ -499,7 +507,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     struct TrigButtonQuantity : ViaComplexButtonQuantity {
 
-        std::string trigModes[5] = {"No Retrigger","Hard Reset","Analog A/R Model","Gated A/R Model","Pendulum"};
+        std::string trigModes[5] = {"No Retrigger","Hard Sync","A/R Model","Gated A/R Model","Pendulum"};
         std::string drumModes[4] = {"808 Kick","Tom","Pluck","Tone"};
 
         TrigButtonQuantity() {

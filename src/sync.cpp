@@ -28,9 +28,26 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int numerator = row[0][xIndex][0];
             int denominator = row[0][xIndex][1];
 
-            description = "Selected frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator);
+            int xIndexCV = syncModule->virtualModule.pllController.lastRatioX;
+            int yIndexCV = syncModule->virtualModule.pllController.lastRatioY;
 
-            return xIndex >> 1;         
+            ScaleRow rowCV = grid[yIndexCV];
+
+            int numeratorCV = rowCV[0][xIndexCV][0];
+            int denominatorCV = rowCV[0][xIndexCV][1];
+
+            bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[CV2_INPUT].isConnected();
+            bool xMod = syncModule->inputs[CV1_INPUT].isConnected();
+
+            if (yMod || xMod) {
+                description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+                description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
+            } else {
+                description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+            }
+
+
+            return xIndex;         
         
         }
         float translateInput(float userInput) override {
@@ -61,7 +78,23 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int numerator = row[0][xIndex][0];
             int denominator = row[0][xIndex][1];
 
-            description = "Selected frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator);
+            int xIndexCV = syncModule->virtualModule.pllController.lastRatioX;
+            int yIndexCV = syncModule->virtualModule.pllController.lastRatioY;
+
+            ScaleRow rowCV = grid[yIndexCV];
+
+            int numeratorCV = rowCV[0][xIndexCV][0];
+            int denominatorCV = rowCV[0][xIndexCV][1];
+
+            bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[CV2_INPUT].isConnected();
+            bool xMod = syncModule->inputs[CV1_INPUT].isConnected();
+
+            if (yMod || xMod) {
+                description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+                description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
+            } else {
+                description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+            }
 
             return yIndex;            
         
@@ -93,13 +126,21 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
         };
 
+        std::string getDisplayValueString(void) override {
+
+            std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+            return displayValueRaw;
+
+        }
+
     };
 
     // Buttons
 
     struct SHButtonQuantity : ViaButtonQuantity<3> {
 
-        std::string buttonModes[3] = {"Off", "Sample and Track", "Resample"};
+        std::string buttonModes[3] = {"Off", "Track and Hold", "Resample"};
 
         SHButtonQuantity() {
             for (int i = 0; i < 3; i++) {
@@ -129,9 +170,9 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
     struct ScaleButtonQuantity : ViaComplexButtonQuantity {
 
-        std::string buttonModes[4][4] = {{"Integers", "Evens", "Threes", "Odds"},
-                                        {"Modal Sevenths", "Maj to Min", "Impressionist", "Bohlen-Pierce"},
-                                        {"Modes", "Sevenths", "Harmonic Entropy", "Bohlen-Pierce"},
+        std::string buttonModes[4][4] = {{"Integers", "Evens", "Multiples of 3", "Odds"},
+                                        {"Modal Tetrads", "Maj to Min", "Impressionist", "Bohlen-Pierce"},
+                                        {"Modes", "Tetrads", "Harmonic Entropy", "Bohlen-Pierce"},
                                         {"All Rhythms", "No Triplets", "Triplets", "Dotted"}};
 
 
@@ -202,7 +243,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
     struct SyncButtonQuantity : ViaButtonQuantity<4> {
 
-        std::string buttonModes[4] = {"Wiggly", "Smooth", "Fast", "Snap"};
+        std::string buttonModes[4] = {"Slow", "Medium", "Fast", "Instantaneous"};
 
         SyncButtonQuantity() {
             for (int i = 0; i < 4; i++) {
@@ -232,7 +273,12 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
     struct GroupButtonQuantity : ViaButtonQuantity<4> {
 
-        std::string buttonModes[4] = {"Mult/div", "Arps", "V/Oct", "Rhythms"};
+        std::string buttonModes[4] = {"Harmonics", "Arppegios", "1V/Oct", "Rhythms"};
+        std::string baseDescription = "Purpose specific set of scales and waves \n";
+        std::string descriptions[4] = {"X selects numerator, Y selects denominator",
+                                        "X scans through arpeggio, Y selects 'chord'",
+                                        "X is scaled for v/oct response, Y selects quantization",
+                                        "X selects numerator, Y selects denominator"};
 
         GroupButtonQuantity() {
             for (int i = 0; i < 4; i++) {
@@ -244,7 +290,11 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
             Sync * syncModule = dynamic_cast<Sync *>(this->module);
 
-            return syncModule->virtualModule.syncUI.button5Mode;
+            int mode = syncModule->virtualModule.syncUI.button5Mode;
+
+            description = baseDescription + descriptions[mode];
+
+            return mode;
 
         }
 
@@ -262,11 +312,11 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
     struct TableButtonQuantity : ViaComplexButtonQuantity {
 
-        std::string buttonModes[5][4] = {{"Additive", "Ramps", "Bounce", "Plateaus"},
+        std::string buttonModes[5][4] = {{"Additive Evens", "Ramps", "Bounce", "Plateaus"},
                                         {"Impulse", "Additive Tri to Square", "Perlin", "Synthesized Vowels"},
-                                        {"Additive Pairs", "Fake Filter", "FM", "Trains"},
+                                        {"Additive Pairs", "Filter Model", "FM", "Trains"},
                                         {"Expo/Log Symmetric", "Expo/Log Asymmetric", "Steps", "Sequences"},
-                                        {"Odd Triangles", "Odd Sines", "Euclidean Ridges", "Saw Ridges"}};
+                                        {"Odd Triangles", "Odd Sines", "Euclidean Ridges", "Skip Saw"}};
 
 
         TableButtonQuantity() {
@@ -577,8 +627,8 @@ struct Sync_Widget : ModuleWidget  {
 
         menu->addChild(createMenuLabel("Wave Options"));
         const std::string auxLabels[] = {
-            "Group-specific",
-            "Aux"
+            "Group waves",
+            "Global waves"
         };
         for (int i = 0; i < (int) LENGTHOF(auxLabels); i++) {
             SyncAux4ModeHandler *aux4Item = createMenuItem<SyncAux4ModeHandler>(auxLabels[i], CHECKMARK(module->virtualModule.syncUI.aux4Mode == i));
@@ -604,8 +654,8 @@ struct Sync_Widget : ModuleWidget  {
                 const std::string presetLabels[] = {
                     "Harmonic Osc",
                     "Arpeggiated Osc",
-                    "Arpeggiated Osc BP",
-                    "V/oct Osc",
+                    "Bohlen-Pierce Modes",
+                    "Modal Quantizer",
                     "Sequence",
                     "Tempo-Synced LFO",
                 };

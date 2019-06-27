@@ -459,7 +459,7 @@ void Atsr::process(const ProcessArgs &args) {
     bIn = shBControl * bSample + !shBControl * bIn;
 
     // VCA/mixing stage
-    // normalize 12 bits to 0-1
+    // normalize 15 bits to 0-1
     outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/32767.0) + aIn*(dac1Sample/32767.0)); 
     outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
     outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
