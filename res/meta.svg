@@ -177,9 +177,9 @@
      showgrid="true"
      inkscape:current-layer="layer14"
      inkscape:document-units="mm"
-     inkscape:cy="80.268504"
-     inkscape:cx="-13.278159"
-     inkscape:zoom="1.4142137"
+     inkscape:cy="41.737588"
+     inkscape:cx="125.47206"
+     inkscape:zoom="4.0000004"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
      borderopacity="1.0"
@@ -623,17 +623,11 @@
          id="path61927"
          inkscape:connector-curvature="0" />
     </g>
-    <rect
-       style="display:inline;opacity:1;fill:#ffdc64;fill-opacity:1;stroke:none;stroke-width:3.54330707;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect69368-2"
-       width="41.899445"
-       height="31.003929"
-       x="96.772552"
-       y="402.16528"
-       rx="6.2007856"
-       ry="6.2007856"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300" />
+    <path
+       style="display:inline;opacity:1;fill:#ffdc64;fill-opacity:1;stroke:none;stroke-width:3.77952766;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 109.83789 428.97656 C 106.17364 428.97656 103.22461 431.92559 103.22461 435.58984 L 103.22461 455.43359 C 103.22461 459.09784 106.17364 462.04688 109.83789 462.04688 L 141.30273 462.04688 C 144.96699 462.04688 147.91602 459.09784 147.91602 455.43359 L 147.91602 435.58984 C 147.91602 431.92559 144.96699 428.97656 141.30273 428.97656 L 140.80078 428.97656 A 14.930643 14.930643 0 0 1 125.66797 443.89453 A 14.930643 14.930643 0 0 1 110.53711 428.97656 L 109.83789 428.97656 z "
+       transform="scale(0.93749999)"
+       id="rect69368-2" />
     <g
        style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:9.99999905px;line-height:120.00000477%;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="text36710-1-7-4-9-6"
