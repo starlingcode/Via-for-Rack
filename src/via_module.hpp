@@ -392,5 +392,59 @@ struct Via : Module {
         
     };
 
+    struct CV2ScaleQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            if (!module)
+                return "";
+
+            Via * module = dynamic_cast<Via *>(this->module);
+
+            bool connected = module->inputs[CV2_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (!connected) {
+                return "CV input unpatched";
+            } else {
+                return getLabel() + ": " + string::f("%.*g", 2, v);                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
+    struct CV3ScaleQuantity : ParamQuantity {
+
+        std::string getDisplayValueString() override {
+
+            if (!module)
+                return "";
+
+            Via * module = dynamic_cast<Via *>(this->module);
+
+            bool connected = module->inputs[CV3_INPUT].isConnected();
+
+            float v = getSmoothValue();
+
+            if (!connected) {
+                return "CV input unpatched";
+            } else {
+                return getLabel() + ": " + string::f("%.*g", 3, v);                
+            }
+
+        }
+
+        std::string getString() override {
+            return getDisplayValueString();
+        }
+
+    };
+
 };
 

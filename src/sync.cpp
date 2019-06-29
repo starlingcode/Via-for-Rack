@@ -367,9 +367,11 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         configParam<RatioYQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Ratio grid Y index", "", 0.0, 1.0/4095.0);
         configParam<WaveshapeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape", "", 0.0, 1.0/4095.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 1.0, "B input");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "MOD CV amount");
+        paramQuantities[B_PARAM]->description = "Main output is bounded between A and B levels";
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "MOD CV amount");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, -5.0, "Manual A input");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV amount");
+        paramQuantities[A_PARAM]->description = "Main output is bounded between A and B levels";
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV amount");
         
         configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H at A and B inputs");
         configParam<ScaleButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio grid");

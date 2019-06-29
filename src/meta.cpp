@@ -605,10 +605,10 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         configParam<WaveshapeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Wave shape");
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 1.0, "B level");
         paramQuantities[B_PARAM]->description = "Main output is bounded between A and B levels";
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Time 2 CV scale");
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "Time 2 CV scale");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, -5.0, "A level");
         paramQuantities[A_PARAM]->description = "Main output is bounded between A and B levels";
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV scale");
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV scale");
         
         configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H");
         configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable");

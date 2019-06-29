@@ -306,9 +306,9 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         configParam<TTimeQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Transition time", "s", 0.0, 1.0/4095.0);
         configParam<RTimeQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Release time", "s", 0.0, 1.0/4095.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Sustain level");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Transition time CV amount");
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "Transition time CV amount");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Attack level");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Release time CV amount");
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Release time CV amount");
         
         configParam<ASlopeButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Attack slope shape");
         configParam<TSlopeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Transition slope shape");

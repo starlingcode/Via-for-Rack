@@ -168,10 +168,10 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Y scan offset", "", 0.0, 2.0/4095.0, -1.0);
         configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, -1.0, "B level");
         paramQuantities[B_PARAM]->description = "Main scan out is bounded between A and B levels";
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "X input attenuation");
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "X input attenuation");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "A level");
         paramQuantities[A_PARAM]->description = "Main scan out is bounded between A and B levels";
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Y input attenuation");
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Y input attenuation");
         
         configParam<JumpQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "JUMP input response");
         configParam<YWorldQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Y scan world");
