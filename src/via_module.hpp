@@ -180,7 +180,7 @@ struct Via : Module {
         ledBState = virtualLogicOut(ledBState, virtualIO->ledBOutput);
         ledCState = virtualLogicOut(ledCState, virtualIO->ledCOutput);
         ledDState = virtualLogicOut(ledDState, virtualIO->ledDOutput);
-        
+
         logicAState = virtualLogicOut(logicAState, virtualIO->aLogicOutput);
         auxLogicState = virtualLogicOut(auxLogicState, virtualIO->auxLogicOutput);
         shAControl = virtualLogicOut(shAControl, virtualIO->shAOutput);
@@ -317,15 +317,24 @@ struct Via : Module {
             float v = getSmoothValue();
 
             if (bConnected()) {
-                return getLabel() + " scale: " + string::f("%.*g", 2, v);
+                return string::f("%.*g", 2, v);
             } else {
-                return getLabel() + ": " + string::f("%.*g", 2, v * 5.0) + "V";                
+                return string::f("%.*g", 2, v * 5.0);                
             }
 
         }
 
         std::string getString() override {
-            return getDisplayValueString();
+
+            if (!module)
+                return "";
+
+            if (bConnected()) {
+                return getLabel() + " scale: " + getDisplayValueString();
+            } else {
+                return getLabel() + ": " + getDisplayValueString() + "V";                
+            }
+
         }
 
         void setDisplayValueString(std::string s) override {
@@ -360,6 +369,14 @@ struct Via : Module {
 
         std::string getDisplayValueString() override {
 
+            float v = getSmoothValue();
+
+            return string::f("%.*g", 2, v);                
+
+        }
+
+        std::string getString() override {
+
             if (!module)
                 return "";
 
@@ -367,18 +384,11 @@ struct Via : Module {
 
             bool aConnected = module->inputs[A_INPUT].isConnected();
 
-            float v = getSmoothValue();
-
             if (aConnected) {
                 return "Overriden by A input";
             } else {
-                return getLabel() + ": " + string::f("%.*g", 2, v) + "V";                
+                return getLabel() + ": " + getDisplayValueString() + "V";                
             }
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
         }
 
     };
@@ -397,6 +407,14 @@ struct Via : Module {
 
         std::string getDisplayValueString() override {
 
+            float v = getSmoothValue();
+
+            return string::f("%.*g", 3, v);                
+
+        }
+
+        std::string getString() override {
+
             if (!module)
                 return "";
 
@@ -404,18 +422,12 @@ struct Via : Module {
 
             bool connected = module->inputs[CV2_INPUT].isConnected();
 
-            float v = getSmoothValue();
-
             if (!connected) {
                 return "CV input unpatched";
             } else {
-                return getLabel() + ": " + string::f("%.*g", 2, v);                
+                return getLabel() + ": " + getDisplayValueString();              
             }
 
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
         }
 
     };
@@ -424,6 +436,14 @@ struct Via : Module {
 
         std::string getDisplayValueString() override {
 
+            float v = getSmoothValue();
+
+            return string::f("%.*g", 3, v);                
+
+        }
+
+        std::string getString() override {
+
             if (!module)
                 return "";
 
@@ -431,18 +451,12 @@ struct Via : Module {
 
             bool connected = module->inputs[CV3_INPUT].isConnected();
 
-            float v = getSmoothValue();
-
             if (!connected) {
                 return "CV input unpatched";
             } else {
-                return getLabel() + ": " + string::f("%.*g", 3, v);                
+                return getLabel() + ": " + getDisplayValueString();              
             }
 
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
         }
 
     };
