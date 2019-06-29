@@ -35,7 +35,7 @@
     {
       "slug": "ATSR",
       "name": "ATSR",
-      "tags": ["Envelope Generator, LFO"]
+      "tags": ["Envelope Generator", "LFO"]
     }
   ]
 }
