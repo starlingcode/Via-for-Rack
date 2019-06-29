@@ -337,11 +337,11 @@
      inkscape:window-height="1056"
      inkscape:window-width="1873"
      showgrid="true"
-     inkscape:current-layer="layer5"
+     inkscape:current-layer="layer4"
      inkscape:document-units="mm"
-     inkscape:cy="294.25285"
-     inkscape:cx="-96.242091"
-     inkscape:zoom="1.4142136"
+     inkscape:cy="232.89672"
+     inkscape:cx="98.105575"
+     inkscape:zoom="2.0000001"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
      borderopacity="1.0"
@@ -1851,13 +1851,10 @@
        transform="scale(0.93749999)"
        id="rect69368" />
     <path
-       inkscape:export-ydpi="300"
-       inkscape:export-xdpi="300"
-       sodipodi:nodetypes="ccccc"
-       inkscape:connector-curvature="0"
-       id="path12046-6"
-       d="m 156.65326,302.91841 h 45.44276 v 31.00393 h -45.44276 z"
-       style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+       style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.06666672px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 167.09766 323.11328 L 167.09766 356.18359 L 215.56836 356.18359 L 215.56836 323.11328 L 206.56445 323.11328 A 14.930643 14.930643 0 0 1 191.43164 338.03125 A 14.930643 14.930643 0 0 1 176.30078 323.11328 L 167.09766 323.11328 z "
+       transform="scale(0.93749999)"
+       id="path12046-6" />
     <path
        sodipodi:nodetypes="ccccccccccccccc"
        inkscape:connector-curvature="0"
