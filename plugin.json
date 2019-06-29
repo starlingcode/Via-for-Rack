@@ -10,7 +10,7 @@
   "manualUrl": "https://starling.space/via/rack#manual",
   "sourceUrl": "https://github.com/starlingcode/Via-for-Rack.git",
   "donateUrl": "https://paypal.me/ssttaarrlliinngg",
-  "changelogUrl": "https://github.com/starlingcode/Via-for-Rack/CHANGELOG.md",
+  "changelogUrl": "https://github.com/starlingcode/Via-for-Rack/blob/v1/CHANGELOG.md",
     "modules": [
     {
       "slug": "META",
