@@ -156,14 +156,6 @@ struct Via : Module {
 
     inline void updateLEDs(void) {
 
-        // the A B C D enumeration of the LEDs in the Via library makes little to no sense 
-        // but its woven pretty deep so is a nagging style thing to fix
-
-        ledAState = virtualLogicOut(ledAState, virtualIO->ledAOutput);
-        ledBState = virtualLogicOut(ledBState, virtualIO->ledBOutput);
-        ledCState = virtualLogicOut(ledCState, virtualIO->ledCOutput);
-        ledDState = virtualLogicOut(ledDState, virtualIO->ledDOutput);
-
         lights[LED1_LIGHT].setSmoothBrightness(ledAState, ledDecay);
         lights[LED3_LIGHT].setSmoothBrightness(ledBState, ledDecay);
         lights[LED2_LIGHT].setSmoothBrightness(ledCState, ledDecay);
@@ -180,6 +172,15 @@ struct Via : Module {
     }
 
     inline void updateLogicOutputs(void) {
+
+                // the A B C D enumeration of the LEDs in the Via library makes little to no sense 
+        // but its woven pretty deep so is a nagging style thing to fix
+
+        ledAState = virtualLogicOut(ledAState, virtualIO->ledAOutput);
+        ledBState = virtualLogicOut(ledBState, virtualIO->ledBOutput);
+        ledCState = virtualLogicOut(ledCState, virtualIO->ledCOutput);
+        ledDState = virtualLogicOut(ledDState, virtualIO->ledDOutput);
+        
         logicAState = virtualLogicOut(logicAState, virtualIO->aLogicOutput);
         auxLogicState = virtualLogicOut(auxLogicState, virtualIO->auxLogicOutput);
         shAControl = virtualLogicOut(shAControl, virtualIO->shAOutput);
