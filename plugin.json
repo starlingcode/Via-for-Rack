@@ -36,6 +36,11 @@
       "slug": "ATSR",
       "name": "ATSR",
       "tags": ["Envelope Generator", "LFO"]
+    },
+    {
+      "slug": "OSC3",
+      "name": "OSC3",
+      "tags": ["VCO"]
     }
   ]
 }

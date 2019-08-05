@@ -6,11 +6,11 @@
 
 // Modified light widget for the white LED
 
-struct WhiteLight : ModuleLightWidget {
-    WhiteLight() {
-        addBaseColor(SCHEME_WHITE);
-    }
-};
+// struct WhiteLight : ModuleLightWidget {
+//     WhiteLight() {
+//         addBaseColor(SCHEME_WHITE);
+//     }
+// };
 
 // Adapted light object for the glowing triangle
 
