@@ -289,7 +289,7 @@ struct pow2Decimate {
 
 		// this time, we only need one sample, so the for loop does the FIR
 
-		int32_t accumulator = 0.49998081 * in2Buffer[(workingIndex - 23) & 63];
+		float accumulator = 0.49998081 * in2Buffer[(workingIndex - 23) & 63];
 
 		float vectorRead[4];
 

@@ -1,4 +1,4 @@
-#include "osc.hpp"
+#include "osc3.hpp"
 #include "via_module.hpp"
 
 #define OSC3_OVERSAMPLE_AMOUNT 32
@@ -81,7 +81,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
     }
     void process(const ProcessArgs &args) override;
 
-    ViaOsc virtualModule;
+    ViaOsc3 virtualModule;
 
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
@@ -116,7 +116,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
         json_t *rootJ = json_object();
 
-        json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.oscUI.modeStateBuffer));
+        json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.osc3UI.modeStateBuffer));
         
         return rootJ;
     }
@@ -124,9 +124,9 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "osc_modes");
-        virtualModule.oscUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.oscUI.loadFromEEPROM(0);
-        virtualModule.oscUI.recallModuleState();
+        virtualModule.osc3UI.modeStateBuffer = json_integer_value(modesJ);
+        virtualModule.osc3UI.loadFromEEPROM(0);
+        virtualModule.osc3UI.recallModuleState();
 
 
     }
@@ -147,7 +147,7 @@ void Osc3::process(const ProcessArgs &args) {
             updateSlowIO();
             virtualModule.slowConversionCallback();
             virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
-            virtualModule.oscUI.incrementTimer();
+            virtualModule.osc3UI.incrementTimer();
             processTriggerButton();
             updateLEDs();
         }
@@ -219,9 +219,9 @@ struct Osc3Widget : ModuleWidget  {
             Osc3 *module;
             int preset;
             void onAction(const event::Action &e) override {
-                module->virtualModule.oscUI.modeStateBuffer = preset;
-                module->virtualModule.oscUI.loadFromEEPROM(0);
-                module->virtualModule.oscUI.recallModuleState();
+                module->virtualModule.osc3UI.modeStateBuffer = preset;
+                module->virtualModule.osc3UI.loadFromEEPROM(0);
+                module->virtualModule.osc3UI.recallModuleState();
             }
         };
 
