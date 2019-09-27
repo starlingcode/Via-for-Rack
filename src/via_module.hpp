@@ -284,6 +284,11 @@ struct Via : Module {
         processLogicInputs();
 
         updateOutputs();
+<<<<<<< Updated upstream
+=======
+
+        updateLEDs();
+>>>>>>> Stashed changes
 
         clockDivider = 0;
 
