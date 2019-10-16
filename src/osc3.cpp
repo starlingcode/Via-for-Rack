@@ -6,20 +6,88 @@
 
 struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
+    float effectiveSR = 48000.0f;
+
     struct FreqKnobQuantity: ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+        void setDisplayValueString(std::string s) override {
+
+            if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
+                setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
+            } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
+                setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
+            } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
+                setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
+            } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
+                setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
+            } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
+                setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
+            } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
+                setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
+            } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
+                setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
+            } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
+               setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
+            } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
+                setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
+            } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
+                setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
+            } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
+                setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
+            } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
+                setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
+            } else {
+                float v = 0.f;
+                char suffix[2];
+                int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
+                if (n >= 2) {
+                    // Parse SI prefixes
+                    switch (suffix[0]) {
+                        case 'n': v *= 1e-9f; break;
+                        case 'u': v *= 1e-6f; break;
+                        case 'm': v *= 1e-3f; break;
+                        case 'k': v *= 1e3f; break;
+                        case 'M': v *= 1e6f; break;
+                        case 'G': v *= 1e9f; break;
+                        default: break;
+                    }
+                }
+                if (n >= 1)
+                    setDisplayValue(v);
+            }
+        }
+
+        float translateParameter(float value) override {
 
             Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            float frequency = osc3Module->effectiveSR * 32 * (osc3Module->virtualModule.cBasePitch/4294967296.0f);
+
+            frequency *= pow(2, osc3Module->virtualModule.octaveRange);
            
-            return 1;            
+            return frequency;            
         
         }
-        virtual float translateInput(float userInput) {
+        void setDisplayValue(float target) override {
 
             Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
 
-            return 11;
+            target = target / 32.7;
+
+            target = log2(target);
+
+            float knob1Set;
+            float knob2Set;
+            float octaveSet;
+
+            if (target <= 4.0f) {
+                knob1Set = target/4.0 * 4095.0;
+                knob2Set = 0;
+            } // else add octave
+
+            osc3Module->paramQuantities[KNOB1_PARAM]->setValue(knob1Set);
+
+            // correct error with fine 
 
         };
 
