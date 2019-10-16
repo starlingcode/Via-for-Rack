@@ -18,7 +18,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
             int32_t cycleMod = atsrModule->virtualModule.expo.convert(2048) >> 5;
 
             float timeBase = __USAT(fix16_mul(cycleMod,
-                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob1Value) >> 6), 25);
+                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob1Value) >> 7), 25);
 
             return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
         
@@ -31,7 +31,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
             float desiredIncrement = NUM_SAMPLES/lengthInSamples;
             float normalizedCycleMod = ((float) (atsrModule->virtualModule.expo.convert(2048) >> 5))/65536.0;
             desiredIncrement = desiredIncrement/normalizedCycleMod;
-            desiredIncrement *= 65536.0 * 64.0;
+            desiredIncrement *= 65536.0 * 128.0;
 
             return (4095 - (atsrModule->reverseExpo(desiredIncrement))*384);
 
@@ -52,7 +52,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
             }
 
             float timeBase = __USAT(fix16_mul(cycleMod,
-                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob2Value) >> 6), 25);
+                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob2Value) >> 7), 25);
 
             return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
         
@@ -68,7 +68,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
                 normalizedCycleMod *= normalizedCycleMod;
             }
             desiredIncrement = desiredIncrement/normalizedCycleMod;
-            desiredIncrement *= 65536.0 * 64.0;
+            desiredIncrement *= 65536.0 * 128.0;
 
             return (4095 - (atsrModule->reverseExpo(desiredIncrement))*384);
 
@@ -89,7 +89,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
             }
 
             float timeBase = __USAT(fix16_mul(cycleMod,
-                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob3Value) >> 6), 25);
+                atsrModule->virtualModule.expo.convert(4095 - atsrModule->virtualModule.controls.knob3Value) >> 7), 25);
 
             return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
         
@@ -105,7 +105,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
                 normalizedCycleMod *= normalizedCycleMod;
             }
             desiredIncrement = desiredIncrement/normalizedCycleMod;
-            desiredIncrement *= 65536.0 * 64.0;
+            desiredIncrement *= 65536.0 * 128.0;
 
             return (4095 - (atsrModule->reverseExpo(desiredIncrement))*384);
 
@@ -359,28 +359,21 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
 
     void updateLEDs(void) {
 
-        // the A B C D enumeration of the LEDs in the Via library makes little to no sense 
-        // but its woven pretty deep so is a nagging style thing to fix
-
         if (virtualModule.runtimeDisplay & !virtualModule.shOn) {
-            lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, ledDecay);
-            lights[LED3_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, ledDecay);
+            lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelOut/4095.0, ledDecay);
+            lights[LED3_LIGHT].setSmoothBrightness(virtualModule.redLevelOut/4095.0, ledDecay);
         } else {
-            ledAState = virtualLogicOut(ledAState, virtualModule.ledAOutput);
-            ledBState = virtualLogicOut(ledBState, virtualModule.ledBOutput);
-            lights[LED1_LIGHT].setSmoothBrightness(ledAState, ledDecay);
-            lights[LED3_LIGHT].setSmoothBrightness(ledBState, ledDecay);
+            lights[LED1_LIGHT].setSmoothBrightness(!ledAState, ledDecay);
+            lights[LED3_LIGHT].setSmoothBrightness(!ledBState, ledDecay);
         }
-        ledCState = virtualLogicOut(ledCState, virtualModule.ledCOutput);
-        ledDState = virtualLogicOut(ledDState, virtualModule.ledDOutput);
 
 
-        lights[LED2_LIGHT].setSmoothBrightness(ledCState, ledDecay);
-        lights[LED4_LIGHT].setSmoothBrightness(ledDState, ledDecay);
+        lights[LED2_LIGHT].setSmoothBrightness(!ledCState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness(!ledDState, ledDecay);
 
-        lights[RED_LIGHT].setSmoothBrightness(virtualModule.redLevelWrite/4095.0, ledDecay);
-        lights[GREEN_LIGHT].setSmoothBrightness(virtualModule.greenLevelWrite/4095.0, ledDecay);
-        lights[BLUE_LIGHT].setSmoothBrightness(virtualModule.blueLevelWrite/4095.0, ledDecay);
+        lights[RED_LIGHT].setSmoothBrightness(virtualModule.redLevelOut/4095.0, ledDecay);
+        lights[GREEN_LIGHT].setSmoothBrightness(virtualModule.greenLevelOut/4095.0, ledDecay);
+        lights[BLUE_LIGHT].setSmoothBrightness(virtualModule.blueLevelOut/4095.0, ledDecay);
 
         float output = outputs[MAIN_OUTPUT].value/8.0;
         lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), ledDecay);

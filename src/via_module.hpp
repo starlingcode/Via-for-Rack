@@ -63,7 +63,7 @@ struct Via : Module {
 
     }
 
-    ViaModule * virtualIO;
+    TARGET_VIA * virtualIO;
 
     uint32_t presetData[6];
     
@@ -148,22 +148,24 @@ struct Via : Module {
     }
 
     // 2 sets the "GPIO" high, 1 sets it low, 0 is a no-op
-    inline int32_t virtualLogicOut(int32_t logicOut, int32_t control) {
-        return clamp(logicOut + (control & 2) - (control & 1), 0, 1);
+    inline int32_t virtualLogicOut(int32_t logicOut, int32_t GPIO, uint32_t reg) {
+        uint32_t on = (((GPIO >> (reg + 16))) & 1);
+        uint32_t off = (((GPIO >> (reg))) & 1);
+        return clamp(logicOut + (on * 2) - off, 0, 1);
     }
 
-    float ledDecay = 1.0/48000.0;
+    float ledDecay = 1.f/(48000.f);
 
     inline void updateLEDs(void) {
 
-        lights[LED1_LIGHT].setSmoothBrightness(ledAState, ledDecay);
-        lights[LED3_LIGHT].setSmoothBrightness(ledBState, ledDecay);
-        lights[LED2_LIGHT].setSmoothBrightness(ledCState, ledDecay);
-        lights[LED4_LIGHT].setSmoothBrightness(ledDState, ledDecay);
+        lights[LED1_LIGHT].setSmoothBrightness((float) !ledAState, ledDecay);
+        lights[LED3_LIGHT].setSmoothBrightness((float) !ledBState, ledDecay);
+        lights[LED2_LIGHT].setSmoothBrightness((float) !ledCState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness((float) !ledDState, ledDecay);
 
-        lights[RED_LIGHT].setSmoothBrightness(virtualIO->redLevelWrite/4095.0, ledDecay);
-        lights[GREEN_LIGHT].setSmoothBrightness(virtualIO->greenLevelWrite/4095.0, ledDecay);
-        lights[BLUE_LIGHT].setSmoothBrightness(virtualIO->blueLevelWrite/4095.0, ledDecay);
+        lights[RED_LIGHT].setSmoothBrightness(virtualIO->redLevelOut/4095.0, ledDecay);
+        lights[GREEN_LIGHT].setSmoothBrightness(virtualIO->greenLevelOut/4095.0, ledDecay);
+        lights[BLUE_LIGHT].setSmoothBrightness(virtualIO->blueLevelOut/4095.0, ledDecay);
 
         float output = outputs[MAIN_OUTPUT].value/8.0;
         lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), ledDecay);
@@ -173,18 +175,21 @@ struct Via : Module {
 
     inline void updateLogicOutputs(void) {
 
-                // the A B C D enumeration of the LEDs in the Via library makes little to no sense 
-        // but its woven pretty deep so is a nagging style thing to fix
+        ledAState = virtualLogicOut(ledAState, virtualIO->GPIOF, 7);
+        ledBState = virtualLogicOut(ledBState, virtualIO->GPIOC, 14);
+        ledCState = virtualLogicOut(ledCState, virtualIO->GPIOA, 2);
+        ledDState = virtualLogicOut(ledDState, virtualIO->GPIOB, 2);
 
-        ledAState = virtualLogicOut(ledAState, virtualIO->ledAOutput);
-        ledBState = virtualLogicOut(ledBState, virtualIO->ledBOutput);
-        ledCState = virtualLogicOut(ledCState, virtualIO->ledCOutput);
-        ledDState = virtualLogicOut(ledDState, virtualIO->ledDOutput);
+        logicAState = virtualLogicOut(logicAState, virtualIO->GPIOC, 13);
+        auxLogicState = virtualLogicOut(auxLogicState, virtualIO->GPIOA, 12);
+        shAControl = virtualLogicOut(shAControl, virtualIO->GPIOB, 8);
+        shBControl = virtualLogicOut(shBControl, virtualIO->GPIOB, 9);
 
-        logicAState = virtualLogicOut(logicAState, virtualIO->aLogicOutput);
-        auxLogicState = virtualLogicOut(auxLogicState, virtualIO->auxLogicOutput);
-        shAControl = virtualLogicOut(shAControl, virtualIO->shAOutput);
-        shBControl = virtualLogicOut(shBControl, virtualIO->shBOutput);
+        virtualIO->GPIOA = 0;
+        virtualIO->GPIOB = 0;
+        virtualIO->GPIOC = 0;
+        virtualIO->GPIOF = 0;
+
     }
 
     inline void acquireCVs(void) {
@@ -199,16 +204,28 @@ struct Via : Module {
         virtualIO->inputs.cv3Samples[0] = cv3Conversion;
     }
 
+    float lastLogicIn = 0.0;
+
     inline void processLogicInputs(void) {
 
-        mainLogic.process(rescale(inputs[MAIN_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f));
+        float thisLogicIn = rescale(inputs[MAIN_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f);
+        mainLogic.process(thisLogicIn);
         bool trigState = mainLogic.isHigh();
         if (trigState && !lastTrigState) {
+
+            float difference = thisLogicIn - lastLogicIn;
+            float fractionalPhase = (1.0f - lastLogicIn) / difference;
+
+            fractionalPhase *= 1439.0f;
+            virtualIO->measurementTimerFractional = fractionalPhase;
+
             virtualIO->mainRisingEdgeCallback();
         } else if (!trigState && lastTrigState) {
             virtualIO->mainFallingEdgeCallback();
         }
         lastTrigState = trigState; 
+
+        lastLogicIn = thisLogicIn;
 
         auxLogic.process(rescale(inputs[AUX_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f));
         bool auxTrigState = auxLogic.isHigh();
@@ -284,11 +301,8 @@ struct Via : Module {
         processLogicInputs();
 
         updateOutputs();
-<<<<<<< Updated upstream
-=======
 
         updateLEDs();
->>>>>>> Stashed changes
 
         clockDivider = 0;
 
@@ -410,6 +424,8 @@ struct Via : Module {
 
     struct CV2ScaleQuantity : ParamQuantity {
 
+        virtual void setLabel(void) {};
+
         std::string getDisplayValueString() override {
 
             float v = getSmoothValue();
@@ -427,6 +443,8 @@ struct Via : Module {
 
             bool connected = module->inputs[CV2_INPUT].isConnected();
 
+            setLabel();
+
             if (!connected) {
                 return "CV input unpatched";
             } else {
@@ -438,6 +456,8 @@ struct Via : Module {
     };
 
     struct CV3ScaleQuantity : ParamQuantity {
+
+        virtual void setLabel(void) {};
 
         std::string getDisplayValueString() override {
 
@@ -453,6 +473,8 @@ struct Via : Module {
                 return "";
 
             Via * module = dynamic_cast<Via *>(this->module);
+
+            setLabel();
 
             bool connected = module->inputs[CV3_INPUT].isConnected();
 

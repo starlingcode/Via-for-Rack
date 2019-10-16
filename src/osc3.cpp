@@ -6,52 +6,192 @@
 
 struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
-    enum ParamIds {
-        KNOB1_PARAM,
-        KNOB2_PARAM,
-        KNOB3_PARAM,
-        A_PARAM,
-        B_PARAM,
-        CV2AMT_PARAM,
-        CV3AMT_PARAM,
-        BUTTON1_PARAM,
-        BUTTON2_PARAM,
-        BUTTON3_PARAM,
-        BUTTON4_PARAM,
-        BUTTON5_PARAM,
-        BUTTON6_PARAM,
-        TRIGBUTTON_PARAM,
-        NUM_PARAMS
+    struct FreqKnobQuantity: ViaKnobQuantity {
+
+        virtual float translateParameter(float value) {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+           
+            return 1;            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return 11;
+
+        };
+
     };
-    enum InputIds {
-        A_INPUT,
-        B_INPUT,
-        CV1_INPUT,
-        CV2_INPUT,
-        CV3_INPUT,
-        MAIN_LOGIC_INPUT,
-        AUX_LOGIC_INPUT,
-        NUM_INPUTS
+
+    struct DetuneKnobQuantity: ViaKnobQuantity {
+
+        virtual float translateParameter(float value) {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+           
+            return 1;            
+        
+        }
+        virtual float translateInput(float userInput) {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return 11;
+
+        };
+
     };
-    enum OutputIds {
-        MAIN_OUTPUT,
-        LOGICA_OUTPUT,
-        AUX_DAC_OUTPUT,
-        AUX_LOGIC_OUTPUT,
-        NUM_OUTPUTS
+
+    struct OctaveButtonQuantity : ViaButtonQuantity<6> {
+
+        std::string buttonModes[6] = {"+0 Octaves", "+1 Octaves", "+2 Octaves", "+3 Octaves", "+4 Octaves", "+5 Octaves"};
+
+        OctaveButtonQuantity() {
+            for (int i = 0; i < 6; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return osc3Module->virtualModule.osc3UI.button1Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            osc3Module->virtualModule.osc3UI.button1Mode = mode;
+            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+            osc3Module->virtualModule.handleButton1ModeChange(mode);
+
+        }
+
     };
-    enum LightIds {
-        LED1_LIGHT,
-        LED2_LIGHT,
-        LED3_LIGHT,
-        LED4_LIGHT,
-        OUTPUT_GREEN_LIGHT,
-        OUTPUT_RED_LIGHT,
-        RED_LIGHT,
-        GREEN_LIGHT,
-        BLUE_LIGHT,
-        PURPLE_LIGHT,
-        NUM_LIGHTS
+
+    struct WaveshapeButtonQuantity : ViaButtonQuantity<4> {
+
+        std::string buttonModes[4] = {"Saw", "Square", "Trapezoid", "Triangle"};
+
+        WaveshapeButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return osc3Module->virtualModule.osc3UI.button2Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            osc3Module->virtualModule.osc3UI.button2Mode = mode;
+            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+            osc3Module->virtualModule.handleButton2ModeChange(mode);
+
+        }
+
+    };
+
+    struct SHButtonQuantity : ViaButtonQuantity<2> {
+
+        std::string buttonModes[2] = {"Off", "On"};
+
+        SHButtonQuantity() {
+            for (int i = 0; i < 2; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return osc3Module->virtualModule.osc3UI.button3Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            osc3Module->virtualModule.osc3UI.button3Mode = mode;
+            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+            osc3Module->virtualModule.handleButton3ModeChange(mode);
+
+        }
+
+    };
+
+    struct QuantizationButtonQuantity : ViaButtonQuantity<4> {
+
+        std::string buttonModes[4] = {"Off", "Semitone", "Major", "Minor"};
+
+        QuantizationButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return osc3Module->virtualModule.osc3UI.button5Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            osc3Module->virtualModule.osc3UI.button5Mode = mode;
+            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
+            osc3Module->virtualModule.handleButton5ModeChange(mode);
+
+        }
+
+    };
+
+    struct DetuneButtonQuantity : ViaButtonQuantity<4> {
+
+        std::string buttonModes[4] = {"Even", "Scaled", "Chords", "Sync to Unity Input"};
+
+        DetuneButtonQuantity() {
+            for (int i = 0; i < 4; i++) {
+                modes[i] = buttonModes[i];
+            }
+        }
+        
+        int getModeEnumeration(void) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            return osc3Module->virtualModule.osc3UI.button6Mode;
+
+        }
+
+        void setMode(int mode) override {
+
+            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+            osc3Module->virtualModule.osc3UI.button6Mode = mode;
+            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+            osc3Module->virtualModule.handleButton6ModeChange(mode);
+
+        }
+
     };
     
     Osc3() : Via() {
@@ -59,20 +199,20 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(KNOB1_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB2_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(KNOB3_PARAM, 0, 4095.0, 2048.0, "Label Me!");
-        configParam(B_PARAM, -1.0, 1.0, 0.5, "Label Me!");
-        configParam(CV2AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
-        configParam(A_PARAM, -5.0, 5.0, 5.0, "Label Me!");
-        configParam(CV3AMT_PARAM, 0, 1.0, 1.0, "Label Me!");
+        configParam<FreqKnobQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Base Frequency", "Hz");
+        configParam<FreqKnobQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Base Frequency", "Hz");
+        configParam<DetuneKnobQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Detune");
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Oscillator 3 Level");
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "2 + 3 Phase CV Scale");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator 2 Level");
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Detune CV Scale");
         
-        configParam(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Label Me!");
-        configParam(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Label Me!");
+        configParam<OctaveButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Octave Offset");
+        configParam<WaveshapeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Waveshape");
+        configParam<SHButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Osc1 -> Level SH");
+        configParam<OctaveButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Octave Offset");
+        configParam<QuantizationButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Quantization");
+        configParam<DetuneButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Beat/Detune Mode");
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
 
@@ -153,6 +293,7 @@ void Osc3::process(const ProcessArgs &args) {
         }
 
         updateAudioRate();
+        virtualModule.advanceMeasurementTimer();
 
     }
     
@@ -164,7 +305,7 @@ struct Osc3Widget : ModuleWidget  {
 
 	box.size = Vec(12 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/blank.svg")));
+        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/osc3.svg")));
 
         setModule(module);
 
@@ -203,10 +344,10 @@ struct Osc3Widget : ModuleWidget  {
         addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Osc3::MAIN_OUTPUT));
         addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Osc3::AUX_LOGIC_OUTPUT));
 
-        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Osc3::LED1_LIGHT));
-        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.1 + .753, 268.5), module, Osc3::LED2_LIGHT));
-        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Osc3::LED3_LIGHT));
-        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.1 + .753, 309.9), module, Osc3::LED4_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.9 + .753, 268.5), module, Osc3::LED1_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.8 + .753, 268.5), module, Osc3::LED2_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(35.9 + .753, 309.8), module, Osc3::LED3_LIGHT));
+        addChild(createLight<MediumLight<WhiteLight>>(Vec(73.8 + .753, 309.8), module, Osc3::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Osc3::OUTPUT_GREEN_LIGHT));
         addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Osc3::RED_LIGHT));
 

@@ -41,6 +41,11 @@
       "slug": "OSC3",
       "name": "OSC3",
       "tags": ["VCO"]
+    },
+    {
+      "slug": "SYNC3",
+      "name": "SYNC3",
+      "tags": ["Oscillator", "Clock Modulator"]
     }
   ]
 }

@@ -1,5 +1,5 @@
-# EXTERNAL_LIBRARY_DIR = ""
-EXTERNAL_LIBRARY_DIR = "/Users/willmitchell/via-dev-environment/via_hardware_executables/hardawre-drivers/"
+EXTERNAL_LIBRARY_DIR = ./
+# EXTERNAL_LIBRARY_DIR = /Users/willmitchell/via-dev-environment/via_hardware_executables/hardware_drivers/
 
 
 # FLAGS will be passed to both the C and C++ compiler
@@ -20,10 +20,10 @@ LDFLAGS +=
 # Add .cpp and .c files to the build
 SOURCES += $(wildcard src/*.cpp)
 
-SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/oscillators/*.cpp)
-SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/cmsis_dsp/*.cpp)
-SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/sequencers/*.cpp)
-SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/signal_processors/*.cpp)
+# SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/oscillators/*.cpp)
+# SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/cmsis_dsp/*.cpp)
+# SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/sequencers/*.cpp)
+# SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/synthesis/signal_processors/*.cpp)
 
 SOURCES += $(wildcard $(EXTERNAL_LIBRARY_DIR)Via/io/src/*.cpp)
 
