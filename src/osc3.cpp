@@ -61,33 +61,62 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
             Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
 
-            float frequency = osc3Module->effectiveSR * 32 * (osc3Module->virtualModule.cBasePitch/4294967296.0f);
+            int32_t rootIncrement = osc3Module->virtualModule.controls.knob1Value * 3;
+            rootIncrement >>= 3;
+
+            if (osc3Module->virtualModule.osc3UI.button5Mode) {
+                rootIncrement &= 0xFE0; 
+            }
+
+            rootIncrement = osc3Module->virtualModule.expo.convert(rootIncrement) >> 3;
+
+            rootIncrement *= 8;
+            rootIncrement = fix16_mul(rootIncrement, osc3Module->virtualModule.absoluteTune);
+            rootIncrement = fix16_mul(rootIncrement, 65536 + (osc3Module->virtualModule.controls.knob2Value << 3));
+
+            float frequency = osc3Module->effectiveSR * 32 * (rootIncrement/4294967296.0f);
 
             frequency *= pow(2, osc3Module->virtualModule.octaveRange);
            
             return frequency;            
         
         }
-        void setDisplayValue(float target) override {
+        void setDisplayValue(float input) override {
 
             Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
 
-            target = target / 32.7;
+            float target = input / 32.39;
 
             target = log2(target);
 
-            float knob1Set;
-            float knob2Set;
-            float octaveSet;
+            float knob1Set = 0;
+            float knob2Set = 0;
+            float octaveSet = 0;
+
+            printf("%9.6f Target \n", target);
 
             if (target <= 4.0f) {
                 knob1Set = target/4.0 * 4095.0;
-                knob2Set = 0;
-            } // else add octave
+            } else if (target < 9.0f) {
+                octaveSet = target - 4.0;
+                octaveSet = (int32_t) octaveSet;
+                octaveSet += 1;
+                target -= octaveSet;
+                knob1Set = target/4.0 * 4095.0;
+                printf("%9.6f Target \n", target);
+                printf("%9.6f Octave \n", octaveSet);
+
+            } else {
+                knob1Set = 4095;
+                octaveSet = 5;
+                knob2Set = 4095;
+            }
+
+            osc3Module->virtualModule.osc3UI.button1Mode = (int32_t) octaveSet;
+            osc3Module->virtualModule.osc3UI.storeMode((int32_t) octaveSet, BUTTON1_MASK, BUTTON1_SHIFT);
+            osc3Module->virtualModule.handleButton1ModeChange((int32_t) octaveSet);
 
             osc3Module->paramQuantities[KNOB1_PARAM]->setValue(knob1Set);
-
-            // correct error with fine 
 
         };
 
