@@ -363,13 +363,13 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
             lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelOut/4095.0, ledDecay);
             lights[LED3_LIGHT].setSmoothBrightness(virtualModule.redLevelOut/4095.0, ledDecay);
         } else {
-            lights[LED1_LIGHT].setSmoothBrightness(!ledAState, ledDecay);
-            lights[LED3_LIGHT].setSmoothBrightness(!ledBState, ledDecay);
+            lights[LED1_LIGHT].setSmoothBrightness(!virtualIO->ledAState, ledDecay);
+            lights[LED3_LIGHT].setSmoothBrightness(!virtualIO->ledBState, ledDecay);
         }
 
 
-        lights[LED2_LIGHT].setSmoothBrightness(!ledCState, ledDecay);
-        lights[LED4_LIGHT].setSmoothBrightness(!ledDState, ledDecay);
+        lights[LED2_LIGHT].setSmoothBrightness(!virtualIO->ledCState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness(!virtualIO->ledDState, ledDecay);
 
         lights[RED_LIGHT].setSmoothBrightness(virtualModule.redLevelOut/4095.0, ledDecay);
         lights[GREEN_LIGHT].setSmoothBrightness(virtualModule.greenLevelOut/4095.0, ledDecay);
@@ -428,7 +428,6 @@ void Atsr::process(const ProcessArgs &args) {
     float dac1Sample = (float) virtualModule.outputs.dac1Samples[0];
     float dac2Sample = (float) virtualModule.outputs.dac2Samples[0];
     float dac3Sample = (float) virtualModule.outputs.dac3Samples[0];
-    updateLogicOutputs();
 
     // "model" the circuit
     // A and B inputs with normalled reference voltages
@@ -437,26 +436,26 @@ void Atsr::process(const ProcessArgs &args) {
     
     // sample and holds
     // get a new sample on the rising edge at the sh control output
-    if (shAControl > shALast) {
+    if (virtualIO->shAState > shALast) {
         aSample = aIn;
     }
-    if (shBControl > shBLast) {
+    if (virtualIO->shBState > shBLast) {
         bSample = bIn;
     }
 
-    shALast = shAControl;
-    shBLast = shBControl;
+    shALast = virtualIO->shAState;
+    shBLast = virtualIO->shBState;
 
     // either use the sample or track depending on the sh control output
-    aIn = shAControl * aSample + !shAControl * aIn;
-    bIn = shBControl * bSample + !shBControl * bIn;
+    aIn = virtualIO->shAState * aSample + !virtualIO->shAState * aIn;
+    bIn = virtualIO->shBState * bSample + !virtualIO->shBState * bIn;
 
     // VCA/mixing stage
     // normalize 15 bits to 0-1
     outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/32767.0) + aIn*(dac1Sample/32767.0)); 
     outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
-    outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
-    outputs[AUX_LOGIC_OUTPUT].setVoltage(auxLogicState * 5.0);
+    outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
+    outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
     
 }
 

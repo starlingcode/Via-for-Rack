@@ -75,7 +75,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     struct RatioButtonQuantity : ViaButtonQuantity<8> {
 
-        std::string buttonModes[8] = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        std::string buttonModes[8] = {"Rhythms", "Integers", "Open Intervals", "Circle of Fifths", "Major Arp", "Minor Arp", "Microtonal", "Bohlen-Pierce (Spooky)"};
 
         RatioButtonQuantity() {
             for (int i = 0; i < 8; i++) {
@@ -287,7 +287,6 @@ void Sync3::process(const ProcessArgs &args) {
             virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
             virtualModule.sync3UI.incrementTimer();
             processTriggerButton();
-            updateLogicOutputs();
         }
 
         updateAudioRate();
@@ -322,12 +321,12 @@ struct Sync3Widget : ModuleWidget  {
         addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Sync3::A_PARAM));
         addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Sync3::CV3AMT_PARAM));
         
-        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 80), module, Sync3::BUTTON1_PARAM));
-        addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Sync3::BUTTON2_PARAM));
-        addParam(createParam<TransparentButton>(Vec(85 + .753, 80), module, Sync3::BUTTON3_PARAM));
-        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 129), module, Sync3::BUTTON4_PARAM));
-        addParam(createParam<TransparentButton>(Vec(46 + .753, 131.5), module, Sync3::BUTTON5_PARAM));
-        addParam(createParam<TransparentButton>(Vec(85 + .753, 129), module, Sync3::BUTTON6_PARAM));
+        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 83), module, Sync3::BUTTON1_PARAM));
+        addParam(createParam<TransparentButton>(Vec(47 + .753, 90), module, Sync3::BUTTON2_PARAM));
+        addParam(createParam<TransparentButton>(Vec(83 + .753, 83), module, Sync3::BUTTON3_PARAM));
+        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 133), module, Sync3::BUTTON4_PARAM));
+        addParam(createParam<TransparentButton>(Vec(47 + .753, 129.5), module, Sync3::BUTTON5_PARAM));
+        addParam(createParam<TransparentButton>(Vec(83 + .753, 133), module, Sync3::BUTTON6_PARAM));
         
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Sync3::TRIGBUTTON_PARAM));
 

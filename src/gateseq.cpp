@@ -484,7 +484,6 @@ void Gateseq::process(const ProcessArgs &args) {
     processLogicInputs();
     updateOutputs();
 
-    updateLogicOutputs();
     virtualIO->halfTransferCallback();
 
     float dac1Sample = (float) virtualIO->outputs.dac1Samples[0];
@@ -498,26 +497,26 @@ void Gateseq::process(const ProcessArgs &args) {
     
     // sample and holds
     // get a new sample on the rising edge at the sh control output
-    if (shAControl > shALast) {
+    if (virtualIO->shAState > shALast) {
         aSample = aIn;
     }
-    if (shBControl > shBLast) {
+    if (virtualIO->shBState > shBLast) {
         bSample = bIn;
     }
 
-    shALast = shAControl;
-    shBLast = shBControl;
+    shALast = virtualIO->shAState;
+    shBLast = virtualIO->shBState;
 
     // either use the sample or track depending on the sh control output
-    aIn = shAControl * aSample + !shAControl * aIn;
-    bIn = shBControl * bSample + !shBControl * bIn;
+    aIn = virtualIO->shAState * aSample + !virtualIO->shAState * aIn;
+    bIn = virtualIO->shBState * bSample + !virtualIO->shBState * bIn;
 
     // VCA/mixing stage
     // normalize 12 bits to 0-1
     outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
     outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
-    outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
-    outputs[AUX_LOGIC_OUTPUT].setVoltage(auxLogicState * 5.0);
+    outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
+    outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
 
     clockDivider = 0;
     

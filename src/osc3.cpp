@@ -124,20 +124,84 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
     struct DetuneKnobQuantity: ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+
+
+        std::string getDisplayValueString(void) override {
 
             Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-           
-            return 1;            
-        
+
+            int32_t mode = osc3Module->virtualModule.osc3UI.button6Mode;
+
+            if (mode == 0) {
+
+                label = "Beat Frequency";
+
+                unit = "Hz";
+
+                float freqDiff = osc3Module->virtualModule.aFreq - osc3Module->virtualModule.bFreq;
+
+                freqDiff = osc3Module->effectiveSR * 32 * (freqDiff/4294967296.0f);
+
+                if (osc3Module->virtualModule.detuneBase == 0) {
+                    freqDiff = 0;
+                }
+
+                return string::f("%4.2f", freqDiff);
+
+            } else if (mode == 1) {
+
+                label = "Detune Amount";
+
+                unit = "cents";
+
+                float freqRatio = (osc3Module->virtualModule.bFreq - osc3Module->virtualModule.aFreq)/
+                                    (float) osc3Module->virtualModule.bFreq;
+                freqRatio /= 0.06f;
+
+                freqRatio *= 100.0;
+
+                if (osc3Module->virtualModule.detuneBase == 0) {
+                    freqRatio = 0;
+                }
+
+                return string::f("%4.2f", freqRatio);
+
+            } else if (mode == 2) {
+
+                label = "Osc 2 and Osc 3 Chord Offsets";
+
+                unit = "Notes";
+
+                int32_t chord = __USAT(((osc3Module->virtualModule.controls.knob3Value << 4)) + 
+                    (int32_t) -osc3Module->virtualModule.inputs.cv3Samples[0], 16);
+
+                chord >>= 12;
+
+                int32_t osc2Note = osc3Module->virtualModule.chords[chord][1];
+
+                int32_t osc3Note = osc3Module->virtualModule.chords[chord][0];
+
+                return "+" + string::f("%d", osc2Note) + ", " + string::f("%d", osc3Note) + " ";
+
+            } else {
+
+                label = "Unity Input Clock Multiplier";
+
+                unit = "";
+
+                return string::f("%i", osc3Module->virtualModule.beatMultiplier);
+
+            }
+
         }
-        virtual float translateInput(float userInput) {
 
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+        // virtual float translateInput(float userInput) {
 
-            return 11;
+        //     Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
 
-        };
+        //     return 11;
+
+        // };
 
     };
 
@@ -299,14 +363,14 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         configParam<FreqKnobQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Base Frequency", "Hz");
         configParam<FreqKnobQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Base Frequency", "Hz");
         configParam<DetuneKnobQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Detune");
-        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, 0.5, "Oscillator 3 Level");
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, -1.0, "Oscillator 3 Level");
         configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "2 + 3 Phase CV Scale");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator 2 Level");
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Detune CV Scale");
         
         configParam<OctaveButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Octave Offset");
         configParam<WaveshapeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Waveshape");
-        configParam<SHButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Osc1 -> Level SH");
+        configParam<SHButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Osc1 -> 2 and 3 Leve SH");
         configParam<OctaveButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Octave Offset");
         configParam<QuantizationButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Quantization");
         configParam<DetuneButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Beat/Detune Mode");
@@ -327,24 +391,44 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
         if (sampleRate == 44100.0) {
             divideAmount = 1;
+            effectiveSR = 44100.0;
+            virtualModule.absoluteTune = 49773;
         } else if (sampleRate == 48000.0) {
             divideAmount = 1;
+            effectiveSR = 48000.0;
+            virtualModule.absoluteTune = 45729;
         } else if (sampleRate == 88200.0) {
             divideAmount = 2;
+            effectiveSR = 44100.0;
+            virtualModule.absoluteTune = 49773;
         } else if (sampleRate == 96000.0) {
             divideAmount = 2;
+            effectiveSR = 48000.0;
+            virtualModule.absoluteTune = 45729;
         } else if (sampleRate == 176400.0) {
             divideAmount = 4;
+            effectiveSR = 44100.0;
+            virtualModule.absoluteTune = 49773;
         } else if (sampleRate == 192000.0) {
             divideAmount = 4;
+            effectiveSR = 48000.0;
+            virtualModule.absoluteTune = 45729;
         } else if (sampleRate == 352800.0) {
             divideAmount = 8;
+            effectiveSR = 44100.0;
+            virtualModule.absoluteTune = 49773;
         } else if (sampleRate == 384000.0) {
             divideAmount = 8;
+            effectiveSR = 48000.0;
+            virtualModule.absoluteTune = 45729;
         } else if (sampleRate == 705600.0) {
             divideAmount = 16;
+            effectiveSR = 44100.0;
+            virtualModule.absoluteTune = 49773;
         } else if (sampleRate == 768000.0) {
             divideAmount = 16;
+            effectiveSR = 48000.0;
+            virtualModule.absoluteTune = 45729;
         }
         
     }
@@ -419,11 +503,11 @@ struct Osc3Widget : ModuleWidget  {
         addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Osc3::A_PARAM));
         addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Osc3::CV3AMT_PARAM));
         
-        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 80), module, Osc3::BUTTON1_PARAM));
+        addParam(createParam<TransparentButton>(Vec(10.5 + .753, 88), module, Osc3::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Osc3::BUTTON2_PARAM));
-        addParam(createParam<TransparentButton>(Vec(85 + .753, 80), module, Osc3::BUTTON3_PARAM));
+        addParam(createParam<TransparentButton>(Vec(85 + .753, 90), module, Osc3::BUTTON3_PARAM));
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 129), module, Osc3::BUTTON4_PARAM));
-        addParam(createParam<TransparentButton>(Vec(46 + .753, 131.5), module, Osc3::BUTTON5_PARAM));
+        addParam(createParam<TransparentButton>(Vec(47 + .753, 133.5), module, Osc3::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(85 + .753, 129), module, Osc3::BUTTON6_PARAM));
         
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Osc3::TRIGBUTTON_PARAM));

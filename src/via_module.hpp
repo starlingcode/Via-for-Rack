@@ -79,17 +79,6 @@ struct Via : Module {
     int32_t adcWriteIndex = 0;
     int32_t slowIOPrescaler = 0;
 
-    int32_t ledAState = 0;
-    int32_t ledBState = 0;
-    int32_t ledCState = 0;
-    int32_t ledDState = 0;
-
-    int32_t logicAState = 0;
-    int32_t auxLogicState = 0;
-
-    int32_t shAControl = 0;
-    int32_t shBControl = 0;
-
     float shALast = 0;
     float shBLast = 0;
 
@@ -147,21 +136,14 @@ struct Via : Module {
         lastTrigButton = trigButton;
     }
 
-    // 2 sets the "GPIO" high, 1 sets it low, 0 is a no-op
-    inline int32_t virtualLogicOut(int32_t logicOut, int32_t GPIO, uint32_t reg) {
-        uint32_t on = (((GPIO >> (reg + 16))) & 1);
-        uint32_t off = (((GPIO >> (reg))) & 1);
-        return clamp(logicOut + (on * 2) - off, 0, 1);
-    }
-
-    float ledDecay = 1.f/(48000.f);
+    float ledDecay = 4.f/(48000.f);
 
     inline void updateLEDs(void) {
 
-        lights[LED1_LIGHT].setSmoothBrightness((float) !ledAState, ledDecay);
-        lights[LED3_LIGHT].setSmoothBrightness((float) !ledBState, ledDecay);
-        lights[LED2_LIGHT].setSmoothBrightness((float) !ledCState, ledDecay);
-        lights[LED4_LIGHT].setSmoothBrightness((float) !ledDState, ledDecay);
+        lights[LED1_LIGHT].setSmoothBrightness((float) !virtualIO->ledAState, ledDecay);
+        lights[LED3_LIGHT].setSmoothBrightness((float) !virtualIO->ledBState, ledDecay);
+        lights[LED2_LIGHT].setSmoothBrightness((float) !virtualIO->ledCState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness((float) !virtualIO->ledDState, ledDecay);
 
         lights[RED_LIGHT].setSmoothBrightness(virtualIO->redLevelOut/4095.0, ledDecay);
         lights[GREEN_LIGHT].setSmoothBrightness(virtualIO->greenLevelOut/4095.0, ledDecay);
@@ -170,25 +152,6 @@ struct Via : Module {
         float output = outputs[MAIN_OUTPUT].value/8.0;
         lights[OUTPUT_RED_LIGHT].setSmoothBrightness(clamp(-output, 0.0, 1.0), ledDecay);
         lights[OUTPUT_GREEN_LIGHT].setSmoothBrightness(clamp(output, 0.0, 1.0), ledDecay);
-
-    }
-
-    inline void updateLogicOutputs(void) {
-
-        ledAState = virtualLogicOut(ledAState, virtualIO->GPIOF, 7);
-        ledBState = virtualLogicOut(ledBState, virtualIO->GPIOC, 14);
-        ledCState = virtualLogicOut(ledCState, virtualIO->GPIOA, 2);
-        ledDState = virtualLogicOut(ledDState, virtualIO->GPIOB, 2);
-
-        logicAState = virtualLogicOut(logicAState, virtualIO->GPIOC, 13);
-        auxLogicState = virtualLogicOut(auxLogicState, virtualIO->GPIOA, 12);
-        shAControl = virtualLogicOut(shAControl, virtualIO->GPIOB, 8);
-        shBControl = virtualLogicOut(shBControl, virtualIO->GPIOB, 9);
-
-        virtualIO->GPIOA = 0;
-        virtualIO->GPIOB = 0;
-        virtualIO->GPIOC = 0;
-        virtualIO->GPIOF = 0;
 
     }
 
@@ -260,7 +223,6 @@ struct Via : Module {
         float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
         float dac3Sample = dac3Decimator.process(dac3DecimatorBuffer);
         
-        updateLogicOutputs();
         virtualIO->halfTransferCallback();
 
         // "model" the circuit
@@ -271,26 +233,26 @@ struct Via : Module {
         
         // sample and holds
         // get a new sample on the rising edge at the sh control output
-        if (shAControl > shALast) {
+        if (virtualIO->shAState > shALast) {
             aSample = aIn;
         }
-        if (shBControl > shBLast) {
+        if (virtualIO->shBState > shBLast) {
             bSample = bIn;
         }
 
-        shALast = shAControl;
-        shBLast = shBControl;
+        shALast = virtualIO->shAState;
+        shBLast = virtualIO->shBState;
 
         // either use the sample or track depending on the sh control output
-        aIn = shAControl ? aSample : aIn;
-        bIn = shBControl ? bSample : bIn;
+        aIn = virtualIO->shAState ? aSample : aIn;
+        bIn = virtualIO->shBState ? bSample : bIn;
 
         // VCA/mixing stage
         // normalize 12 bits to 0-1
         outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
         outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
-        outputs[LOGICA_OUTPUT].setVoltage(logicAState * 5.0);
-        outputs[AUX_LOGIC_OUTPUT].setVoltage(auxLogicState * 5.0);
+        outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
+        outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
 
     }
 
