@@ -10,6 +10,11 @@ struct pow2Decimate {
 	int in32Index;
 	float from32to16[7] = {-0.03147689, 0.0, 0.28147607, 0.5, 0.28147607, 0.0, -0.03147689};
 	// float_4 from32to16Kernel = {-0.03147689f, 0.28147607f, 0.28147607f, -0.03147689f};
+
+	float in24Buffer[64];
+	int in24Index;
+	// float from24to8[6] = {0.04774302, 0.167565, 0.28518149, 0.28518149, 0.167565, 0.04774302};
+	float from24to8[12] = {-0.00534053, -0.01919541, -0.01717899, 0.0493416, 0.18595231, 0.30651506, 0.30651506, 0.18595231, 0.0493416, -0.01717899, -0.01919541, -0.00534053};
 	
 	float in16Buffer[32];
 	int in16Index;
@@ -45,11 +50,13 @@ struct pow2Decimate {
 	}
 	void reset() {
 		in32Index = 0;
+		in24Index = 0;
 		in16Index = 0;
 		in8Index = 0;
 		in4Index = 0;
 		in2Index = 0;
 		std::memset(in32Buffer, 0, sizeof(in32Buffer));
+		std::memset(in24Buffer, 0, sizeof(in24Buffer));
 		std::memset(in16Buffer, 0, sizeof(in16Buffer));
 		std::memset(in8Buffer, 0, sizeof(in8Buffer));
 		std::memset(in4Buffer, 0, sizeof(in4Buffer));
@@ -65,6 +72,8 @@ struct pow2Decimate {
 			return process8x(in);
 		} else if (OVERSAMPLE == 16) {
 			return process16x(in);
+		} else if (OVERSAMPLE == 24) {
+			return process24x(in);
 		} else if (OVERSAMPLE == 32) {
 			return process32x(in);
 		}  else {
@@ -89,14 +98,34 @@ struct pow2Decimate {
 
 	}
 
+	/** `in` must be length 24 */
+	inline float process24x(float *in) {
+		
+		std::memcpy(&in24Buffer[in24Index], in, 8*sizeof(float));
+		in24Index = (in24Index + 8) & 63;
+
+		// copy in the data
+		std::memcpy(&in24Buffer[in24Index], &in[8], 8*sizeof(float));
+		in24Index = (in24Index + 8) & 63;
+
+		std::memcpy(&in24Buffer[in24Index], &in[16], 8*sizeof(float));
+		in24Index = (in24Index + 8) & 63;
+
+		process24to8();
+		process8to4();
+		process4to2();
+		return process2to1();
+
+	}
+
 	/** `in` must be length 16 */
 	float process16x(float *in) {
 		
 		// copy in the data
 		std::memcpy(&in16Buffer[in16Index], in, 16*sizeof(float));		
 		// update the write index
-		in32Index += 16;
-		in32Index &= 31;
+		in16Index += 16;
+		in16Index &= 31;
 
 		process16to8();
 		process8to4();
@@ -126,8 +155,8 @@ struct pow2Decimate {
 		// copy in the data
 		std::memcpy(&in4Buffer[in4Index], in, 4*sizeof(float));
 		// update the write index
-		in8Index += 4;
-		in8Index &= 31;
+		in4Index += 4;
+		in4Index &= 31;
 
 		process4to2();
 		return process2to1();
@@ -140,8 +169,8 @@ struct pow2Decimate {
 		// copy in the data
 		std::memcpy(&in2Buffer[in2Index], in, 2*sizeof(float));
 		// update the write index
-		in8Index += 2;
-		in8Index &= 63;
+		in2Index += 2;
+		in2Index &= 63;
 
 		return process2to1();
 
@@ -174,6 +203,34 @@ struct pow2Decimate {
 			in16Index = (in16Index + 1) & 31;
 			workingIndex += 2;    
 		}
+	}
+
+	void inline process24to8(void) {
+
+		uint32_t workingIndex = (in24Index - 24) & 63;
+		
+		// filter every third sample and write to the x16 buffer
+		for (int i = 0; i < 24; i += 3) {
+
+			float accumulator = from24to8[0] * in24Buffer[workingIndex];
+			accumulator += from24to8[1] * in24Buffer[(workingIndex - 1) & 63];
+			accumulator += from24to8[2] * in24Buffer[(workingIndex - 2) & 63];
+			accumulator += from24to8[3] * in24Buffer[(workingIndex - 3) & 63];
+			accumulator += from24to8[4] * in24Buffer[(workingIndex - 4) & 63];
+			accumulator += from24to8[5] * in24Buffer[(workingIndex - 5) & 63];
+			accumulator += from24to8[6] * in24Buffer[(workingIndex - 6) & 63];
+			accumulator += from24to8[7] * in24Buffer[(workingIndex - 7) & 63];
+			accumulator += from24to8[8] * in24Buffer[(workingIndex - 8) & 63];
+			accumulator += from24to8[9] * in24Buffer[(workingIndex - 9) & 63];
+			accumulator += from24to8[10] * in24Buffer[(workingIndex - 10) & 63];
+			accumulator += from24to8[11] * in24Buffer[(workingIndex - 11) & 63];
+
+			in8Buffer[in8Index] = in24Buffer[workingIndex];
+			in8Index = (in8Index + 1) & 15;
+			workingIndex += 3;
+			workingIndex &= 63;
+		}
+
 	}
 
 	void inline process16to8(void) {

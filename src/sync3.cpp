@@ -269,6 +269,57 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         virtualModule.sync3UI.defaultEnterMenuCallback();
 
     }
+
+    float lastDac1 = 0;
+    float lastDac2 = 0;
+    float lastDac3 = 0;
+
+    void updateAudioRateEconomy(void) {
+
+        acquireCVs();
+
+        processLogicInputs();
+
+        float dac1Sample = (float) virtualIO->outputs.dac1Samples[0];
+        float dac2Sample = (float) virtualIO->outputs.dac2Samples[0];
+        float dac3Sample = (float) virtualIO->outputs.dac2Samples[0];
+        
+        virtualIO->halfTransferCallback();
+
+        // "model" the circuit
+        // A and B inputs with normalled reference voltages
+        float aIn = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
+        float bIn = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : 5.0;
+        bIn *= params[B_PARAM].getValue();
+        
+        // sample and holds
+        // get a new sample on the rising edge at the sh control output
+        if (virtualIO->shAState > shALast) {
+            aSample = aIn;
+        }
+        if (virtualIO->shBState > shBLast) {
+            bSample = bIn;
+        }
+
+        shALast = virtualIO->shAState;
+        shBLast = virtualIO->shBState;
+
+        // either use the sample or track depending on the sh control output
+        aIn = virtualIO->shAState ? aSample : aIn;
+        bIn = virtualIO->shBState ? bSample : bIn;
+
+        // VCA/mixing stage
+        // normalize 12 bits to 0-1
+        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+        outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
+        outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
+        outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
+
+        updateLEDs();
+
+        clockDivider = 0;
+
+    }
     
 };
 

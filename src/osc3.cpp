@@ -451,6 +451,138 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
 
     }
+
+    float lastDac1Phase = 0;
+    float lastDac2Phase = 0;
+    float lastDac3Phase = 0;
+
+    dsp::MinBlepGenerator<8, 8, float> dac1MinBlep;
+    dsp::MinBlepGenerator<8, 8, float> dac2MinBlep;
+    dsp::MinBlepGenerator<8, 8, float> dac3MinBlep;
+
+    void updateAudioRateEconomy(void) {
+
+        acquireCVs();
+
+        processLogicInputs();
+
+        float dac1Sample = (float) virtualIO->outputs.dac1Samples[31];
+        float dac2Sample = (float) virtualIO->outputs.dac2Samples[31];
+        float dac3Sample = (float) virtualIO->outputs.dac3Samples[31];
+
+        int32_t aInc = (virtualModule.aFreq + virtualModule.pm) * 32;
+        int32_t bInc = (virtualModule.bFreq + virtualModule.pm) * 32;
+        int32_t cInc = virtualModule.cFreq * 32;
+
+        if (virtualModule.osc3UI.button2Mode == 0) {
+
+            int32_t crossingDirection = crossed0(lastDac1Phase, aInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection) - lastDac1Phase) / (float) aInc;
+                dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed0(lastDac2Phase, bInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac2Phase) / (float) bInc;
+                dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed0(lastDac3Phase, cInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac3Phase) / (float) cInc;
+                dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+        } else if (virtualModule.osc3UI.button2Mode == 1) {
+
+            int32_t crossingDirection = crossed0(lastDac1Phase, aInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection) - lastDac1Phase) / (float) aInc;
+                dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed0(lastDac2Phase, bInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac2Phase) / (float) bInc;
+                dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed0(lastDac3Phase, cInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac3Phase) / (float) cInc;
+                dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed2(lastDac1Phase, aInc);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac1Phase) / (float) aInc;
+                dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed2(lastDac2Phase, bInc);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - (float)lastDac2Phase) / (float) bInc;
+                dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed2(lastDac3Phase, cInc);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - (float)lastDac3Phase) / (float) cInc;
+                dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+        }
+
+        dac1Sample += dac1MinBlep.process();
+        dac2Sample += dac2MinBlep.process();
+        dac3Sample += dac3MinBlep.process();
+
+        lastDac1Phase = virtualModule.aPhase;
+        lastDac2Phase = virtualModule.bPhase;
+        lastDac3Phase = virtualModule.cPhase;
+
+
+        // if (virtualModule.osc3UI.button2Mode == 0) {
+        //     if (dac1Sample)
+        // }
+        
+        virtualIO->halfTransferCallback();
+
+        // "model" the circuit
+        // A and B inputs with normalled reference voltages
+        float aIn = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
+        float bIn = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : 5.0;
+        bIn *= params[B_PARAM].getValue();
+        
+        // sample and holds
+        // get a new sample on the rising edge at the sh control output
+        if (virtualIO->shAState > shALast) {
+            aSample = aIn;
+        }
+        if (virtualIO->shBState > shBLast) {
+            bSample = bIn;
+        }
+
+        shALast = virtualIO->shAState;
+        shBLast = virtualIO->shBState;
+
+        // either use the sample or track depending on the sh control output
+        aIn = virtualIO->shAState ? aSample : aIn;
+        bIn = virtualIO->shBState ? bSample : bIn;
+
+        // VCA/mixing stage
+        // normalize 12 bits to 0-1
+        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+        outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
+        outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
+        outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
+
+        updateLEDs();
+
+        clockDivider = 0;
+
+    }
     
 };
 
@@ -473,7 +605,7 @@ void Osc3::process(const ProcessArgs &args) {
             updateLEDs();
         }
 
-        updateAudioRate();
+        updateAudioRateEconomy();
         virtualModule.advanceMeasurementTimer();
 
     }

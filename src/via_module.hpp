@@ -270,6 +270,66 @@ struct Via : Module {
 
     };
 
+    // minblep helpers
+
+    int32_t crossed0(uint32_t lastPhase, int32_t increment) {
+
+        int64_t currentPhase = (int64_t) lastPhase + (int64_t) increment;
+
+        // printf("Current Phase: %llu \n", currentPhase);
+
+        if (currentPhase >= ((int64_t)1 <<32)) {
+            return 1;
+        } else if (currentPhase < 0) {
+            return -1;
+        } else {
+            return 0;
+        }
+
+    }
+
+    int32_t crossed1(uint32_t lastPhase, int32_t increment) {
+
+        int64_t currentPhase = (int64_t) lastPhase + (int64_t) increment;
+
+        if ((currentPhase >= ((uint32_t)1 << 30)) && (lastPhase < ((uint32_t)1 << 30))) {
+            return 1;
+        } else if ((currentPhase < ((uint32_t)1 << 30)) && (lastPhase >= ((uint32_t)1 << 30))) {
+            return -1;
+        } else {
+            return 0;
+        }
+
+    }
+
+    int32_t crossed2(uint32_t lastPhase, int32_t increment) {
+
+        int64_t currentPhase = (int64_t) lastPhase + (int64_t) increment;
+
+        if ((currentPhase >= ((uint32_t)2 << 30)) && (lastPhase < ((uint32_t)2 << 30))) {
+            return 1;
+        } else if ((currentPhase < ((uint32_t)2 << 30)) && (lastPhase >= ((uint32_t)2 << 30))) {
+            return -1;
+        } else {
+            return 0;
+        }
+
+    }
+
+    int32_t crossed3(uint32_t lastPhase, int32_t increment) {
+
+        int64_t currentPhase = (int64_t) lastPhase + (int64_t) increment;
+
+        if ((currentPhase >= ((uint32_t)3 << 30)) && (lastPhase < ((uint32_t)3 << 30))) {
+            return 1;
+        } else if ((currentPhase < ((uint32_t)3 << 30)) && (lastPhase >= ((uint32_t)3 << 30))) {
+            return -1;
+        } else {
+            return 0;
+        }
+
+    }
+
 
     // Parameter quantity stuff
 
