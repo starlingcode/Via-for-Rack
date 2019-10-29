@@ -1,5 +1,6 @@
 #include "osc3.hpp"
 #include "via_module.hpp"
+#include "polyblamp.hpp"
 
 #define OSC3_OVERSAMPLE_AMOUNT 32
 #define OSC3_OVERSAMPLE_QUALITY 6
@@ -449,7 +450,6 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         virtualModule.osc3UI.loadFromEEPROM(0);
         virtualModule.osc3UI.recallModuleState();
 
-
     }
 
     float lastDac1Phase = 0;
@@ -459,6 +459,14 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
     dsp::MinBlepGenerator<8, 8, float> dac1MinBlep;
     dsp::MinBlepGenerator<8, 8, float> dac2MinBlep;
     dsp::MinBlepGenerator<8, 8, float> dac3MinBlep;
+
+    PolyBlampGenerator<float> dac1PolyBlamp;
+    PolyBlampGenerator<float> dac2PolyBlamp;
+    PolyBlampGenerator<float> dac3PolyBlamp;
+
+    float blampDelay1[3];
+    float blampDelay2[3];
+    float blampDelay3[3];
 
     void updateAudioRateEconomy(void) {
 
@@ -478,39 +486,46 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
             int32_t crossingDirection = crossed0(lastDac1Phase, aInc);
             if (crossingDirection) {
-                float deltaPhase = (4294967296.f * (crossingDirection) - lastDac1Phase) / (float) aInc;
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac1Phase) / (float) aInc;
                 dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+                if (crossingDirection == -1) {
+                    printf("delay: %4.4f \n", deltaPhase - 1.0f);
+                }
             }
 
             crossingDirection = crossed0(lastDac2Phase, bInc);
             if (crossingDirection) {
-                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac2Phase) / (float) bInc;
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac2Phase) / (float) bInc;
                 dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
             }
 
             crossingDirection = crossed0(lastDac3Phase, cInc);
             if (crossingDirection) {
-                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac3Phase) / (float) cInc;
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac3Phase) / (float) cInc;
                 dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
             }
+
+            dac1Sample += dac1MinBlep.process();
+            dac2Sample += dac2MinBlep.process();
+            dac3Sample += dac3MinBlep.process();
 
         } else if (virtualModule.osc3UI.button2Mode == 1) {
 
             int32_t crossingDirection = crossed0(lastDac1Phase, aInc);
             if (crossingDirection) {
-                float deltaPhase = (4294967296.f * (crossingDirection) - lastDac1Phase) / (float) aInc;
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac1Phase) / (float) aInc;
                 dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
             }
 
             crossingDirection = crossed0(lastDac2Phase, bInc);
             if (crossingDirection) {
-                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac2Phase) / (float) bInc;
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac2Phase) / (float) bInc;
                 dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
             }
 
             crossingDirection = crossed0(lastDac3Phase, cInc);
             if (crossingDirection) {
-                float deltaPhase = (4294967296.f * (crossingDirection) - (float)lastDac3Phase) / (float) cInc;
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac3Phase) / (float) cInc;
                 dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
             }
 
@@ -532,11 +547,73 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
                 dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
             }
 
-        }
+            dac1Sample += dac1MinBlep.process();
+            dac2Sample += dac2MinBlep.process();
+            dac3Sample += dac3MinBlep.process();
 
-        dac1Sample += dac1MinBlep.process();
-        dac2Sample += dac2MinBlep.process();
-        dac3Sample += dac3MinBlep.process();
+        } else if (virtualModule.osc3UI.button2Mode == 3) {
+
+            int32_t crossingDirection = crossed0(lastDac1Phase, aInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - lastDac1Phase) / (float) aInc;
+                dac1PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * 4.0f * ((float) aInc / 4294967296.f));
+            }
+
+            crossingDirection = crossed0(lastDac2Phase, bInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac2Phase) / (float) bInc;
+                dac2PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * 4.0f * ((float) bInc / 4294967296.f));
+            }
+
+            crossingDirection = crossed0(lastDac3Phase, cInc);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac3Phase) / (float) cInc;
+                dac3PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * 4.0f * ((float) cInc / 4294967296.f));
+            }
+
+            crossingDirection = crossed2(lastDac1Phase, aInc);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac1Phase) / (float) aInc;
+                dac1PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * 4.0f * ((float) abs(aInc) / 4294967296.f));
+            }
+
+            crossingDirection = crossed2(lastDac2Phase, bInc);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - (float)lastDac2Phase) / (float) bInc;
+                dac2PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * 4.0f * ((float) abs(bInc) / 4294967296.f));
+            }
+
+            crossingDirection = crossed2(lastDac3Phase, cInc);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - (float)lastDac3Phase) / (float) cInc;
+                dac3PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * 4.0f * ((float) abs(cInc) / 4294967296.f));
+            }
+
+            float dac1Output = blampDelay1[0];
+            float dac2Output = blampDelay2[0];
+            float dac3Output = blampDelay3[0];
+
+            blampDelay1[0] = blampDelay1[1];
+            blampDelay2[0] = blampDelay2[1];
+            blampDelay3[0] = blampDelay3[1];
+
+            blampDelay1[1] = dac1Sample;
+            blampDelay2[1] = dac2Sample;
+            blampDelay3[1] = dac3Sample;
+
+            dac1Sample = dac1Output + dac1PolyBlamp.process(); 
+            dac2Sample = dac2Output + dac2PolyBlamp.process(); 
+            dac3Sample = dac3Output + dac3PolyBlamp.process(); 
+            // dac1Sample = dac1PolyBlamp.process(); 
+            // dac2Sample = dac2PolyBlamp.process(); 
+            // dac3Sample = dac3PolyBlamp.process(); 
+            // dac1Sample = dac1Output; 
+            // dac2Sample = dac2Output; 
+            // dac3Sample = dac3Output; 
+
+
+
+        }
 
         lastDac1Phase = virtualModule.aPhase;
         lastDac2Phase = virtualModule.bPhase;
