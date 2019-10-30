@@ -1,7 +1,8 @@
 #include "sync3.hpp"
 #include "via_module.hpp"
+#include "polyblamp.hpp"
 
-#define SYNC3_OVERSAMPLE_AMOUNT 32
+#define SYNC3_OVERSAMPLE_AMOUNT 24
 #define SYNC3_OVERSAMPLE_QUALITY 6
 
 struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
@@ -270,9 +271,23 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     }
 
-    float lastDac1 = 0;
-    float lastDac2 = 0;
-    float lastDac3 = 0;
+    int32_t optimize = 0;
+
+    float lastDac1Phase = 0;
+    float lastDac2Phase = 0;
+    float lastDac3Phase = 0;
+
+    dsp::MinBlepGenerator<8, 8, float> dac1MinBlep;
+    dsp::MinBlepGenerator<8, 8, float> dac2MinBlep;
+    dsp::MinBlepGenerator<8, 8, float> dac3MinBlep;
+
+    PolyBlampGenerator<float> dac1PolyBlamp;
+    PolyBlampGenerator<float> dac2PolyBlamp;
+    PolyBlampGenerator<float> dac3PolyBlamp;
+
+    float blampDelay1[3];
+    float blampDelay2[3];
+    float blampDelay3[3];
 
     void updateAudioRateEconomy(void) {
 
@@ -280,9 +295,162 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
         processLogicInputs();
 
-        float dac1Sample = (float) virtualIO->outputs.dac1Samples[0];
-        float dac2Sample = (float) virtualIO->outputs.dac2Samples[0];
-        float dac3Sample = (float) virtualIO->outputs.dac2Samples[0];
+        float dac1Sample = (float) virtualIO->outputs.dac1Samples[23];
+        float dac2Sample = (float) virtualIO->outputs.dac2Samples[23];
+        float dac3Sample = (float) virtualIO->outputs.dac3Samples[23];
+
+        int32_t inc1 = (virtualModule.increment3 + virtualModule.phaseModIncrement2) * 24;
+        int32_t inc2 = (virtualModule.increment4 + virtualModule.phaseModIncrement2) * 24;
+        int32_t inc3 = virtualModule.increment2 * 24;
+
+
+        if (virtualModule.sync3UI.button1Mode == 0) {
+
+            int32_t crossingDirection = crossed0(lastDac3Phase, inc3);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac3Phase) / (float) inc3;
+                dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            dac3Sample += dac3MinBlep.process();
+
+        } else if (virtualModule.sync3UI.button1Mode == 1) {
+
+            int32_t crossingDirection = crossed0(lastDac3Phase, inc3);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac3Phase) / (float) inc3;
+                dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed2(lastDac3Phase, inc3);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac3Phase) / (float) inc3;
+                dac3MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            dac3Sample += dac3MinBlep.process();
+
+        } else if (virtualModule.sync3UI.button1Mode == 2) {
+
+            int32_t crossingDirection = crossed0(lastDac3Phase, inc3);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - lastDac3Phase) / (float) inc3;
+                dac3PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * 4.0f * ((float) abs(inc3) / 4294967296.f));
+            }
+
+            crossingDirection = crossed2(lastDac3Phase, inc3);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac3Phase) / (float) inc3;
+                dac3PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * 4.0f * ((float) abs(inc3) / 4294967296.f));
+            }
+
+            float dac3Output = blampDelay3[0];
+            blampDelay3[0] = blampDelay3[1];
+            blampDelay3[1] = dac3Sample;
+            dac3Sample = dac3Output + dac3PolyBlamp.process(); 
+
+        }
+
+
+        if (virtualModule.sync3UI.button3Mode == 0) {
+
+            int32_t crossingDirection = crossed0(lastDac1Phase, inc1);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac1Phase) / (float) inc1;
+                dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            dac1Sample += dac1MinBlep.process();
+
+        } else if (virtualModule.sync3UI.button3Mode == 1) {
+
+            int32_t crossingDirection = crossed0(lastDac1Phase, inc1);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac1Phase) / (float) inc1;
+                dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed2(lastDac1Phase, inc1);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac1Phase) / (float) inc1;
+                dac1MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            dac1Sample += dac1MinBlep.process();
+
+        } else if (virtualModule.sync3UI.button3Mode == 2) {
+
+            int32_t crossingDirection = crossed0(lastDac1Phase, inc1);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - lastDac1Phase) / (float) inc1;
+                dac1PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * 4.0f * ((float) abs(inc1) / 4294967296.f));
+            }
+
+            crossingDirection = crossed2(lastDac1Phase, inc1);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac1Phase) / (float) inc1;
+                dac1PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * 4.0f * ((float) abs(inc1) / 4294967296.f));
+            }
+
+            float dac1Output = blampDelay1[0];
+            blampDelay1[0] = blampDelay1[1];
+            blampDelay1[1] = dac1Sample;
+            dac1Sample = dac1Output + dac1PolyBlamp.process(); 
+
+        }
+
+
+        if (virtualModule.sync3UI.button6Mode == 0) {
+
+            int32_t crossingDirection = crossed0(lastDac2Phase, inc2);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac2Phase) / (float) inc2;
+                dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            dac1Sample += dac1MinBlep.process();
+
+        } else if (virtualModule.sync3UI.button6Mode == 1) {
+
+            int32_t crossingDirection = crossed0(lastDac2Phase, inc2);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - (float)lastDac2Phase) / (float) inc2;
+                dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * (float) crossingDirection);
+            }
+
+            crossingDirection = crossed2(lastDac1Phase, inc2);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac2Phase) / (float) inc2;
+                dac2MinBlep.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * (float) crossingDirection);
+            }
+
+            dac1Sample += dac1MinBlep.process();
+
+        } else if (virtualModule.sync3UI.button6Mode == 2) {
+
+            int32_t crossingDirection = crossed0(lastDac2Phase, inc2);
+            if (crossingDirection) {
+                float deltaPhase = (4294967296.f * (crossingDirection == 1) - lastDac2Phase) / (float) inc2;
+                dac2PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, 4095.0 * 4.0f * ((float) abs(inc2) / 4294967296.f));
+            }
+
+            crossingDirection = crossed2(lastDac2Phase, inc2);
+            if (crossingDirection) {
+                float deltaPhase = (2147483648.f - lastDac2Phase) / (float) inc2;
+                dac2PolyBlamp.insertDiscontinuity(deltaPhase - 1.0f, -4095.0 * 4.0f * ((float) abs(inc2) / 4294967296.f));
+            }
+
+            float dac2Output = blampDelay2[0];
+            blampDelay2[0] = blampDelay2[1];
+            blampDelay2[1] = dac2Sample;
+            dac2Sample = dac2Output + dac2PolyBlamp.process(); 
+
+        }
+
+        lastDac1Phase = virtualModule.phase3;
+        lastDac2Phase = virtualModule.phase4;
+        lastDac3Phase = virtualModule.phase2;
+
         
         virtualIO->halfTransferCallback();
 
@@ -340,7 +508,11 @@ void Sync3::process(const ProcessArgs &args) {
             processTriggerButton();
         }
 
-        updateAudioRate();
+        if (!optimize) {
+            updateAudioRateEconomy();
+        } else {
+            updateAudioRate();
+        }
         virtualModule.advanceMeasurementTimer();
         virtualModule.advanceTimer1();
         virtualModule.advanceTimer2();
@@ -404,7 +576,7 @@ struct Sync3Widget : ModuleWidget  {
     };
 
     void appendContextMenu(Menu *menu) override {
-        // Sync3 *module = dynamic_cast<Sync3*>(this->module);
+        Sync3 *module = dynamic_cast<Sync3*>(this->module);
 
         struct PresetRecallItem : MenuItem {
             Sync3 *module;
@@ -415,6 +587,27 @@ struct Sync3Widget : ModuleWidget  {
                 module->virtualModule.sync3UI.recallModuleState();
             }
         };
+
+        struct OptimizationHandler : MenuItem {
+            Sync3 *module;
+            int32_t optimization;
+            void onAction(const event::Action &e) override {
+                module->optimize = optimization;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        menu->addChild(createMenuLabel("CPU Mode"));
+        const std::string optimization[] = {
+            "Optimized",
+            "Direct Port",
+        };
+        for (int i = 0; i < (int) LENGTHOF(optimization); i++) {
+            OptimizationHandler *menuItem = createMenuItem<OptimizationHandler>(optimization[i], CHECKMARK(module->optimize == i));
+            menuItem->module = module;
+            menuItem->optimization = i;
+            menu->addChild(menuItem);
+        }
 
     }
     

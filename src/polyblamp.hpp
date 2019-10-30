@@ -3,7 +3,7 @@
 
 template <typename T = float>
 struct PolyBlampGenerator {
-	T buf[4] = {};
+	T buf[64] = {};
 	int pos = 0;
 
 	PolyBlampGenerator() {
@@ -24,16 +24,16 @@ struct PolyBlampGenerator {
 		float d_4 = d_3 * d;
 		float d_5 = d_4 * d;
 
-		int index = (pos + 0) % 4;
+		int index = (pos + 0) % 64;
 		buf[index] += (d_5 / 120.f) * x;
 
-		index = (pos + 1) % 4;
+		index = (pos + 1) % 64;
 		buf[index] += (-d_5 / 40.f + d_4 / 24.0f + d_3 / 12.0f + d_2 / 12.0f + d / 24.0f + 1.0f / 120.0f) * x;
 
-		index = (pos + 2) % 4;
+		index = (pos + 2) % 64;
 		buf[index] += (d_5 / 40.f - d_4 / 12.0f + d_2 / 3.0f - d / 2.0f + 7.0f / 30.0f) * x;
 		
-		index = (pos + 3) % 4;
+		index = (pos + 3) % 64;
 		buf[index] += (-d_5 / 120.f + d_4 / 24.0f - d_3 / 12.0f + d_2 / 12.0f - d / 24.0f + 1.0f / 120.0f) * x;
 
 	}
@@ -41,7 +41,7 @@ struct PolyBlampGenerator {
 	T process() {
 		T v = buf[pos];
 		buf[pos] = T(0);
-		pos = (pos + 1) % (4);
+		pos = (pos + 1) % 64;
 		return v;
 	}
 };
