@@ -662,7 +662,7 @@ struct Sync_Widget : ModuleWidget  {
                     "Tempo-Synced LFO",
                 };
                 for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
-                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i]);
+                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i], CHECKMARK(module->virtualModule.syncUI.modeStateBuffer == (int32_t) module->presetData[i]));
                     item->module = module;
                     item->preset = module->presetData[i];
                     menu->addChild(item);

@@ -4,6 +4,7 @@
 - Lengthen ATSR slope times x2
 - Switch ATSR SH mode LED behavior
 - Reverse ATSR "All" CV polarity
+- Add checkmarks to stock presets
 
 ### 1.0.0 (2019-06-28)
 

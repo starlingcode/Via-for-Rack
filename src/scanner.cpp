@@ -354,7 +354,7 @@ struct ScannerWidget : ModuleWidget  {
                     "Blockland",
                 };
                 for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
-                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i]);
+                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i], CHECKMARK(module->virtualModule.scannerUI.modeStateBuffer == (int32_t) module->presetData[i]));
                     item->module = module;
                     item->preset = module->presetData[i];
                     menu->addChild(item);
