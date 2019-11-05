@@ -1,5 +1,5 @@
 EXTERNAL_LIBRARY_DIR = ./
-
+# EXTERNAL_LIBRARY_DIR = /users/willmitchell/via-dev-environment/via_hardware_executables/hardware_drivers/
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS += \
