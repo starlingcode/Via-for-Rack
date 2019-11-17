@@ -1,13 +1,13 @@
 EXTERNAL_LIBRARY_DIR = ./
-
+# EXTERNAL_LIBRARY_DIR = /users/willmitchell/via-dev-environment/via_hardware_executables/hardware_drivers/
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS += \
 	-DBUILD_VIRTUAL \
-	-I./Via/modules/inc \
-	-I./Via/synthesis/inc \
-	-I./Via/io/inc \
-	-I./Via/ui/inc \
+	-I$(EXTERNAL_LIBRARY_DIR)Via/modules/inc \
+	-I$(EXTERNAL_LIBRARY_DIR)Via/synthesis/inc \
+	-I$(EXTERNAL_LIBRARY_DIR)Via/io/inc \
+	-I$(EXTERNAL_LIBRARY_DIR)Via/ui/inc \
 
 CFLAGS +=
 CXXFLAGS +=

@@ -19,7 +19,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int group = syncModule->virtualModule.syncUI.button5Mode;
             int scale = syncModule->virtualModule.syncUI.button2Mode;
             int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
-            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.pllController.scale->t2Bitshift;
+            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
 
             ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
 
@@ -28,8 +28,8 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int numerator = row[0][xIndex][0];
             int denominator = row[0][xIndex][1];
 
-            int xIndexCV = syncModule->virtualModule.pllController.lastRatioX;
-            int yIndexCV = syncModule->virtualModule.pllController.lastRatioY;
+            int xIndexCV = syncModule->virtualModule.lastRatioX;
+            int yIndexCV = syncModule->virtualModule.lastRatioY;
 
             ScaleRow rowCV = grid[yIndexCV];
 
@@ -69,7 +69,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int group = syncModule->virtualModule.syncUI.button5Mode;
             int scale = syncModule->virtualModule.syncUI.button2Mode;
             int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
-            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.pllController.scale->t2Bitshift;
+            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
 
             ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
 
@@ -78,8 +78,8 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
             int numerator = row[0][xIndex][0];
             int denominator = row[0][xIndex][1];
 
-            int xIndexCV = syncModule->virtualModule.pllController.lastRatioX;
-            int yIndexCV = syncModule->virtualModule.pllController.lastRatioY;
+            int xIndexCV = syncModule->virtualModule.lastRatioX;
+            int yIndexCV = syncModule->virtualModule.lastRatioY;
 
             ScaleRow rowCV = grid[yIndexCV];
 
@@ -103,7 +103,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
             Sync * syncModule = dynamic_cast<Sync *>(this->module);
 
-            return userInput * pow(2, syncModule->virtualModule.pllController.scale->t2Bitshift);
+            return userInput * pow(2, syncModule->virtualModule.scale->t2Bitshift);
 
         };
 
@@ -481,7 +481,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         }
 
         updateAudioRate();
-        virtualModule.incrementVirtualTimer();
+        virtualModule.advanceMeasurementTimer();
 
         }
     
@@ -662,7 +662,7 @@ struct Sync_Widget : ModuleWidget  {
                     "Tempo-Synced LFO",
                 };
                 for (int i = 0; i < (int) LENGTHOF(presetLabels); i++) {
-                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i]);
+                    PresetRecallItem *item = createMenuItem<PresetRecallItem>(presetLabels[i], CHECKMARK(module->virtualModule.syncUI.modeStateBuffer == (int32_t) module->presetData[i]));
                     item->module = module;
                     item->preset = module->presetData[i];
                     menu->addChild(item);

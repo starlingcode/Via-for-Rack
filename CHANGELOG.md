@@ -1,9 +1,11 @@
 ### 1.0.0 (2019-11-01)
 
 - Add OSC3 and SYNC3
+- Update SYNC phase locking and skew modulation
 - Lengthen ATSR slope times x2
 - Switch ATSR SH mode LED behavior
 - Reverse ATSR "All" CV polarity
+- Add checkmarks to stock presets
 
 ### 1.0.0 (2019-06-28)
 
