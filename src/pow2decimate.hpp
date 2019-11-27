@@ -2,6 +2,56 @@
 
 using simd::float_4;
 
+template <typename T = float>
+struct APPath1 {
+
+	T d1 = T(0);
+	T d2 = T(0);
+	T a0 = T(0);
+
+
+	APPath1(float coeff0, float coeff1) {
+		a0 = T(coeff0);
+	}
+
+	APPath1() {}
+
+	T process(T input) {
+		T out1 = (input - d2) * a0 + d1;
+        d1 = input;
+        d2 = out1;
+        return out1;
+	}
+};
+
+template <typename T = float>
+struct APPath2 {
+
+	T d1 = T(0);
+	T d2 = T(0);
+	T d3 = T(0);
+
+	T a0 = T(0);
+	T a1 = T(0);
+
+
+	APPath2(float coeff0, float coeff1) {
+		a0 = T(coeff0);
+		a1 = T(coeff1);
+	}
+
+	APPath2() {}
+
+	T process(T input) {
+		T out1 = (input - d2) * a0 + d1;
+        T out2 = (out1 - d3) * a1 + d2;
+        d1 = input;
+        d2 = out1;
+        d3 = out2;
+        return out2;
+	}
+};
+
 /** Decimate by a factor of 32 with cascaded half band filters. */
 template <int OVERSAMPLE, int QUALITY>
 struct pow2Decimate {
@@ -21,40 +71,36 @@ struct pow2Decimate {
 	float from16to8[7] = {-0.03216907, 0.0, 0.28215172, 0.5, 0.28215172, 0.0, -0.03216907};
 	// float_4 from16to8Kernel = {-0.03216907, 0.28215172, 0.28215172, -0.03216907};
 	
-	float in8Buffer[16];
-	int in8Index;
-	float from8to4[7] = {-0.03512255, 0.0, 0.28483447, 0.5, 0.28483447,  0.0, -0.03512255};
-	// float_4 from8to4Kernel = {-0.03512255, 0.28483447, 0.28483447, -0.03512255};
+	float in8Buffer[8];
 	
-	float in4Buffer[32];
-	int in4Index;
-	float from4to2[15] = {-0.00373676, 0.0, 0.02056883, 0.0, -0.0723208, 0.0, 0.30536937, 0.5, 0.30536937, 0.0, -0.0723208, 0.0, 0.02056883, 0.0, -0.00373676};
-	// float_4 from4to2Kernel1 = {-0.00373676, 0.02056883, -0.0723208, 0.30536937};
-	// float_4 from4to2Kernel2 = {0.30536937, -0.0723208, 0.02056883, -0.00373676};
+	float in4Buffer[4];
 
-	float in2Buffer[64];
-	int in2Index;
-	float from2to1[47] = {-0.00050667, 0.0, 0.00109178, 0.0, -0.00218994, 0.0, 0.00393102, 0.0, -0.00654965, 0.0, 0.0103604, 0.0, -0.01583172, 0.0, 0.02377447, 0.0, 
-		-0.03586712, 0.0, 0.05646437, 0.0, -0.1016438, 0.0, 0.31679927, 0.49998081, 0.31679927, 0.0, -0.1016438, 0.0, 0.05646437, 0.0, -0.03586712, 0.0, 0.02377447, 0.0, -0.01583172, 0.0, 0.0103604, 0.0, -0.00654965, 0.0, 0.00393102, 0.0, -0.00218994, 0.0, 0.00109178, 0.0, -0.00050667};
-	float_4 from2to1Kernel1 = {-0.00050667, 0.00109178, -0.00218994, 0.00393102};
-	float_4 from2to1Kernel2 = {-0.00654965, 0.0103604, -0.01583172, 0.02377447};
-	float_4 from2to1Kernel3 = {-0.03586712, 0.05646437, -0.1016438, 0.31679927};
-	float_4 from2to1Kernel4 = {0.31679927, -0.1016438, 0.05646437, -0.03586712};
-	float_4 from2to1Kernel5 = {0.02377447, -0.01583172, 0.0103604, -0.00654965};
-	float_4 from2to1Kernel6 = {0.00393102, -0.00218994, 0.00109178, -0.00050667};
+	float in2Buffer[2];
+
+	APPath2<float> from2to1Path1;
+	APPath2<float> from2to1Path2;
+	APPath2<float> from4to2Path1;
+	APPath2<float> from4to2Path2;
+	APPath1<float> from8to4Path1;
+	APPath2<float> from8to4Path2;
 
 	pow2Decimate(float cutoff = 0.9f) {
-		// boxcarLowpassIR(kernel, OVERSAMPLE*QUALITY, cutoff * 0.5f / OVERSAMPLE);
-		// blackmanHarrisWindow(kernel, OVERSAMPLE*QUALITY);
+		from2to1Path1.a0 = 0.0798664262025582;
+		from2to1Path1.a1 = 0.5453236511825826;
+		from2to1Path2.a0 = 0.283829344898100;
+		from2to1Path2.a1 = 0.834411891201724;
+		from4to2Path1.a0 = 0.0798664262025582;
+		from4to2Path1.a1 = 0.5453236511825826;
+		from4to2Path2.a0 = 0.283829344898100;
+		from4to2Path2.a1 = 0.834411891201724;
+		from8to4Path1.a0 = 0.11192;
+		from8to4Path2.a0 = 0.53976;
 		reset();
 	}
 	void reset() {
 		in32Index = 0;
 		in24Index = 0;
 		in16Index = 0;
-		in8Index = 0;
-		in4Index = 0;
-		in2Index = 0;
 		std::memset(in32Buffer, 0, sizeof(in32Buffer));
 		std::memset(in24Buffer, 0, sizeof(in24Buffer));
 		std::memset(in16Buffer, 0, sizeof(in16Buffer));
@@ -138,10 +184,7 @@ struct pow2Decimate {
 	float process8x(float *in) {
 		
 		// copy in the data
-		std::memcpy(&in8Buffer[in8Index], in, 8*sizeof(float));
-		// update the write index
-		in8Index += 8;
-		in8Index &= 15;
+		std::memcpy(&in8Buffer[0], in, 8*sizeof(float));
 
 		process8to4();
 		process4to2();
@@ -153,10 +196,7 @@ struct pow2Decimate {
 	float process4x(float *in) {
 		
 		// copy in the data
-		std::memcpy(&in4Buffer[in4Index], in, 4*sizeof(float));
-		// update the write index
-		in4Index += 4;
-		in4Index &= 31;
+		std::memcpy(&in4Buffer[0], in, 4*sizeof(float));
 
 		process4to2();
 		return process2to1();
@@ -167,10 +207,7 @@ struct pow2Decimate {
 	float process2x(float *in) {
 		
 		// copy in the data
-		std::memcpy(&in2Buffer[in2Index], in, 2*sizeof(float));
-		// update the write index
-		in2Index += 2;
-		in2Index &= 63;
+		std::memcpy(&in2Buffer[0], in, 2*sizeof(float));
 
 		return process2to1();
 
@@ -208,6 +245,8 @@ struct pow2Decimate {
 	void inline process24to8(void) {
 
 		uint32_t workingIndex = (in24Index - 24) & 63;
+
+		int writeIndex = 0;
 		
 		// filter every third sample and write to the x16 buffer
 		for (int i = 0; i < 24; i += 3) {
@@ -225,8 +264,8 @@ struct pow2Decimate {
 			accumulator += from24to8[10] * in24Buffer[(workingIndex - 10) & 63];
 			accumulator += from24to8[11] * in24Buffer[(workingIndex - 11) & 63];
 
-			in8Buffer[in8Index] = in24Buffer[workingIndex];
-			in8Index = (in8Index + 1) & 15;
+			in8Buffer[writeIndex] = in24Buffer[workingIndex];
+			writeIndex++;
 			workingIndex += 3;
 			workingIndex &= 63;
 		}
@@ -236,6 +275,8 @@ struct pow2Decimate {
 	void inline process16to8(void) {
 
 		int workingIndex = (in16Index - 16) & 31;
+
+		int writeIndex = 0;
 
 		// filter every other sample and write to the x8 buffer
 		for (int i = 0; i < 16; i += 2) {
@@ -257,8 +298,8 @@ struct pow2Decimate {
 			accumulator += from16to8[4] * in16Buffer[(workingIndex - 4) & 31];
 			accumulator += from16to8[6] * in16Buffer[(workingIndex - 6) & 31];
 			
-			in8Buffer[in8Index] = accumulator;
-			in8Index = (in8Index + 1) & 15;
+			in8Buffer[writeIndex] = accumulator;
+			writeIndex++;
 			workingIndex += 2;      
 		}
 
@@ -266,129 +307,29 @@ struct pow2Decimate {
 
 	void inline process8to4(void) {
 
-		int workingIndex = (in8Index - 8) & 15;
+		in4Buffer[0] = (from8to4Path1.process(in8Buffer[1]) + from8to4Path2.process(in8Buffer[0])) * 0.5;
 
-		// filter every other sample and write to the x4 buffer
-		for (int i = 0; i < 8; i += 2) {
-			
-			float accumulator = 0.5 * in8Buffer[(workingIndex - 3) & 15];
+		in4Buffer[1] = (from8to4Path1.process(in8Buffer[3]) + from8to4Path2.process(in8Buffer[2])) * 0.5;
 
-			// float vectorRead[4];
-			
-			// float_4 work = {in8Buffer[workingIndex], in8Buffer[(workingIndex - 2) & 15], 
-			// 	in8Buffer[(workingIndex - 4) & 15], in8Buffer[(workingIndex - 6) & 15]};
-			// work *= from8to4Kernel;
+		in4Buffer[2] = (from8to4Path1.process(in8Buffer[5]) + from8to4Path2.process(in8Buffer[4])) * 0.5;
 
-			// work.store(vectorRead);
-
-			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
-
-			accumulator += from8to4[0] * in8Buffer[workingIndex];
-			accumulator += from8to4[2] * in8Buffer[(workingIndex - 2) & 15];
-			accumulator += from8to4[4] * in8Buffer[(workingIndex - 4) & 15];
-			accumulator += from8to4[6] * in8Buffer[(workingIndex - 6) & 15];			
-			
-			in4Buffer[in4Index] = accumulator;
-			in4Index = (in4Index + 1) & 31;
-			
-			workingIndex += 2;    
-		}
+		in4Buffer[3] = (from8to4Path1.process(in8Buffer[7]) + from8to4Path2.process(in8Buffer[6])) * 0.5;
 
 	}
 
 	void inline  process4to2(void) {
 
-		int workingIndex = (in4Index - 4) & 31;
+		in2Buffer[0] = (from4to2Path1.process(in4Buffer[1]) + from4to2Path2.process(in4Buffer[0])) * 0.5;
 
-		// filter every other sample and write to the x2 buffer
-		for (int i = 0; i < 4; i += 2) {
-			
-			float accumulator = 0.5 * in4Buffer[(workingIndex - 7) & 31]; 
+		in2Buffer[1] = (from4to2Path1.process(in4Buffer[3]) + from4to2Path2.process(in4Buffer[2])) * 0.5;
 
-			// float vectorRead[4];
-
-			// float_4 work = {in4Buffer[workingIndex], in4Buffer[(workingIndex - 2) & 31], 
-			// 	in4Buffer[(workingIndex - 4) & 31], in4Buffer[(workingIndex - 6) & 31]};
-			// work *= from4to2Kernel1;
-			// float_4 accumulateVector = work;
-
-			// work = {in4Buffer[(workingIndex - 8) & 31], in4Buffer[(workingIndex - 10) & 31], 
-			// 	in4Buffer[(workingIndex - 12) & 31], in4Buffer[(workingIndex - 14) & 31]};
-			// work *= from4to2Kernel2;
-			// accumulateVector += work;
-
-			// accumulateVector.store(vectorRead);
-
-			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
-
-			accumulator += from4to2[0] * in4Buffer[workingIndex];
-			accumulator += from4to2[2] * in4Buffer[(workingIndex - 2) & 31];
-			accumulator += from4to2[4] * in4Buffer[(workingIndex - 4) & 31];
-			accumulator += from4to2[6] * in4Buffer[(workingIndex - 6) & 31];
-			accumulator += from4to2[8] * in4Buffer[(workingIndex - 8) & 31];
-			accumulator += from4to2[10] * in4Buffer[(workingIndex - 10) & 31];
-			accumulator += from4to2[12] * in4Buffer[(workingIndex - 12) & 31];
-			accumulator += from4to2[14] * in4Buffer[(workingIndex - 14) & 31];
-
-			in2Buffer[in2Index] = accumulator;
-			in2Index = (in2Index + 1) & 63;
-			workingIndex += 2;    
-		}
 
 	}
 
-	// Elliptic filter will make this faster with more passband ripple
-	// Higher order butterworth might still be faster
 
 	float inline process2to1(void) {
 
-		int workingIndex = (in2Index - 2) & 63;
-
-		// this time, we only need one sample, so the for loop does the FIR
-
-		float accumulator = 0.49998081 * in2Buffer[(workingIndex - 23) & 63];
-
-		float vectorRead[4];
-
-		float_4 work = {in2Buffer[workingIndex], in2Buffer[(workingIndex - 2) & 63], 
-			in2Buffer[(workingIndex - 4) & 63], in2Buffer[(workingIndex - 6) & 63]};
-		work *= from2to1Kernel1;
-		float_4 accumulateVector = work;
-
-		work = {in2Buffer[(workingIndex - 8) & 63], in2Buffer[(workingIndex - 10) & 63], 
-			in2Buffer[(workingIndex - 12) & 63], in2Buffer[(workingIndex - 14) & 63]};
-		work *= from2to1Kernel2;
-		accumulateVector += work;
-
-		work = {in2Buffer[(workingIndex - 16) & 63], in2Buffer[(workingIndex - 18) & 63], 
-			in2Buffer[(workingIndex - 20) & 63], in2Buffer[(workingIndex - 22) & 63]};
-		work *= from2to1Kernel3;
-		accumulateVector += work;
-
-		work = {in2Buffer[(workingIndex - 24) & 63], in2Buffer[(workingIndex - 26) & 63], 
-			in2Buffer[(workingIndex - 28) & 63], in2Buffer[(workingIndex - 30) & 63]};
-		work *= from2to1Kernel4;
-		accumulateVector += work;
-
-		work = {in2Buffer[(workingIndex - 32) & 63], in2Buffer[(workingIndex - 34) & 63], 
-			in2Buffer[(workingIndex - 36) & 63], in2Buffer[(workingIndex - 38) & 63]};
-		work *= from2to1Kernel5;
-		accumulateVector += work;
-
-		work = {in2Buffer[(workingIndex - 40) & 63], in2Buffer[(workingIndex - 42) & 63], 
-			in2Buffer[(workingIndex - 44) & 63], in2Buffer[(workingIndex - 46) & 63]};
-		work *= from2to1Kernel6;
-		accumulateVector += work;
-
-		accumulateVector.store(vectorRead);
-
-		accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
-
-		// for (int i = 0; i < 47; i += 2) {
-		// 	accumulator += from2to1[i] * in2Buffer[(workingIndex - i) & 63];
-		// }
-
-		return accumulator;
+		return (from2to1Path1.process(in2Buffer[1]) + from2to1Path2.process(in2Buffer[0])) * 0.5;
 	}
 	
 };
