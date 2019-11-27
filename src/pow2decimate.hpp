@@ -53,54 +53,63 @@ struct APPath2 {
 };
 
 /** Decimate by a factor of 32 with cascaded half band filters. */
-template <int OVERSAMPLE, int QUALITY>
+template <int OVERSAMPLE, typename T = float>
 struct pow2Decimate {
 	
-	float in32Buffer[64];
-	int in32Index;
-	float from32to16[7] = {-0.03147689, 0.0, 0.28147607, 0.5, 0.28147607, 0.0, -0.03147689};
-	// float_4 from32to16Kernel = {-0.03147689f, 0.28147607f, 0.28147607f, -0.03147689f};
+	T in32Buffer[64];
 
-	float in24Buffer[64];
+	T in24Buffer[64];
 	int in24Index;
-	// float from24to8[6] = {0.04774302, 0.167565, 0.28518149, 0.28518149, 0.167565, 0.04774302};
-	float from24to8[12] = {-0.00534053, -0.01919541, -0.01717899, 0.0493416, 0.18595231, 0.30651506, 0.30651506, 0.18595231, 0.0493416, -0.01717899, -0.01919541, -0.00534053};
+	// T from24to8[6] = {0.04774302, 0.167565, 0.28518149, 0.28518149, 0.167565, 0.04774302};
+	T from24to8[12] = {T(-0.00534053), T(-0.01919541), T(-0.01717899), T(0.0493416), T(0.18595231), T(0.30651506), T(0.30651506), T(0.18595231), T(0.0493416), T(-0.01717899), T(-0.01919541), T(-0.00534053)};
 	
-	float in16Buffer[32];
-	int in16Index;
-	float from16to8[7] = {-0.03216907, 0.0, 0.28215172, 0.5, 0.28215172, 0.0, -0.03216907};
-	// float_4 from16to8Kernel = {-0.03216907, 0.28215172, 0.28215172, -0.03216907};
+	T in16Buffer[32];
 	
-	float in8Buffer[8];
+	T in8Buffer[8];
 	
-	float in4Buffer[4];
+	T in4Buffer[4];
 
-	float in2Buffer[2];
+	T in2Buffer[2];
 
-	APPath2<float> from2to1Path1;
-	APPath2<float> from2to1Path2;
-	APPath2<float> from4to2Path1;
-	APPath2<float> from4to2Path2;
-	APPath1<float> from8to4Path1;
-	APPath2<float> from8to4Path2;
+	APPath2<T> from2to1Path1;
+	APPath2<T> from2to1Path2;
+	APPath2<T> from4to2Path1;
+	APPath2<T> from4to2Path2;
+	APPath1<T> from8to4Path1;
+	APPath1<T> from8to4Path2;
+	APPath1<T> from16to8Path1;
+	APPath1<T> from16to8Path2;
+	APPath1<T> from32to16Path1;
+	APPath1<T> from32to16Path2;
 
-	pow2Decimate(float cutoff = 0.9f) {
+	pow2Decimate() {
+
 		from2to1Path1.a0 = 0.0798664262025582;
 		from2to1Path1.a1 = 0.5453236511825826;
+
 		from2to1Path2.a0 = 0.283829344898100;
 		from2to1Path2.a1 = 0.834411891201724;
+
 		from4to2Path1.a0 = 0.0798664262025582;
 		from4to2Path1.a1 = 0.5453236511825826;
+
 		from4to2Path2.a0 = 0.283829344898100;
 		from4to2Path2.a1 = 0.834411891201724;
+
 		from8to4Path1.a0 = 0.11192;
 		from8to4Path2.a0 = 0.53976;
+
+		from16to8Path1.a0 = 0.11192;
+		from16to8Path2.a0 = 0.53976;
+
+		from32to16Path1.a0 = 0.11192;
+		from32to16Path2.a0 = 0.53976;
+
 		reset();
+
 	}
 	void reset() {
-		in32Index = 0;
 		in24Index = 0;
-		in16Index = 0;
 		std::memset(in32Buffer, 0, sizeof(in32Buffer));
 		std::memset(in24Buffer, 0, sizeof(in24Buffer));
 		std::memset(in16Buffer, 0, sizeof(in16Buffer));
@@ -109,7 +118,7 @@ struct pow2Decimate {
 		std::memset(in2Buffer, 0, sizeof(in2Buffer));
 	}
 
-	float process(float *in) {
+	T process(T *in) {
 		if (OVERSAMPLE == 2) {
 			return process2x(in);
 		} else if (OVERSAMPLE == 4) {
@@ -128,13 +137,10 @@ struct pow2Decimate {
 	}
 
 	/** `in` must be length 32 */
-	float process32x(float *in) {
+	T process32x(T *in) {
 		
 		// copy in the data
-		std::memcpy(&in32Buffer[in32Index], in, 32*sizeof(float));		
-		// update the write index
-		in32Index += 32;
-		in32Index &= 63;
+		std::memcpy(&in32Buffer[0], in, 32*sizeof(T));		
 
 		process32to16();
 		process16to8();
@@ -145,16 +151,16 @@ struct pow2Decimate {
 	}
 
 	/** `in` must be length 24 */
-	inline float process24x(float *in) {
+	inline T process24x(T *in) {
 		
-		std::memcpy(&in24Buffer[in24Index], in, 8*sizeof(float));
+		std::memcpy(&in24Buffer[in24Index], in, 8*sizeof(T));
 		in24Index = (in24Index + 8) & 63;
 
 		// copy in the data
-		std::memcpy(&in24Buffer[in24Index], &in[8], 8*sizeof(float));
+		std::memcpy(&in24Buffer[in24Index], &in[8], 8*sizeof(T));
 		in24Index = (in24Index + 8) & 63;
 
-		std::memcpy(&in24Buffer[in24Index], &in[16], 8*sizeof(float));
+		std::memcpy(&in24Buffer[in24Index], &in[16], 8*sizeof(T));
 		in24Index = (in24Index + 8) & 63;
 
 		process24to8();
@@ -165,13 +171,10 @@ struct pow2Decimate {
 	}
 
 	/** `in` must be length 16 */
-	float process16x(float *in) {
+	T process16x(T *in) {
 		
 		// copy in the data
-		std::memcpy(&in16Buffer[in16Index], in, 16*sizeof(float));		
-		// update the write index
-		in16Index += 16;
-		in16Index &= 31;
+		std::memcpy(&in16Buffer[0], in, 16*sizeof(T));		
 
 		process16to8();
 		process8to4();
@@ -181,10 +184,10 @@ struct pow2Decimate {
 	}
 
 	/** `in` must be length 8 */
-	float process8x(float *in) {
+	T process8x(T *in) {
 		
 		// copy in the data
-		std::memcpy(&in8Buffer[0], in, 8*sizeof(float));
+		std::memcpy(&in8Buffer[0], in, 8*sizeof(T));
 
 		process8to4();
 		process4to2();
@@ -193,10 +196,10 @@ struct pow2Decimate {
 	}
 
 	/** `in` must be length 4 */
-	float process4x(float *in) {
+	T process4x(T *in) {
 		
 		// copy in the data
-		std::memcpy(&in4Buffer[0], in, 4*sizeof(float));
+		std::memcpy(&in4Buffer[0], in, 4*sizeof(T));
 
 		process4to2();
 		return process2to1();
@@ -204,10 +207,10 @@ struct pow2Decimate {
 	}
 
 	/** `in` must be length 2 */
-	float process2x(float *in) {
+	T process2x(T *in) {
 		
 		// copy in the data
-		std::memcpy(&in2Buffer[0], in, 2*sizeof(float));
+		std::memcpy(&in2Buffer[0], in, 2*sizeof(T));
 
 		return process2to1();
 
@@ -215,31 +218,16 @@ struct pow2Decimate {
 
 	void inline process32to16(void) {
 
-		int32_t workingIndex = (in32Index - 32) & 63;
-		
-		// filter every other sample and write to the x16 buffer
+		int writeIndex = 0;
+
+		// filter every other sample and write to the x8 buffer
 		for (int i = 0; i < 32; i += 2) {
-
-			float accumulator = 0.5 * in32Buffer[(workingIndex - 3) & 63];
-			// float vectorRead[4];
 			
-			// float_4 work = {in32Buffer[workingIndex], in32Buffer[(workingIndex - 2) & 63], 
-			// 	in32Buffer[(workingIndex - 4) & 63], in32Buffer[(workingIndex - 6) & 63]};
-			// work *= from32to16Kernel;
+			in16Buffer[writeIndex] = (from32to16Path1.process(in32Buffer[i + 1]) + from32to16Path2.process(in32Buffer[i])) * 0.5;
+			writeIndex++;
 
-			// work.store(vectorRead);
-
-			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
-
-			accumulator += from32to16[0] * in32Buffer[workingIndex];
-			accumulator += from32to16[2] * in32Buffer[(workingIndex - 2) & 63];
-			accumulator += from32to16[4] * in32Buffer[(workingIndex - 4) & 63];
-			accumulator += from32to16[6] * in32Buffer[(workingIndex - 6) & 63];
-			
-			in16Buffer[in16Index] = accumulator;
-			in16Index = (in16Index + 1) & 31;
-			workingIndex += 2;    
 		}
+
 	}
 
 	void inline process24to8(void) {
@@ -251,7 +239,7 @@ struct pow2Decimate {
 		// filter every third sample and write to the x16 buffer
 		for (int i = 0; i < 24; i += 3) {
 
-			float accumulator = from24to8[0] * in24Buffer[workingIndex];
+			T accumulator = from24to8[0] * in24Buffer[workingIndex];
 			accumulator += from24to8[1] * in24Buffer[(workingIndex - 1) & 63];
 			accumulator += from24to8[2] * in24Buffer[(workingIndex - 2) & 63];
 			accumulator += from24to8[3] * in24Buffer[(workingIndex - 3) & 63];
@@ -264,7 +252,7 @@ struct pow2Decimate {
 			accumulator += from24to8[10] * in24Buffer[(workingIndex - 10) & 63];
 			accumulator += from24to8[11] * in24Buffer[(workingIndex - 11) & 63];
 
-			in8Buffer[writeIndex] = in24Buffer[workingIndex];
+			in8Buffer[writeIndex] = accumulator;
 			writeIndex++;
 			workingIndex += 3;
 			workingIndex &= 63;
@@ -274,33 +262,14 @@ struct pow2Decimate {
 
 	void inline process16to8(void) {
 
-		int workingIndex = (in16Index - 16) & 31;
-
 		int writeIndex = 0;
 
 		// filter every other sample and write to the x8 buffer
 		for (int i = 0; i < 16; i += 2) {
-
-			float accumulator = 0.5 * in16Buffer[(workingIndex - 3) & 31];
-
-			// float vectorRead[4];
 			
-			// float_4 work = {in16Buffer[workingIndex], in16Buffer[(workingIndex - 2) & 31], 
-			// 	in16Buffer[(workingIndex - 4) & 31], in16Buffer[(workingIndex - 6) & 31]};
-			// work *= from16to8Kernel;
-
-			// work.store(vectorRead);
-
-			// accumulator += vectorRead[0] + vectorRead[1] + vectorRead[2] + vectorRead[3];
-
-			accumulator += from16to8[0] * in16Buffer[workingIndex];
-			accumulator += from16to8[2] * in16Buffer[(workingIndex - 2) & 31];
-			accumulator += from16to8[4] * in16Buffer[(workingIndex - 4) & 31];
-			accumulator += from16to8[6] * in16Buffer[(workingIndex - 6) & 31];
-			
-			in8Buffer[writeIndex] = accumulator;
+			in8Buffer[writeIndex] = (from16to8Path1.process(in16Buffer[i + 1]) + from16to8Path2.process(in16Buffer[i])) * 0.5;;
 			writeIndex++;
-			workingIndex += 2;      
+
 		}
 
 	}
@@ -327,7 +296,7 @@ struct pow2Decimate {
 	}
 
 
-	float inline process2to1(void) {
+	T inline process2to1(void) {
 
 		return (from2to1Path1.process(in2Buffer[1]) + from2to1Path2.process(in2Buffer[0])) * 0.5;
 	}

@@ -57,9 +57,7 @@ struct Via : Module {
     
     Via() {
 
-        dac1DecimatorBuffer = (float*) malloc(OVERSAMPLE_AMOUNT * sizeof(float));
-        dac2DecimatorBuffer = (float*) malloc(OVERSAMPLE_AMOUNT * sizeof(float));
-        dac3DecimatorBuffer = (float*) malloc(OVERSAMPLE_AMOUNT * sizeof(float));
+        dacDecimatorBuffer = (float_4*) malloc(OVERSAMPLE_AMOUNT * sizeof(float_4));
 
     }
 
@@ -89,18 +87,11 @@ struct Via : Module {
 
     int32_t divideAmount = 1;
 
-    float * dac1DecimatorBuffer;
-    float * dac2DecimatorBuffer;
-    float * dac3DecimatorBuffer;
+    float loader[4] = {0, 0, 0, 0};
 
-    pow2Decimate<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
-    pow2Decimate<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
-    pow2Decimate<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
+    float_4 * dacDecimatorBuffer;
 
-
-    // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac1Decimator;
-    // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac2Decimator;
-    // dsp::Decimator<OVERSAMPLE_AMOUNT, OVERSAMPLE_QUALITY> dac3Decimator;
+    pow2Decimate<OVERSAMPLE_AMOUNT, float_4> dacDecimator;
 
     inline void updateSlowIO(void) {
 
@@ -203,25 +194,34 @@ struct Via : Module {
 
     inline void updateOutputs(void) {
 
+        // i know this isn't the right way to vectorize but it was the easiest way to test the vectorized implementation
+
         int32_t samplesRemaining = OVERSAMPLE_AMOUNT;
         int32_t writeIndex = 0;
 
-        // convert to float and downsample
-
         while (samplesRemaining) {
 
-            dac1DecimatorBuffer[writeIndex] = (float) virtualIO->outputs.dac1Samples[writeIndex];
-            dac2DecimatorBuffer[writeIndex] = (float) virtualIO->outputs.dac2Samples[writeIndex];
-            dac3DecimatorBuffer[writeIndex] = (float) virtualIO->outputs.dac3Samples[writeIndex];
+            loader[0] = (float) virtualIO->outputs.dac1Samples[writeIndex];
+            loader[1] = (float) virtualIO->outputs.dac2Samples[writeIndex];
+            loader[2] = (float) virtualIO->outputs.dac3Samples[writeIndex];
+
+            dacDecimatorBuffer[writeIndex] = float_4::load(loader);
 
             samplesRemaining--;
             writeIndex ++;
 
         }
 
-        float dac1Sample = dac1Decimator.process(dac1DecimatorBuffer);
-        float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
-        float dac3Sample = dac3Decimator.process(dac3DecimatorBuffer);
+        float_4 result = dacDecimator.process(dacDecimatorBuffer);
+        
+        float dac1Sample = result[0];
+        float dac2Sample = result[1];
+        float dac3Sample = result[2];
+
+        // for benchmarking downsampling
+        // float dac1Sample = (float) virtualIO->outputs.dac1Samples[0];
+        // float dac2Sample = (float) virtualIO->outputs.dac2Samples[0];
+        // float dac3Sample = (float) virtualIO->outputs.dac3Samples[0];
         
         virtualIO->halfTransferCallback();
 
