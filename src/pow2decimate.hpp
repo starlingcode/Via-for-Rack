@@ -5,15 +5,6 @@ using simd::float_4;
 template <typename T = float>
 struct APPath1 {
 
-	T d1 = T(0);
-	T d2 = T(0);
-	T a0 = T(0);
-
-
-	APPath1(float coeff0, float coeff1) {
-		a0 = T(coeff0);
-	}
-
 	APPath1() {}
 
 	T process(T input) {
@@ -22,23 +13,20 @@ struct APPath1 {
         d2 = out1;
         return out1;
 	}
+
+	void setCoefficients(float coeff0) {
+		a0 = T(coeff0);
+	}
+
+	T d1 = T(0);
+	T d2 = T(0);
+
+	T a0 = T(0);
+
 };
 
 template <typename T = float>
 struct APPath2 {
-
-	T d1 = T(0);
-	T d2 = T(0);
-	T d3 = T(0);
-
-	T a0 = T(0);
-	T a1 = T(0);
-
-
-	APPath2(float coeff0, float coeff1) {
-		a0 = T(coeff0);
-		a1 = T(coeff1);
-	}
 
 	APPath2() {}
 
@@ -50,20 +38,33 @@ struct APPath2 {
         d3 = out2;
         return out2;
 	}
+
+	void setCoefficients(float coeff0, float coeff1) {
+		a0 = T(coeff0);
+		a1 = T(coeff1);
+	}
+
+	T d1 = T(0);
+	T d2 = T(0);
+	T d3 = T(0);
+
+	T a0 = T(0);
+	T a1 = T(0);
+
 };
 
 /** Decimate by a factor of 32 with cascaded half band filters. */
 template <int OVERSAMPLE, typename T = float>
 struct pow2Decimate {
 	
-	T in32Buffer[64];
+	T in32Buffer[32];
 
 	T in24Buffer[64];
 	int in24Index;
 	// T from24to8[6] = {0.04774302, 0.167565, 0.28518149, 0.28518149, 0.167565, 0.04774302};
 	T from24to8[12] = {T(-0.00534053), T(-0.01919541), T(-0.01717899), T(0.0493416), T(0.18595231), T(0.30651506), T(0.30651506), T(0.18595231), T(0.0493416), T(-0.01717899), T(-0.01919541), T(-0.00534053)};
 	
-	T in16Buffer[32];
+	T in16Buffer[16];
 	
 	T in8Buffer[8];
 	
@@ -84,30 +85,25 @@ struct pow2Decimate {
 
 	pow2Decimate() {
 
-		from2to1Path1.a0 = 0.0798664262025582;
-		from2to1Path1.a1 = 0.5453236511825826;
+		from2to1Path1.setCoefficients(0.0798664262025582, 0.5453236511825826);
+		from2to1Path2.setCoefficients(0.283829344898100, 0.834411891201724);
 
-		from2to1Path2.a0 = 0.283829344898100;
-		from2to1Path2.a1 = 0.834411891201724;
+		from4to2Path1.setCoefficients(0.0798664262025582, 0.5453236511825826);
+		from4to2Path2.setCoefficients(0.283829344898100, 0.834411891201724);
 
-		from4to2Path1.a0 = 0.0798664262025582;
-		from4to2Path1.a1 = 0.5453236511825826;
+		from8to4Path1.setCoefficients(0.11192);
+		from8to4Path2.setCoefficients(0.53976);
 
-		from4to2Path2.a0 = 0.283829344898100;
-		from4to2Path2.a1 = 0.834411891201724;
+		from16to8Path1.setCoefficients(0.11192);
+		from16to8Path2.setCoefficients(0.53976);
 
-		from8to4Path1.a0 = 0.11192;
-		from8to4Path2.a0 = 0.53976;
-
-		from16to8Path1.a0 = 0.11192;
-		from16to8Path2.a0 = 0.53976;
-
-		from32to16Path1.a0 = 0.11192;
-		from32to16Path2.a0 = 0.53976;
+		from32to16Path1.setCoefficients(0.11192);
+		from32to16Path2.setCoefficients(0.53976);
 
 		reset();
 
 	}
+
 	void reset() {
 		in24Index = 0;
 		std::memset(in32Buffer, 0, sizeof(in32Buffer));
