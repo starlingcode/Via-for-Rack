@@ -87,8 +87,6 @@ struct Via : Module {
 
     int32_t divideAmount = 1;
 
-    float loader[4] = {0, 0, 0, 0};
-
     float_4 * dacDecimatorBuffer;
 
     pow2Decimate<OVERSAMPLE_AMOUNT, float_4> dacDecimator;
@@ -201,11 +199,9 @@ struct Via : Module {
 
         while (samplesRemaining) {
 
-            loader[0] = (float) virtualIO->outputs.dac1Samples[writeIndex];
-            loader[1] = (float) virtualIO->outputs.dac2Samples[writeIndex];
-            loader[2] = (float) virtualIO->outputs.dac3Samples[writeIndex];
-
-            dacDecimatorBuffer[writeIndex] = float_4::load(loader);
+            dacDecimatorBuffer[writeIndex] = float_4((float) virtualIO->outputs.dac1Samples[writeIndex],
+                                                        (float) virtualIO->outputs.dac2Samples[writeIndex],
+                                                            (float) virtualIO->outputs.dac3Samples[writeIndex], 0);
 
             samplesRemaining--;
             writeIndex ++;
@@ -217,11 +213,10 @@ struct Via : Module {
         float dac1Sample = result[0];
         float dac2Sample = result[1];
         float dac3Sample = result[2];
-
-        // for benchmarking downsampling
-        // float dac1Sample = (float) virtualIO->outputs.dac1Samples[0];
-        // float dac2Sample = (float) virtualIO->outputs.dac2Samples[0];
-        // float dac3Sample = (float) virtualIO->outputs.dac3Samples[0];
+        
+        // float dac1Sample = dac1Decimator.process(dac1DecimatorBuffer);
+        // float dac2Sample = dac2Decimator.process(dac2DecimatorBuffer);
+        // float dac3Sample = dac3Decimator.process(dac3DecimatorBuffer);
         
         virtualIO->halfTransferCallback();
 
@@ -264,7 +259,7 @@ struct Via : Module {
 
         updateOutputs();
 
-        updateLEDs();
+        // updateLEDs();
 
         clockDivider = 0;
 
