@@ -15,37 +15,37 @@
     {
       "slug": "META",
       "name": "META",
-      "tags": ["Function Generator", "Drum"]
+      "tags": ["Function Generator", "Drum", "Hardware"]
     },
     {
       "slug": "SYNC",
       "name": "SYNC",
-      "tags": ["Oscillator", "Clock Modulator"]
+      "tags": ["Oscillator", "Clock Modulator", "Hardware"]
     },
     {
       "slug": "SCANNER",
       "name": "SCANNER",
-      "tags": ["Waveshaper", "Distortion"]
+      "tags": ["Waveshaper", "Distortion", "Hardware"]
     },
     {
       "slug": "GATESEQ",
       "name": "GATESEQ",
-      "tags": ["Sequencer", "Sample and Hold"]
+      "tags": ["Sequencer", "Sample and Hold", "Hardware"]
     },
     {
       "slug": "ATSR",
       "name": "ATSR",
-      "tags": ["Envelope Generator", "LFO"]
+      "tags": ["Envelope Generator", "LFO", "Hardware"]
     },
     {
       "slug": "OSC3",
       "name": "OSC3",
-      "tags": ["VCO"]
+      "tags": ["VCO", "Hardware"]
     },
     {
       "slug": "SYNC3",
       "name": "SYNC3",
-      "tags": ["Oscillator", "Clock Modulator"]
+      "tags": ["Oscillator", "Clock Modulator", "Hardware"]
     }
   ]
 }
