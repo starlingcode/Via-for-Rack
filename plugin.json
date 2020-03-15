@@ -1,10 +1,10 @@
 {
   "slug": "Starling_Via",
-  "name": "Via",
+  "name": "Starling Via",
   "author": "Starling",
   "license": "MIT",
   "version": "1.0.1",
-  "pluginUrl": "https://starling.space/via/rack",
+  "pluginUrl": "https://starling.space/via",
   "authorUrl": "https://starling.space",
   "authorEmail": "admin@starling.space",
   "manualUrl": "https://starling.space/via/rack#manual",
@@ -15,36 +15,43 @@
     {
       "slug": "META",
       "name": "META",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-meta",
       "tags": ["Function Generator", "Drum", "Hardware"]
     },
     {
       "slug": "SYNC",
       "name": "SYNC",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-sync",
       "tags": ["Oscillator", "Clock Modulator", "Hardware"]
     },
     {
       "slug": "SCANNER",
       "name": "SCANNER",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-scanner",
       "tags": ["Waveshaper", "Distortion", "Hardware"]
     },
     {
       "slug": "GATESEQ",
       "name": "GATESEQ",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-gateseq",
       "tags": ["Sequencer", "Sample and Hold", "Hardware"]
     },
     {
       "slug": "ATSR",
       "name": "ATSR",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-atsr-",
       "tags": ["Envelope Generator", "LFO", "Hardware"]
     },
     {
       "slug": "OSC3",
       "name": "OSC3",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-osc3-",
       "tags": ["VCO", "Hardware"]
     },
     {
       "slug": "SYNC3",
       "name": "SYNC3",
+      "modularGridUrl": "https://www.modulargrid.net/e/starling-via-sync3-",
       "tags": ["Oscillator", "Clock Modulator", "Hardware"]
     }
   ]

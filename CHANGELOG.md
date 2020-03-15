@@ -1,9 +1,9 @@
-### 1.0.1 (2019-11-01)
+### 1.0.1 (2020-03-08)
 
 - Add OSC3 and SYNC3
 - Update SYNC phase locking and skew modulation
 - Remomve knob and Z CV zipper noise from SCANNER
-- Pare back SCANNER waveshaping level
+- Pare back SCANNER scan input gain
 - Lengthen ATSR slope times x2
 - Switch ATSR SH mode LED behavior
 - Reverse ATSR "All" CV polarity
