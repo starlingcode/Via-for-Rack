@@ -3,7 +3,7 @@
 
 Source for the Rack plugins of the Via modules (https://starling.space/via)
 
-User documentation can be found here: https://starling.space/via/rack#manual
+User documentation can be found here: https://starling.space/via/platform-info#rack
 
 ## Build Instructions
 
