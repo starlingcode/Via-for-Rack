@@ -135,7 +135,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
             if (mode == 0) {
 
-                label = "Beat Frequency";
+                name = "Beat Frequency";
 
                 unit = "Hz";
 
@@ -151,7 +151,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
             } else if (mode == 1) {
 
-                label = "Detune Amount";
+                name = "Detune Amount";
 
                 unit = "cents";
 
@@ -169,7 +169,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
             } else if (mode == 2) {
 
-                label = "Osc 2 and Osc 3 Chord Offsets";
+                name = "Osc 2 and Osc 3 Chord Offsets";
 
                 unit = "Notes";
 
@@ -186,7 +186,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
             } else {
 
-                label = "Unity Input Clock Multiplier";
+                name = "Unity Input Clock Multiplier";
 
                 unit = "";
 

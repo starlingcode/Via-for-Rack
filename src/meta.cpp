@@ -193,7 +193,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
             Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
-            label = labels[metaModule->virtualModule.metaUI.button3Mode];
+            name = labels[metaModule->virtualModule.metaUI.button3Mode];
             unit = units[metaModule->virtualModule.metaUI.button3Mode];
 
         }
@@ -363,10 +363,10 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
             int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
 
             if (drumMode) {
-                label = "Drum decay";
+                name = "Drum decay";
                 unit = "s";
             } else {
-                label = labels[metaModule->virtualModule.metaUI.button3Mode];
+                name = labels[metaModule->virtualModule.metaUI.button3Mode];
                 unit = units[metaModule->virtualModule.metaUI.button3Mode];
             }
 

@@ -35,7 +35,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     struct PatternIModQuantity : ViaKnobQuantity {
 
-        std::string labels[3] = {"Pattern I Offset", "Pattern I Shuffle - Swing", "Pattern I Multiplier"};
+        std::string labels[3] = {"Pattern I offset", "Pattern I shuffle/swing", "Pattern I multiplier"};
 
         float multiplierLookup[8] = {0.5, 1, 1.5, 2, 3, 4, 6, 8};
 
@@ -81,13 +81,13 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
             Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
 
             if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
-                label = labels[2];
+                name = labels[2];
                 unit = "x";
             } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
-                label = labels[1];
+                name = labels[1];
                 unit = "%";
             } else {
-                label = labels[0];
+                name = labels[0];
                 unit = " steps";
             }
 
