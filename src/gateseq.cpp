@@ -1,5 +1,6 @@
 #include "gateseq.hpp"
 #include "via_module.hpp"
+#include "osdialog.h"
 
 #define GATESEQ_OVERSAMPLE_AMOUNT 1
 #define GATESEQ_OVERSAMPLE_QUALITY 1
@@ -15,7 +16,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
             description = "";
 
             for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.aLength; i ++) {
-                if (gateseqModule->virtualModule.sequencer.currentABank->patternBank[gateseqModule->virtualModule.sequencer.aPatternMorph][i]) {
+                if (gateseqModule->virtualModule.sequencer.currentAPattern[i]) {
                     description += "^";
                 } else {
                     description += "~";
@@ -115,7 +116,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
             description = "";
 
             for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.bLength; i ++) {
-                if (gateseqModule->virtualModule.sequencer.currentBBank->patternBank[gateseqModule->virtualModule.sequencer.bPatternMorph][i]) {
+                if (gateseqModule->virtualModule.sequencer.currentBPattern[i]) {
                     description += "^";
                 } else {
                     description += "~";
@@ -361,6 +362,8 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
         virtualIO = &virtualModule;
 
+        virtualModule.readPatternsFromFile(patternsPath); 
+
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam<PatternIQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I select", "", 0.0, 1.0/4095.0);
         configParam<PatternIModQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Pattern I modulation", "", 0.0, 1.0/4095.0);
@@ -375,7 +378,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         configParam<SeqIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Pattern I mode");
         configParam<SHIIButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II S+H control");
         configParam<GateIIButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II gate control");
-        configParam<SeqIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Pattern II bank");
+        configParam<SeqIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Pattern II patterns");
         
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Pattern reset");
 
@@ -430,6 +433,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         json_object_set_new(rootJ, "gateseq_modes", json_integer(virtualModule.gateseqUI.modeStateBuffer));
         json_object_set_new(rootJ, "logic_mode", json_integer((int) virtualModule.gateseqUI.aux2Mode));
      
+        json_object_set_new(rootJ, "patterns_file", json_string(patternsPath.c_str()));
         return rootJ;
     }
     
@@ -440,9 +444,13 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         virtualModule.gateseqUI.loadFromEEPROM(0);
         virtualModule.gateseqUI.recallModuleState();
 
+        json_t *pathJ = json_object_get(rootJ, "patterns_file");
+        patternsPath = json_string_value(pathJ);
+        virtualModule.readPatternsFromFile(patternsPath);
 
     }
     
+    std::string patternsPath = asset::plugin(pluginInstance, "res/gateseqpatterns.bin");
 };
 
 void Gateseq::process(const ProcessArgs &args) {
@@ -642,6 +650,26 @@ struct GateseqWidget : ModuleWidget  {
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
+        struct ScaleSetHandler : MenuItem {
+            Gateseq *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readPatternsFromFile(pathC);
+                module->patternsPath = pathC;
+            }
+        };
+        ScaleSetHandler *menuItem = createMenuItem<ScaleSetHandler>("Select Bank Set File");
+        menuItem->module = module;
+        menu->addChild(menuItem);
         }
 
 };
