@@ -1,6 +1,7 @@
 #include "sync3.hpp"
 #include "via_module.hpp"
 #include "polyblamp.hpp"
+#include "osdialog.h"
 
 #define SYNC3_OVERSAMPLE_AMOUNT 24
 #define SYNC3_OVERSAMPLE_QUALITY 6
@@ -194,7 +195,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     };
     
-    Sync3() : Via() {
+    Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/sync3scales.bin")) {
 
         virtualIO = &virtualModule;
 
@@ -257,6 +258,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         json_t *rootJ = json_object();
 
         json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.sync3UI.modeStateBuffer));
+        json_object_set_new(rootJ, "scale_file", json_string(scalePath.c_str()));
         
         return rootJ;
     }
@@ -269,7 +271,13 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         virtualModule.sync3UI.recallModuleState();
         virtualModule.sync3UI.defaultEnterMenuCallback();
 
+        json_t *pathJ = json_object_get(rootJ, "scale_file");
+        scalePath = json_string_value(pathJ);
+        virtualModule.readScalesFromFile(scalePath);
+
     }
+
+    std::string scalePath = asset::plugin(pluginInstance, "res/sync3scales.bin");
 
     int32_t optimize = 0;
 
@@ -596,6 +604,23 @@ struct Sync3Widget : ModuleWidget  {
             }
         };
 
+        struct ScaleSetHandler : MenuItem {
+            Sync3 *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readScalesFromFile(pathC);
+                module->scalePath = pathC;
+            }
+        };
         menu->addChild(new MenuEntry);
         menu->addChild(createMenuLabel("CPU Mode"));
         const std::string optimization[] = {
@@ -608,6 +633,9 @@ struct Sync3Widget : ModuleWidget  {
             menuItem->optimization = i;
             menu->addChild(menuItem);
         }
+        ScaleSetHandler *menuItem = createMenuItem<ScaleSetHandler>("Select Scale Set File");
+        menuItem->module = module;
+        menu->addChild(menuItem);
 
     }
     
