@@ -195,11 +195,9 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     };
     
-    Sync3() : Via() {
+    Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/sync3scales.bin")) {
 
         virtualIO = &virtualModule;
-
-        virtualModule.readScalesFromFile(scalePath);
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam<IRatioQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "I Ratio");

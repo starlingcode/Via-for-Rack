@@ -358,11 +358,9 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     };
     
-    Gateseq() : Via() {
+    Gateseq() : Via(), virtualModule(asset::plugin(pluginInstance, "res/gateseqpatterns.bin")) {
 
         virtualIO = &virtualModule;
-
-        virtualModule.readPatternsFromFile(patternsPath); 
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam<PatternIQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Pattern I select", "", 0.0, 1.0/4095.0);
