@@ -1,4 +1,4 @@
-#include "sync3.hpp"
+#include "sync3xl.hpp"
 #include "via_module.hpp"
 #include "polyblamp.hpp"
 #include "osdialog.h"
@@ -320,7 +320,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     void process(const ProcessArgs &args) override;
 
-    ViaSync3 virtualModule;
+    ViaSync3XL virtualModule;
 
     void onSampleRateChange() override {
         float sampleRate = APP->engine->getSampleRate();
