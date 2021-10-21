@@ -14,5 +14,6 @@ void init(rack::Plugin *p) {
     p->addModel(modelAtsr);
     p->addModel(modelOsc3);
     p->addModel(modelSync3);
+    p->addModel(modelSync3XL);
 
 }
