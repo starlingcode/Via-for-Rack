@@ -79,7 +79,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     struct RatioButtonQuantity : ViaButtonQuantity<8> {
 
-        std::string buttonModes[8] = {"Rhythms", "Integers", "Open Intervals", "Circle of Fifths", "Major Arp", "Minor Arp", "Microtonal", "Bohlen-Pierce (Spooky)"};
+        std::string buttonModes[8] = {"Scale 1", "Scale 2", "Scale 3", "Scale 4", "Scale 5", "Scale 6", "Scale 7", "Scale 8"};
 
         RatioButtonQuantity() {
             for (int i = 0; i < 8; i++) {
@@ -205,9 +205,9 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         configParam<IRatioQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "I Ratio");
         configParam<IIRatioQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "II Ratio");
         configParam<IIIRatioQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "III Ratio");
-        configParam<CV2ScaleQuantity>(CV1AMT_PARAM, -1.f, 1.0, 1.0, "I CV Scale");
-        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, -1.f, 1.0, 1.0, "II CV Scale");
-        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, -1.f, 1.0, 1.0, "III CV Scale");
+        configParam(CV1AMT_PARAM, -1.f, 1.0, 1.0, "I CV Scale");
+        configParam(CV2AMT_PARAM, -1.f, 1.0, 1.0, "II CV Scale");
+        configParam(CV3AMT_PARAM, -1.f, 1.0, 1.0, "III CV Scale");
         
         configParam<IButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Oscillator I Shape");
         configParam<RatioButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio Set");
@@ -216,36 +216,41 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         configParam<RatioButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Ratio Set");
         configParam<IIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Oscillator III Shape");
         
-		configParam(RES1_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(FREQ1_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(MODE1_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(RES2_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(FREQ2_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(MODE2_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(RES3_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(FREQ3_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(MODE3_PARAM, -5.f, 5.f, 0.f, "");
-		configParam(RESAMT_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(FREQAMT_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(MODEAMT_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(RANGE_PARAM, 0.f, 1.f, 1.f, "");
-		configInput(FREQ1CV_INPUT, "");
-		configInput(FREQ2CV_INPUT, "");
-		configInput(FREQ3CV_INPUT, "");
-		configInput(RESCV_INPUT, "");
-		configInput(MAIN_LOGIC_INPUT, "");
-		configInput(FREQCV_INPUT, "");
-		configInput(MODECV_INPUT, "");
-		configOutput(LOGIC1_OUTPUT, "");
-		configOutput(OUT1_OUTPUT, "");
-		configOutput(LOGIC2_OUTPUT, "");
-		configOutput(OUT2_OUTPUT, "");
-		configOutput(LOGIC3_OUTPUT, "");
-		configOutput(OUT3_OUTPUT, "");
-		configOutput(LOGICMIX_OUTPUT, "");
-		configOutput(OUTMIX_OUTPUT, "");
+		configParam(RES1_PARAM, -5.f, 5.f, 0.f, "I resonance");
+		configParam(FREQ1_PARAM, -5.f, 5.f, 0.f, "I frequency");
+		configParam(MODE1_PARAM, -5.f, 5.f, 0.f, "I filter type");
+		configParam(RES2_PARAM, -5.f, 5.f, 0.f, "II resonance");
+		configParam(FREQ2_PARAM, -5.f, 5.f, 0.f, "II frequency");
+		configParam(MODE2_PARAM, -5.f, 5.f, 0.f, "II filter type");
+		configParam(RES3_PARAM, -5.f, 5.f, 0.f, "III resonance");
+		configParam(FREQ3_PARAM, -5.f, 5.f, 0.f, "III frequency");
+		configParam(MODE3_PARAM, -5.f, 5.f, 0.f, "III filter type");
+		configParam(RESAMT_PARAM, 0.f, 1.f, 0.f, "I/II/III resonance CV scale");
+		configParam(FREQAMT_PARAM, 0.f, 1.f, 0.f, "I/II/III frequency CV scale");
+		configParam(MODEAMT_PARAM, 0.f, 1.f, 0.f, "I/II/III filter type CV scale");
+		configParam(RANGE_PARAM, 0.f, 1.f, 1.f, "I/II/III filter frequency range");
+		configParam(TAP_TEMPO_PARAM, 0.f, 5.f, 0.f, "Tap tempo");
+		configInput(CV1_INPUT, "I ratio CV");
+		configInput(CV2_INPUT, "II ratio CV");
+		configInput(CV3_INPUT, "III ratio CV");
+		configInput(FREQ1CV_INPUT, "I cutoff CV");
+		configInput(FREQ2CV_INPUT, "II cutoff CV");
+		configInput(FREQ3CV_INPUT, "III cutoff CV");
+		configInput(RESCV_INPUT, "I/II/III Resonance CV");
+		configInput(MAIN_LOGIC_INPUT, "Sync");
+		configInput(FREQCV_INPUT, "I/II/III resonance CV");
+		configInput(MODECV_INPUT, "I/II/III resonance CV");
+		configOutput(LOGIC1_OUTPUT, "I ratio change trigger");
+		configOutput(OUT1_OUTPUT, "I");
+		configOutput(LOGIC2_OUTPUT, "II ratio change trigger");
+		configOutput(OUT2_OUTPUT, "II");
+		configOutput(LOGIC3_OUTPUT, "III ratio change trigger");
+		configOutput(OUT3_OUTPUT, "III");
+		configOutput(LOGICMIX_OUTPUT, "I+II+III ratio change trigger");
+		configOutput(OUTMIX_OUTPUT, "I+II+III");
 
         onSampleRateChange();
+        virtualModule.displayRatio();
 
     }
 
@@ -263,6 +268,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         BUTTON4_PARAM,
         BUTTON5_PARAM,
         BUTTON6_PARAM,
+        TRIG_BUTTON_PARAM,
 
 		RES1_PARAM,
 		FREQ1_PARAM,
@@ -276,6 +282,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 		RESAMT_PARAM,
 		FREQAMT_PARAM,
 		MODEAMT_PARAM,
+        TAP_TEMPO_PARAM,
 		PARAMS_LEN
 	};
 	enum InputIds {
@@ -315,6 +322,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 		SYNCLED_LIGHT,
 		LOGICLEDMIX_LIGHT,
 		RANGELOW_LIGHT,
+        PM_LIGHT,
 		LIGHTS_LEN
 	};
 
@@ -395,18 +403,28 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         virtualIO->controls.controlRateInputs[0] = clamp((int32_t)cv1Conversion, 0, 4095);
     }
 
+    uint32_t logicOut1 = 0;
+    uint32_t logicOut2 = 0;
+    uint32_t logicOut3 = 0;
+
     void updateLEDs(void) {
 
         lights[LED1_LIGHT].setSmoothBrightness((float) !virtualIO->ledAState, ledDecay);
-        lights[LED3_LIGHT].setSmoothBrightness((float) !virtualIO->ledBState, ledDecay);
         lights[LED2_LIGHT].setSmoothBrightness((float) !virtualIO->ledCState, ledDecay);
-        lights[LED4_LIGHT].setSmoothBrightness((float) !virtualIO->ledDState, ledDecay);
+        lights[LED3_LIGHT].setSmoothBrightness((float) !virtualIO->ledDState, ledDecay);
+        lights[LED4_LIGHT].setSmoothBrightness((float) !virtualIO->ledBState, ledDecay);
 
+        lights[PM_LIGHT].setSmoothBrightness((float) virtualModule.tempPM, ledDecay);
+        lights[SYNCLED_LIGHT].setSmoothBrightness((float) (virtualIO->greenLevelOut == 4095), ledDecay);
+        lights[LOGICLED1_LIGHT].setSmoothBrightness((float) logicOut1, ledDecay);
+        lights[LOGICLED2_LIGHT].setSmoothBrightness((float) logicOut2, ledDecay);
+        lights[LOGICLED3_LIGHT].setSmoothBrightness((float) logicOut3, ledDecay);
+        lights[LOGICLEDMIX_LIGHT].setSmoothBrightness((float) (logicOut1 | logicOut2 | logicOut3), ledDecay);
     }
 
     void processLogicInputs(void) {
 
-        float thisLogicIn = rescale(inputs[MAIN_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f);
+        float thisLogicIn = rescale(inputs[MAIN_LOGIC_INPUT].getVoltage() + params[TAP_TEMPO_PARAM].getValue(), .2, 1.2, 0.f, 1.f);
         mainLogic.process(thisLogicIn);
         bool trigState = mainLogic.isHigh();
         if (trigState && !lastTrigState) {
@@ -452,6 +470,8 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         virtualIO->halfTransferCallback();
 
         processOutputs(dac1Sample, dac2Sample, dac3Sample);
+
+        updateLEDs();
 
     }
 
@@ -702,21 +722,24 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         float freq1 = freq + inputs[FREQ1CV_INPUT].getVoltage() + params[FREQ1_PARAM].getValue();
         float res1 = params[RES1_PARAM].getValue() + res;
         float mode1 = params[MODE1_PARAM].getValue() + mode;
-        filters[0].setParams(filterVoltageToCoeff(freq1), resVoltageToCoeff(res1));
+        res1 = resVoltageToCoeff(res1);
+        filters[0].setParams(filterVoltageToCoeff(freq1), res1);
 
         float freq2 = freq + inputs[FREQ2CV_INPUT].getVoltage() + params[FREQ2_PARAM].getValue();
         float res2 = params[RES2_PARAM].getValue() + res;
         float mode2 = params[MODE2_PARAM].getValue() + mode;
-        filters[1].setParams(filterVoltageToCoeff(freq2), resVoltageToCoeff(res2));
+        res2 = resVoltageToCoeff(res2);
+        filters[1].setParams(filterVoltageToCoeff(freq2), res2);
 
         float freq3 = freq + inputs[FREQ3CV_INPUT].getVoltage() + params[FREQ3_PARAM].getValue();
         float res3 = params[RES3_PARAM].getValue() + res;
         float mode3 = params[MODE3_PARAM].getValue() + mode;
-        filters[2].setParams(filterVoltageToCoeff(freq3), resVoltageToCoeff(res3));
+        res3 = resVoltageToCoeff(res3);
+        filters[2].setParams(filterVoltageToCoeff(freq3), res3);
 
-        filters[0].process(out1 * (1.f - res * .99));
-        filters[1].process(out2 * (1.f - res * .99));
-        filters[2].process(out3 * (1.f - res * .99));
+        filters[0].process(out1 * (1.f - res1 * .9));
+        filters[1].process(out2 * (1.f - res2 * .9));
+        filters[2].process(out3 * (1.f - res3 * .9));
 
         out1 = processFilterOuts(mode1, 0);
         out2 = processFilterOuts(mode2, 1);
@@ -727,7 +750,15 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         outputs[OUT3_OUTPUT].setVoltage(out3);
 
         outputs[OUTMIX_OUTPUT].setVoltage((out1 + out2 + out3)/3.f);
+ 
+        logicOut1 = virtualIO->logicAState;
+        logicOut2 = (virtualIO->redLevelOut == 4095);
+        logicOut3 = (virtualIO->blueLevelOut == 4095);
 
+        outputs[LOGIC1_OUTPUT].setVoltage(logicOut1 * 5);
+        outputs[LOGIC2_OUTPUT].setVoltage(logicOut2 * 5);
+        outputs[LOGIC3_OUTPUT].setVoltage(logicOut3 * 5);
+        outputs[LOGICMIX_OUTPUT].setVoltage((logicOut1 | logicOut2 | logicOut3) * 5);
     }
 
 };
@@ -775,31 +806,33 @@ struct Sync3XLWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<TransparentButton>(mm2px(Vec(53.628, 12.688)), module, Sync3XL::BUTTON1_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(43.844, 19.563)), module, Sync3XL::KNOB1_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(102.282, 19.563)), module, Sync3XL::RES1_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(23.219, 23.0)), module, Sync3XL::CV1AMT_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(78.219, 26.437)), module, Sync3XL::FREQ1_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(126.344, 26.437)), module, Sync3XL::MODE1_PARAM));
+
+		addParam(createParamCentered<TransparentButton>(mm2px(Vec(53.628, 12.687)), module, Sync3XL::BUTTON1_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(43.315, 19.562)), module, Sync3XL::KNOB1_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(101.752, 19.562)), module, Sync3XL::RES1_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(22.69, 23.0)), module, Sync3XL::CV1AMT_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(77.69, 26.437)), module, Sync3XL::FREQ1_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(125.815, 26.437)), module, Sync3XL::MODE1_PARAM));
 		addParam(createParamCentered<TransparentButton>(mm2px(Vec(53.628, 40.188)), module, Sync3XL::BUTTON3_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(43.844, 47.062)), module, Sync3XL::KNOB2_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(102.282, 47.062)), module, Sync3XL::RES2_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(23.219, 50.5)), module, Sync3XL::CV2AMT_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(78.219, 53.938)), module, Sync3XL::FREQ2_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(126.344, 53.938)), module, Sync3XL::MODE2_PARAM));
-		addParam(createParamCentered<CKD6>(mm2px(Vec(22.69, 64.25)), module, Sync3XL::BUTTON4_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(43.315, 47.062)), module, Sync3XL::KNOB2_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(101.752, 47.062)), module, Sync3XL::RES2_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(22.69, 50.5)), module, Sync3XL::CV2AMT_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(77.69, 53.938)), module, Sync3XL::FREQ2_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(125.815, 53.938)), module, Sync3XL::MODE2_PARAM));
+		addParam(createParamCentered<TransparentButton>(mm2px(Vec(22.69, 64.25)), module, Sync3XL::BUTTON4_PARAM));
 		addParam(createParamCentered<TransparentButton>(mm2px(Vec(53.628, 67.688)), module, Sync3XL::BUTTON6_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(43.844, 74.562)), module, Sync3XL::KNOB3_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(102.282, 74.562)), module, Sync3XL::RES3_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(23.219, 78.0)), module, Sync3XL::CV3AMT_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(78.219, 81.438)), module, Sync3XL::FREQ3_PARAM));
-		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(126.344, 81.438)), module, Sync3XL::MODE3_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(43.315, 74.562)), module, Sync3XL::KNOB3_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(101.752, 74.562)), module, Sync3XL::RES3_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(22.69, 78.0)), module, Sync3XL::CV3AMT_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(77.69, 81.438)), module, Sync3XL::FREQ3_PARAM));
+		addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(125.815, 81.438)), module, Sync3XL::MODE3_PARAM));
 		addParam(createParamCentered<TransparentButton>(mm2px(Vec(43.315, 91.75)), module, Sync3XL::BUTTON2_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(102.282, 91.75)), module, Sync3XL::RESAMT_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(78.219, 98.625)), module, Sync3XL::FREQAMT_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(126.344, 98.625)), module, Sync3XL::MODEAMT_PARAM));
-		addParam(createParamCentered<NKK>(mm2px(Vec(63.94, 102.062)), module, Sync3XL::RANGE_PARAM));
+		addParam(createParamCentered<ViaPushButton>(mm2px(Vec(19.253, 98.625)), module, Sync3XL::TAP_TEMPO_PARAM));
+		addParam(createParamCentered<NKK_2>(mm2px(Vec(63.94, 102.062)), module, Sync3XL::RANGE_PARAM));
 		addParam(createParamCentered<TransparentButton>(mm2px(Vec(43.315, 112.375)), module, Sync3XL::BUTTON5_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(77.69, 98.625)), module, Sync3XL::FREQAMT_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(101.752, 91.75)), module, Sync3XL::RESAMT_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(125.815, 98.625)), module, Sync3XL::MODEAMT_PARAM));
 
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94, 26.437)), module, Sync3XL::CV1_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94, 26.437)), module, Sync3XL::FREQ1CV_INPUT));
@@ -807,31 +840,34 @@ struct Sync3XLWidget : ModuleWidget {
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94, 53.938)), module, Sync3XL::FREQ2CV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94, 81.438)), module, Sync3XL::CV3_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94, 81.438)), module, Sync3XL::FREQ3CV_INPUT));
-		addInput(createInputCentered<ViaJack>(mm2px(Vec(101.753, 105.5)), module, Sync3XL::RESCV_INPUT));
+		addInput(createInputCentered<ViaJack>(mm2px(Vec(101.752, 105.5)), module, Sync3XL::RESCV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94, 108.938)), module, Sync3XL::MAIN_LOGIC_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(77.69, 112.375)), module, Sync3XL::FREQCV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(125.815, 112.375)), module, Sync3XL::MODECV_INPUT));
 
-		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.003, 16.125)), module, Sync3XL::LOGIC1_OUTPUT));
+		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.002, 16.125)), module, Sync3XL::LOGIC1_OUTPUT));
 		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(153.315, 26.437)), module, Sync3XL::OUT1_OUTPUT));
-		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.003, 43.625)), module, Sync3XL::LOGIC2_OUTPUT));
+		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.002, 43.625)), module, Sync3XL::LOGIC2_OUTPUT));
 		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(153.315, 53.938)), module, Sync3XL::OUT2_OUTPUT));
-		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.003, 71.125)), module, Sync3XL::LOGIC3_OUTPUT));
+		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.002, 71.125)), module, Sync3XL::LOGIC3_OUTPUT));
 		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(153.315, 81.438)), module, Sync3XL::OUT3_OUTPUT));
-		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.003, 98.625)), module, Sync3XL::LOGICMIX_OUTPUT));
+		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(143.002, 98.625)), module, Sync3XL::LOGICMIX_OUTPUT));
 		addOutput(createOutputCentered<ViaJack>(mm2px(Vec(153.315, 108.938)), module, Sync3XL::OUTMIX_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.003, 23.0)), module, Sync3XL::LOGICLED1_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.003, 50.5)), module, Sync3XL::LOGICLED2_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.003, 78.0)), module, Sync3XL::LOGICLED3_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002, 23.0)), module, Sync3XL::LOGICLED1_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002, 50.5)), module, Sync3XL::LOGICLED2_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002, 78.0)), module, Sync3XL::LOGICLED3_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(29.565, 88.312)), module, Sync3XL::SYNCLED_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(63.94, 91.75)), module, Sync3XL::RANGEHIGH_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(43.315, 98.625)), module, Sync3XL::LED1_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(26.128, 91.75)), module, Sync3XL::SYNCLED_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(36.44, 102.062)), module, Sync3XL::LED3_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(36.44, 102.062)), module, Sync3XL::LED4_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(50.19, 102.062)), module, Sync3XL::LED2_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(43.315, 105.5)), module, Sync3XL::LED4_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.003, 105.5)), module, Sync3XL::LOGICLEDMIX_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(43.315, 105.5)), module, Sync3XL::LED3_LIGHT));
+		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002, 105.5)), module, Sync3XL::LOGICLEDMIX_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(63.94, 112.375)), module, Sync3XL::RANGELOW_LIGHT));
+		addChild(createLightCentered<ButtonLight>(mm2px(Vec(22.69, 64.25)), module, Sync3XL::PM_LIGHT));
+
+
 	}
 
     void appendContextMenu(Menu *menu) override {

@@ -91,7 +91,7 @@ struct Via : Module {
 
     pow2Decimate<OVERSAMPLE_AMOUNT, float_4> dacDecimator;
 
-    inline void updateSlowIO(void) {
+    virtual void updateSlowIO(void) {
 
         virtualIO->button1Input = (int32_t) params[BUTTON1_PARAM].getValue();
         virtualIO->button2Input = (int32_t) params[BUTTON2_PARAM].getValue();
@@ -115,7 +115,7 @@ struct Via : Module {
         virtualIO->controls.controlRateInputs[0] = clamp((int32_t)cv1Conversion, 0, 4095);
     }
 
-    inline void processTriggerButton(void) {
+    virtual void processTriggerButton(void) {
         int32_t trigButton = clamp((int32_t)params[TRIGBUTTON_PARAM].getValue(), 0, 1);
         if (trigButton > lastTrigButton) {
             virtualIO->buttonPressedCallback();
@@ -127,7 +127,7 @@ struct Via : Module {
 
     float ledDecay = 4.f/(48000.f);
 
-    inline void updateLEDs(void) {
+    virtual void updateLEDs(void) {
 
         lights[LED1_LIGHT].setSmoothBrightness((float) !virtualIO->ledAState, ledDecay);
         lights[LED3_LIGHT].setSmoothBrightness((float) !virtualIO->ledBState, ledDecay);
@@ -144,7 +144,7 @@ struct Via : Module {
 
     }
 
-    inline void acquireCVs(void) {
+    virtual void acquireCVs(void) {
         // scale -5 - 5 V to -1 to 1 and then convert to 16 bit int;
         float cv2Scale = (32767.0 * clamp(-inputs[CV2_INPUT].getVoltage()/5, -1.0, 1.0)) * params[CV2AMT_PARAM].getValue();
         float cv3Scale = (32767.0 * clamp(-inputs[CV3_INPUT].getVoltage()/5, -1.0, 1.0)) * params[CV3AMT_PARAM].getValue();
@@ -158,7 +158,7 @@ struct Via : Module {
 
     float lastLogicIn = 0.0;
 
-    inline void processLogicInputs(void) {
+    virtual void processLogicInputs(void) {
 
         float thisLogicIn = rescale(inputs[MAIN_LOGIC_INPUT].getVoltage(), .2, 1.2, 0.f, 1.f);
         mainLogic.process(thisLogicIn);
@@ -190,7 +190,7 @@ struct Via : Module {
 
     }
 
-    inline void updateOutputs(void) {
+    virtual void updateOutputs(void) {
 
         // i know this isn't the right way to vectorize but it was the easiest way to test the vectorized implementation
 

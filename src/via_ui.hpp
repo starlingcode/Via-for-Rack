@@ -98,6 +98,21 @@ struct ViaPushButton : SvgSwitch {
     }
 };
 
+struct ButtonLight : YellowLight {
+    ButtonLight() {
+        box.size = Vec(28 - 6, 28 - 6);
+        bgColor = color::BLACK_TRANSPARENT;
+    }
+};
+
+struct NKK_2 : app::SvgSwitch {
+	NKK_2() {
+		addFrame(Svg::load(asset::system("res/ComponentLibrary/NKK_0.svg")));
+		addFrame(Svg::load(asset::system("res/ComponentLibrary/NKK_2.svg")));
+	}
+};
+
+
 // Custom Quantities
 
 template<int NUM_MODES> 
