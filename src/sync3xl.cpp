@@ -228,8 +228,8 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 		configParam(RESAMT_PARAM, 0.f, 1.f, 0.f, "I/II/III resonance CV scale");
 		configParam(FREQAMT_PARAM, 0.f, 1.f, 0.f, "I/II/III frequency CV scale");
 		configParam(MODEAMT_PARAM, 0.f, 1.f, 0.f, "I/II/III filter type CV scale");
-		configParam(RANGE_PARAM, 0.f, 1.f, 1.f, "I/II/III filter frequency range");
-		configParam(TAP_TEMPO_PARAM, 0.f, 5.f, 0.f, "Tap tempo");
+		configSwitch(RANGE_PARAM, 0.f, 1.f, 1.f, "I/II/III filter frequency range", {"Subaudio", "Audio"});
+		configSwitch(TAP_TEMPO_PARAM, 0.f, 5.f, 0.f, "Tap tempo", {"Pressed", "Released"});
 		configInput(CV1_INPUT, "I ratio CV");
 		configInput(CV2_INPUT, "II ratio CV");
 		configInput(CV3_INPUT, "III ratio CV");
@@ -318,7 +318,6 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 		LOGICLED1_LIGHT,
 		LOGICLED2_LIGHT,
 		LOGICLED3_LIGHT,
-		RANGEHIGH_LIGHT,
 		SYNCLED_LIGHT,
 		LOGICLEDMIX_LIGHT,
 		RANGELOW_LIGHT,
@@ -401,6 +400,11 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         cv1Conversion *= 2048.f/5.f;
         cv1Conversion += 2048;
         virtualIO->controls.controlRateInputs[0] = clamp((int32_t)cv1Conversion, 0, 4095);
+        if (params[RANGE_PARAM].getValue() == 0.f) {
+            subaudioFilter = 1;
+        } else {
+            subaudioFilter = 0;
+        }
     }
 
     uint32_t logicOut1 = 0;
@@ -416,6 +420,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
         lights[PM_LIGHT].setSmoothBrightness((float) virtualModule.tempPM, ledDecay);
         lights[SYNCLED_LIGHT].setSmoothBrightness((float) (virtualIO->greenLevelOut == 4095), ledDecay);
+        lights[RANGELOW_LIGHT].setSmoothBrightness((float) subaudioFilter, ledDecay);
         lights[LOGICLED1_LIGHT].setSmoothBrightness((float) logicOut1, ledDecay);
         lights[LOGICLED2_LIGHT].setSmoothBrightness((float) logicOut2, ledDecay);
         lights[LOGICLED3_LIGHT].setSmoothBrightness((float) logicOut3, ledDecay);
@@ -777,7 +782,6 @@ void Sync3XL::process(const ProcessArgs &args) {
             virtualModule.slowConversionCallback();
             virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
             virtualModule.sync3UI.incrementTimer();
-            processTriggerButton();
         }
 
         if (!optimize) {
@@ -858,7 +862,6 @@ struct Sync3XLWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002,50.5)), module, Sync3XL::LOGICLED2_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002,78.0)), module, Sync3XL::LOGICLED3_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(26.128,91.75)), module, Sync3XL::SYNCLED_LIGHT));
-		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(63.94,95.188)), module, Sync3XL::RANGEHIGH_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(36.44,98.625)), module, Sync3XL::LED1_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(36.44,112.375)), module, Sync3XL::LED4_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(50.19,98.625)), module, Sync3XL::LED2_LIGHT));
@@ -866,7 +869,6 @@ struct Sync3XLWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(143.002,105.5)), module, Sync3XL::LOGICLEDMIX_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(63.94,115.812)), module, Sync3XL::RANGELOW_LIGHT));
 		addChild(createLightCentered<MediumLight<WhiteLight>>(mm2px(Vec(19.253,71.125)), module, Sync3XL::PM_LIGHT));
-
 
 	}
 
