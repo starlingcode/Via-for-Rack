@@ -445,6 +445,8 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         json_t *pathJ = json_object_get(rootJ, "patterns_file");
         patternsPath = json_string_value(pathJ);
         virtualModule.readPatternsFromFile(patternsPath);
+        virtualModule.handleButton3ModeChange(virtualModule.gateseqUI.button3Mode);
+        virtualModule.handleButton6ModeChange(virtualModule.gateseqUI.button6Mode);
 
     }
     
@@ -662,6 +664,8 @@ struct GateseqWidget : ModuleWidget  {
                 }); 
              
                 module->virtualModule.readPatternsFromFile(pathC);
+                module->virtualModule.handleButton3ModeChange(module->virtualModule.gateseqUI.button3Mode);
+                module->virtualModule.handleButton6ModeChange(module->virtualModule.gateseqUI.button6Mode);
                 module->patternsPath = pathC;
             }
         };

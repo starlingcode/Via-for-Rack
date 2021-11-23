@@ -4,6 +4,7 @@
 #include "osdialog.h"
 
 #include "trs.hpp"
+#include "sync3xlexpand.hpp"
 
 #define SYNC3_OVERSAMPLE_AMOUNT 24
 #define SYNC3_OVERSAMPLE_QUALITY 6
@@ -251,6 +252,9 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
         onSampleRateChange();
         virtualModule.displayRatio();
+
+        rightExpander.producerMessage = new Sync3XLExpand; 
+        rightExpander.consumerMessage = new Sync3XLExpand; 
 
     }
 
@@ -749,12 +753,27 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         out1 = processFilterOuts(mode1, 0);
         out2 = processFilterOuts(mode2, 1);
         out3 = processFilterOuts(mode3, 2);
+        float outMix = (out1 + out2 + out3)/3.f;
+
+        Sync3XLExpand* from_host = (Sync3XLExpand*) rightExpander.module->leftExpander.producerMessage;
+        Sync3XLExpand* to_host = (Sync3XLExpand*) rightExpander.consumerMessage;
+
+        if (expanderAttached) {
+            from_host->out1 = out1;
+            from_host->out2 = out2;
+            from_host->out3 = out3;
+            from_host->mix = outMix;
+            out1 = to_host->out1;
+            out2 = to_host->out2;
+            out3 = to_host->out3;
+            outMix = to_host->mix;
+            rightExpander.module->leftExpander.messageFlipRequested = true;
+        }; 
 
         outputs[OUT1_OUTPUT].setVoltage(out1);
         outputs[OUT2_OUTPUT].setVoltage(out2);
         outputs[OUT3_OUTPUT].setVoltage(out3);
-
-        outputs[OUTMIX_OUTPUT].setVoltage((out1 + out2 + out3)/3.f);
+        outputs[OUTMIX_OUTPUT].setVoltage(outMix);
  
         logicOut1 = virtualIO->logicAState;
         logicOut2 = (virtualIO->redLevelOut == 4095);
@@ -766,6 +785,20 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         outputs[LOGICMIX_OUTPUT].setVoltage((logicOut1 | logicOut2 | logicOut3) * 5);
     }
 
+    bool expanderAttached = false;
+
+    void onExpanderChange(const ExpanderChangeEvent& e) override { 
+        if (rightExpander.module && (rightExpander.module->model == modelSync3XLLevels)) {
+            expanderAttached = true;
+        } else {
+            expanderAttached = false;
+        }
+    }
+
+    ~Sync3XL() {
+        free(rightExpander.producerMessage);
+        free(rightExpander.consumerMessage);
+    }   
 };
 
 void Sync3XL::process(const ProcessArgs &args) {
@@ -839,11 +872,11 @@ struct Sync3XLWidget : ModuleWidget {
 		addParam(createParamCentered<Trimpot>(mm2px(Vec(125.815,98.625)), module, Sync3XL::MODEAMT_PARAM));
 
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94,26.437)), module, Sync3XL::CV1_INPUT));
-		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94,30.007)), module, Sync3XL::FREQ1CV_INPUT));
+		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94,26.57)), module, Sync3XL::FREQ1CV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94,53.938)), module, Sync3XL::CV2_INPUT));
-		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94,57.507)), module, Sync3XL::FREQ2CV_INPUT));
+		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94,53.839)), module, Sync3XL::FREQ2CV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94,81.438)), module, Sync3XL::CV3_INPUT));
-		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94,85.007)), module, Sync3XL::FREQ3CV_INPUT));
+		addInput(createInputCentered<ViaJack>(mm2px(Vec(63.94,81.339)), module, Sync3XL::FREQ3CV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(101.752,108.938)), module, Sync3XL::RESCV_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(8.94, 108.938)), module, Sync3XL::MAIN_LOGIC_INPUT));
 		addInput(createInputCentered<ViaJack>(mm2px(Vec(77.789,112.375)), module, Sync3XL::FREQCV_INPUT));

@@ -96,7 +96,15 @@
         "Oscillator",
         "Clock Modulator",
         "Hardware"
-    ]
+      ]
+    },
+    {
+      "slug": "SYNC3XLLEVELS",
+      "name": "Sync3XL Levels",
+      "description": "Sync3XL VCA expander",
+      "tags": [
+        "Expander"
+      ]
     }
   ]
 }

@@ -14,4 +14,5 @@ extern Model *modelAtsr;
 extern Model *modelOsc3;
 extern Model *modelSync3;
 extern Model *modelSync3XL;
+extern Model *modelSync3XLLevels;
 
