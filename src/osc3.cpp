@@ -37,7 +37,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         configParam<QuantizationButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Quantization");
         configParam<DetuneButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Beat/Detune Mode");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Label Me!");
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unity");
 
         onSampleRateChange();
 
@@ -676,7 +676,6 @@ struct FreqKnobQuantity: ViaKnobQuantity {
         target = log2(target);
 
         float knob1Set = 0;
-        float knob2Set = 0;
         float octaveSet = 0;
 
         printf("%9.6f Target \n", target);
@@ -695,7 +694,6 @@ struct FreqKnobQuantity: ViaKnobQuantity {
         } else {
             knob1Set = 4095;
             octaveSet = 5;
-            knob2Set = 4095;
         }
 
         osc3Module->virtualModule.osc3UI.button1Mode = (int32_t) octaveSet;
@@ -703,7 +701,7 @@ struct FreqKnobQuantity: ViaKnobQuantity {
         osc3Module->virtualModule.handleButton1ModeChange((int32_t) octaveSet);
 
         osc3Module->paramQuantities[Osc3::KNOB1_PARAM]->setValue(knob1Set);
-
+        osc3Module->paramQuantities[Osc3::KNOB2_PARAM]->setValue(0);
     };
 
 };

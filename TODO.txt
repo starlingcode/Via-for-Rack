@@ -6,3 +6,5 @@ All jack tooltips
 Check issue on github
 SYNC3 level pot behavior (levels -> mixdown)
 SYNC3XL crash on delete
+OSC3 pitch input check
+Add lower sample rates

@@ -77,7 +77,7 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         
     }
 
-    void updateLEDs(void) {
+    void updateLEDs(void) override {
 
         if (virtualModule.runtimeDisplay & !virtualModule.shOn) {
             lights[LED1_LIGHT].setSmoothBrightness(virtualModule.blueLevelOut/4095.0, ledDecay);
@@ -246,7 +246,7 @@ Model *modelAtsr = createModel<Atsr, AtsrWidget>("ATSR");
 
 struct ATimeQuantity : ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+        virtual float translateParameter(float value) override {
 
             Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
 
@@ -258,7 +258,7 @@ struct ATimeQuantity : ViaKnobQuantity {
             return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
         
         }
-        virtual float translateInput(float userInput) {
+        virtual float translateInput(float userInput) override {
 
             Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
 
@@ -276,7 +276,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     struct TTimeQuantity : ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+        virtual float translateParameter(float value) override {
 
             Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
 
@@ -292,7 +292,7 @@ struct ATimeQuantity : ViaKnobQuantity {
             return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
         
         }
-        virtual float translateInput(float userInput) {
+        virtual float translateInput(float userInput) override {
 
             Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
 
@@ -313,7 +313,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     struct RTimeQuantity : ViaKnobQuantity {
 
-        virtual float translateParameter(float value) {
+        virtual float translateParameter(float value) override {
 
             Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
 
@@ -329,7 +329,7 @@ struct ATimeQuantity : ViaKnobQuantity {
             return 1/(((timeBase)/PHASE_LENGTH) * atsrModule->sampleRateStore);            
         
         }
-        virtual float translateInput(float userInput) {
+        virtual float translateInput(float userInput) override {
 
             Atsr * atsrModule = dynamic_cast<Atsr *>(this->module);
 

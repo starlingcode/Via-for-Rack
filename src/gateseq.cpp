@@ -693,7 +693,7 @@ struct ModulationCVQuantity : ParamQuantity {
 struct ButtonQuantity : ParamQuantity {
 
     std::string getString() override {
-        return "Manual Trigger";
+        return "Manual reset";
     }
 
 };
