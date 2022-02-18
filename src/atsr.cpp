@@ -4,17 +4,17 @@
 #define ATSR_OVERSAMPLE_AMOUNT 1
 #define ATSR_OVERSAMPLE_QUALITY 1
 
-struct ATimeQuantity;
-struct TTimeQuantity;
-struct RTimeQuantity;
-struct ASlopeButtonQuantity;
-struct TSlopeButtonQuantity;
-struct StageButtonQuantity;
-struct AtkAllButtonQuantity;
-struct SHButtonQuantity;
-struct RSlopeButtonQuantity;
-
 struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
+
+    struct ATimeQuantity;
+    struct TTimeQuantity;
+    struct RTimeQuantity;
+    struct ASlopeButtonQuantity;
+    struct TSlopeButtonQuantity;
+    struct StageButtonQuantity;
+    struct AtkAllButtonQuantity;
+    struct SHButtonQuantity;
+    struct RSlopeButtonQuantity;
 
     Atsr() : Via() {
 
@@ -244,7 +244,7 @@ Model *modelAtsr = createModel<Atsr, AtsrWidget>("ATSR");
 #define PHASE_LENGTH ((float) 0xFFFFFFF)
 #define NUM_SAMPLES 4096.0
 
-struct ATimeQuantity : ViaKnobQuantity {
+struct Atsr::ATimeQuantity : ViaKnobQuantity {
 
         virtual float translateParameter(float value) override {
 
@@ -274,7 +274,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     };
 
-    struct TTimeQuantity : ViaKnobQuantity {
+    struct Atsr::TTimeQuantity : ViaKnobQuantity {
 
         virtual float translateParameter(float value) override {
 
@@ -311,7 +311,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     };
 
-    struct RTimeQuantity : ViaKnobQuantity {
+    struct Atsr::RTimeQuantity : ViaKnobQuantity {
 
         virtual float translateParameter(float value) override {
 
@@ -350,7 +350,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     // Buttons
 
-    struct ASlopeButtonQuantity : ViaButtonQuantity<4> {
+    struct Atsr::ASlopeButtonQuantity : ViaButtonQuantity<4> {
 
         std::string buttonModes[4] = {"Expo", "Linear", "Sigmoid", "Log"};
 
@@ -380,7 +380,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     };
 
-    struct TSlopeButtonQuantity : ViaButtonQuantity<4> {
+    struct Atsr::TSlopeButtonQuantity : ViaButtonQuantity<4> {
 
         std::string buttonModes[4] = {"Expo", "Linear", "Sigmoid", "Log"};
 
@@ -410,7 +410,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     };
 
-    struct StageButtonQuantity : ViaButtonQuantity<4> {
+    struct Atsr::StageButtonQuantity : ViaButtonQuantity<4> {
 
         std::string buttonModes[4] = {"Attack", "Transition", "Sustain", "Release"};
 
@@ -441,7 +441,7 @@ struct ATimeQuantity : ViaKnobQuantity {
     };
 
 
-    struct AtkAllButtonQuantity : ViaButtonQuantity<2> {
+    struct Atsr::AtkAllButtonQuantity : ViaButtonQuantity<2> {
 
         std::string buttonModes[2] = {"Attack Time", "All Slopes (V/oct)"};
 
@@ -471,7 +471,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     };
 
-    struct SHButtonQuantity : ViaButtonQuantity<2> {
+    struct Atsr::SHButtonQuantity : ViaButtonQuantity<2> {
 
         std::string buttonModes[2] = {"Enabled", "Disabled"};
 
@@ -501,7 +501,7 @@ struct ATimeQuantity : ViaKnobQuantity {
 
     };
 
-    struct RSlopeButtonQuantity : ViaButtonQuantity<4> {
+    struct Atsr::RSlopeButtonQuantity : ViaButtonQuantity<4> {
 
         std::string buttonModes[4] = {"Expo", "Linear", "Sigmoid", "Log"};
 

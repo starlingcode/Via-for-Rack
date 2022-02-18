@@ -7,23 +7,20 @@
 
 // Tooltip declarations
 
-struct RatioXQuantity;
-struct RatioYQuantity;
-struct WaveshapeQuantity;
-struct SHButtonQuantity;
-struct ScaleButtonQuantity;
-struct ModButtonQuantity;
-struct SyncButtonQuantity;
-struct GroupButtonQuantity;
-struct TableButtonQuantity;
-
 struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
+
+    struct RatioXQuantity;
+    struct RatioYQuantity;
+    struct WaveshapeQuantity;
+    struct SHButtonQuantity;
+    struct ScaleButtonQuantity;
+    struct ModButtonQuantity;
+    struct SyncButtonQuantity;
+    struct GroupButtonQuantity;
+    struct TableButtonQuantity;
 
     // not working, takes forever to compile
     SyncScaleKey scaleKey;
-
-
-
 
     Sync() : Via() {
 
@@ -352,7 +349,7 @@ Model *modelSync = createModel<Sync, Sync_Widget>("SYNC");
 
 // Tooltip definitions
 
-struct RatioXQuantity : ViaKnobQuantity {
+struct Sync::RatioXQuantity : ViaKnobQuantity {
     
     float translateParameter(float value) override {
 
@@ -402,7 +399,7 @@ struct RatioXQuantity : ViaKnobQuantity {
 
 };
 
-struct RatioYQuantity : ViaKnobQuantity {
+struct Sync::RatioYQuantity : ViaKnobQuantity {
     
     float translateParameter(float value) override {
 
@@ -451,7 +448,7 @@ struct RatioYQuantity : ViaKnobQuantity {
 
 };
 
-struct WaveshapeQuantity : ViaKnobQuantity {
+struct Sync::WaveshapeQuantity : ViaKnobQuantity {
     
     float translateParameter(float value) override {
 
@@ -480,7 +477,7 @@ struct WaveshapeQuantity : ViaKnobQuantity {
 
 // Buttons
 
-struct SHButtonQuantity : ViaButtonQuantity<3> {
+struct Sync::SHButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Off", "Track and Hold", "Resample"};
 
@@ -510,7 +507,7 @@ struct SHButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct ScaleButtonQuantity : ViaComplexButtonQuantity {
+struct Sync::ScaleButtonQuantity : ViaComplexButtonQuantity {
 
     std::string buttonModes[4][4] = {{"Integers", "Evens", "Multiples of 3", "Odds"},
                                     {"Modal Tetrads", "Maj to Min", "Impressionist", "Bohlen-Pierce"},
@@ -553,7 +550,7 @@ struct ScaleButtonQuantity : ViaComplexButtonQuantity {
 
 };
 
-struct ModButtonQuantity : ViaButtonQuantity<3> {
+struct Sync::ModButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Y Ratio", "Phase", "Skew"};
 
@@ -583,7 +580,7 @@ struct ModButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct SyncButtonQuantity : ViaButtonQuantity<4> {
+struct Sync::SyncButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Slow", "Medium", "Fast", "Instantaneous"};
 
@@ -613,7 +610,7 @@ struct SyncButtonQuantity : ViaButtonQuantity<4> {
 
 };
 
-struct GroupButtonQuantity : ViaButtonQuantity<4> {
+struct Sync::GroupButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Harmonics", "Arppegios", "1V/Oct", "Rhythms"};
     std::string baseDescription = "Purpose specific set of scales and waves \n";
@@ -652,7 +649,7 @@ struct GroupButtonQuantity : ViaButtonQuantity<4> {
 
 };
 
-struct TableButtonQuantity : ViaComplexButtonQuantity {
+struct Sync::TableButtonQuantity : ViaComplexButtonQuantity {
 
     std::string buttonModes[5][4] = {{"Additive Evens", "Ramps", "Bounce", "Plateaus"},
                                     {"Impulse", "Additive Tri to Square", "Perlin", "Synthesized Vowels"},

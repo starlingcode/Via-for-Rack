@@ -6,17 +6,17 @@
 #define SYNC3_OVERSAMPLE_AMOUNT 24
 #define SYNC3_OVERSAMPLE_QUALITY 6
 
-struct IRatioQuantity;
-struct IIRatioQuantity;
-struct IIIRatioQuantity;
-struct IButtonQuantity;
-struct RatioButtonQuantity;
-struct IIButtonQuantity;
-struct CVButtonQuantity;
-struct IIIButtonQuantity;
 
 struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
+    struct IRatioQuantity;
+    struct IIRatioQuantity;
+    struct IIIRatioQuantity;
+    struct IButtonQuantity;
+    struct RatioButtonQuantity;
+    struct IIButtonQuantity;
+    struct CVButtonQuantity;
+    struct IIIButtonQuantity;
     
     Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/sync3scales.bin")) {
 
@@ -468,7 +468,7 @@ Model *modelSync3 = createModel<Sync3, Sync3Widget>("SYNC3");
 
 // Tooltip definitions
 
-struct IRatioQuantity : ViaKnobQuantity {
+struct Sync3::IRatioQuantity : ViaKnobQuantity {
 
     std::string getDisplayValueString(void) override {
 
@@ -481,7 +481,7 @@ struct IRatioQuantity : ViaKnobQuantity {
 
 };
 
-struct IIRatioQuantity : ViaKnobQuantity {
+struct Sync3::IIRatioQuantity : ViaKnobQuantity {
 
     std::string getDisplayValueString(void) override {
 
@@ -493,7 +493,7 @@ struct IIRatioQuantity : ViaKnobQuantity {
 
 };
 
-struct IIIRatioQuantity : ViaKnobQuantity {
+struct Sync3::IIIRatioQuantity : ViaKnobQuantity {
 
     std::string getDisplayValueString(void) override {
 
@@ -505,7 +505,7 @@ struct IIIRatioQuantity : ViaKnobQuantity {
 
 };
 
-struct IButtonQuantity : ViaButtonQuantity<3> {
+struct Sync3::IButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
 
@@ -535,7 +535,7 @@ struct IButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct RatioButtonQuantity : ViaButtonQuantity<8> {
+struct Sync3::RatioButtonQuantity : ViaButtonQuantity<8> {
 
     std::string buttonModes[8] = {"Rhythms", "Integers", "Open Intervals", "Circle of Fifths", "Major Arp", "Minor Arp", "Microtonal", "Bohlen-Pierce (Spooky)"};
 
@@ -565,7 +565,7 @@ struct RatioButtonQuantity : ViaButtonQuantity<8> {
 
 };
 
-struct IIButtonQuantity : ViaButtonQuantity<3> {
+struct Sync3::IIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
 
@@ -595,7 +595,7 @@ struct IIButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct CVButtonQuantity : ViaButtonQuantity<2> {
+struct Sync3::CVButtonQuantity : ViaButtonQuantity<2> {
 
     std::string buttonModes[2] = {"Independent Ratios", "II + III and Phase Modulation"};
 
@@ -625,7 +625,7 @@ struct CVButtonQuantity : ViaButtonQuantity<2> {
 
 };
 
-struct IIIButtonQuantity : ViaButtonQuantity<3> {
+struct Sync3::IIIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
 

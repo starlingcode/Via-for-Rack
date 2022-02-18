@@ -4,18 +4,16 @@
 #define META_OVERSAMPLE_AMOUNT 8
 #define META_OVERSAMPLE_QUALITY 6
 
-// Tooltip declarations
-
-struct Time1Quantity;
-struct Time2Quantity;
-struct WaveshapeQuantity;
-struct SHButtonQuantity;
-struct TableButtonQuantity;
-struct FreqButtonQuantity;
-struct TrigButtonQuantity;
-struct LoopButtonQuantity;
-
 struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
+
+    struct Time1Quantity;
+    struct Time2Quantity;
+    struct WaveshapeQuantity;
+    struct SHButtonQuantity;
+    struct TableButtonQuantity;
+    struct FreqButtonQuantity;
+    struct TrigButtonQuantity;
+    struct LoopButtonQuantity;
 
     #define META_WAVETABLE_LENGTH 33554432.0
 
@@ -383,7 +381,7 @@ Model *modelMeta = createModel<Meta, MetaWidget>("META");
 
 // Tooltip definitions
 
-struct Time1Quantity : ViaKnobQuantity {
+struct Meta::Time1Quantity : ViaKnobQuantity {
 
     std::string labels[3] = {"Coarse tune", "Attack time", "Cycle time"};
     std::string units[3] = {"Hz", "s", "s"};
@@ -575,7 +573,7 @@ struct Time1Quantity : ViaKnobQuantity {
 
 };
 
-struct Time2Quantity : ViaKnobQuantity {
+struct Meta::Time2Quantity : ViaKnobQuantity {
 
     std::string labels[3] = {"Fine tune", "Release time", "Skew"};
     std::string units[3] = {"Hz", "s", "%"};
@@ -750,7 +748,7 @@ struct Time2Quantity : ViaKnobQuantity {
 
 };
 
-struct WaveshapeQuantity : ViaKnobQuantity {
+struct Meta::WaveshapeQuantity : ViaKnobQuantity {
     float translateParameter(float value) override {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
@@ -776,7 +774,7 @@ struct WaveshapeQuantity : ViaKnobQuantity {
 
 };
 
-struct SHButtonQuantity : ViaButtonQuantity<6> {
+struct Meta::SHButtonQuantity : ViaButtonQuantity<6> {
 
     std::string buttonModes[6] = {"Off", "Track and hold A", "Resample B", "Track and hold A, resample B", "Track and hold A and B", "Resample A and B (Decimate)"};
 
@@ -806,7 +804,7 @@ struct SHButtonQuantity : ViaButtonQuantity<6> {
 
 };
 
-struct TableButtonQuantity : ViaComplexButtonQuantity {
+struct Meta::TableButtonQuantity : ViaComplexButtonQuantity {
 
     std::string buttonModes[3][8] = {{"Impulse", "Additive", "Linear Folds", "Skip Saw", "Perlin Noise", "Synthesized Vowels", "Sampled Vowels", "Trains"},
                                 {"Expo/Log Asymmetrical", "Expo/Log Symmetrical", "Circular Symmetrical", "Plateaus and Cliffs", "Moving Lump", "Fixed Lump", "Compressor", "Variable Sustain"},
@@ -847,7 +845,7 @@ struct TableButtonQuantity : ViaComplexButtonQuantity {
 
 };
 
-struct FreqButtonQuantity : ViaButtonQuantity<3> {
+struct Meta::FreqButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Audio","Envelope","Sequence"};
 
@@ -877,7 +875,7 @@ struct FreqButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct TrigButtonQuantity : ViaComplexButtonQuantity {
+struct Meta::TrigButtonQuantity : ViaComplexButtonQuantity {
 
     std::string trigModes[5] = {"No Retrigger","Hard Sync","A/R Model","Gated A/R Model","Pendulum"};
     std::string drumModes[4] = {"808 Kick","Tom","Pluck","Tone"};
@@ -937,7 +935,7 @@ struct TrigButtonQuantity : ViaComplexButtonQuantity {
 
 };
 
-struct LoopButtonQuantity : ViaButtonQuantity<2> {
+struct Meta::LoopButtonQuantity : ViaButtonQuantity<2> {
 
     std::string buttonModes[2] = {"Off", "On"};
 

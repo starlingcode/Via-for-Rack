@@ -5,15 +5,15 @@
 #define OSC3_OVERSAMPLE_AMOUNT 32
 #define OSC3_OVERSAMPLE_QUALITY 6
 
-struct FreqKnobQuantity;
-struct DetuneKnobQuantity;
-struct OctaveButtonQuantity;
-struct WaveshapeButtonQuantity;
-struct SHButtonQuantity;
-struct QuantizationButtonQuantity;
-struct DetuneButtonQuantity;
-
 struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
+
+    struct FreqKnobQuantity;
+    struct DetuneKnobQuantity;
+    struct OctaveButtonQuantity;
+    struct WaveshapeButtonQuantity;
+    struct SHButtonQuantity;
+    struct QuantizationButtonQuantity;
+    struct DetuneButtonQuantity;
 
     float effectiveSR = 48000.0f;
  
@@ -594,7 +594,7 @@ Model *modelOsc3 = createModel<Osc3, Osc3Widget>("OSC3");
 
 // Tooltip definitions
 
-struct FreqKnobQuantity: ViaKnobQuantity {
+struct Osc3::FreqKnobQuantity: ViaKnobQuantity {
 
     void setDisplayValueString(std::string s) override {
 
@@ -706,7 +706,7 @@ struct FreqKnobQuantity: ViaKnobQuantity {
 
 };
 
-struct DetuneKnobQuantity: ViaKnobQuantity {
+struct Osc3::DetuneKnobQuantity: ViaKnobQuantity {
 
 
 
@@ -789,7 +789,7 @@ struct DetuneKnobQuantity: ViaKnobQuantity {
 
 };
 
-struct OctaveButtonQuantity : ViaButtonQuantity<6> {
+struct Osc3::OctaveButtonQuantity : ViaButtonQuantity<6> {
 
     std::string buttonModes[6] = {"+0 Octaves", "+1 Octaves", "+2 Octaves", "+3 Octaves", "+4 Octaves", "+5 Octaves"};
 
@@ -819,7 +819,7 @@ struct OctaveButtonQuantity : ViaButtonQuantity<6> {
 
 };
 
-struct WaveshapeButtonQuantity : ViaButtonQuantity<4> {
+struct Osc3::WaveshapeButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Saw", "Square", "Trapezoid", "Triangle"};
 
@@ -849,7 +849,7 @@ struct WaveshapeButtonQuantity : ViaButtonQuantity<4> {
 
 };
 
-struct SHButtonQuantity : ViaButtonQuantity<2> {
+struct Osc3::SHButtonQuantity : ViaButtonQuantity<2> {
 
     std::string buttonModes[2] = {"Off", "On"};
 
@@ -879,7 +879,7 @@ struct SHButtonQuantity : ViaButtonQuantity<2> {
 
 };
 
-struct QuantizationButtonQuantity : ViaButtonQuantity<4> {
+struct Osc3::QuantizationButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Off", "Semitone", "Major", "Minor"};
 
@@ -909,7 +909,7 @@ struct QuantizationButtonQuantity : ViaButtonQuantity<4> {
 
 };
 
-struct DetuneButtonQuantity : ViaButtonQuantity<4> {
+struct Osc3::DetuneButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Even", "Scaled", "Chords", "Sync to Unity Input"};
 

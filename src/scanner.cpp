@@ -4,15 +4,12 @@
 #define SCANNER_OVERSAMPLE_AMOUNT 8
 #define SCANNER_OVERSAMPLE_QUALITY 6
 
-// Tooltip definitions
-
-struct JumpQuantity;
-struct YWorldQuantity;
-struct MapQuantity;
-struct XWorldQuantity;
-
 struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
+    struct JumpQuantity;
+    struct YWorldQuantity;
+    struct MapQuantity;
+    struct XWorldQuantity;
     
     Scanner() : Via() {
 
@@ -232,7 +229,7 @@ Model *modelScanner = createModel<Scanner, ScannerWidget>("SCANNER");
 
 // Tooltip definitions
 
-struct JumpQuantity : ViaButtonQuantity<2> {
+struct Scanner::JumpQuantity : ViaButtonQuantity<2> {
 
     std::string buttonModes[2] = {"Reverse", "Teleport"};
 
@@ -262,7 +259,7 @@ struct JumpQuantity : ViaButtonQuantity<2> {
 
 };
 
-struct YWorldQuantity : ViaButtonQuantity<8> {
+struct Scanner::YWorldQuantity : ViaButtonQuantity<8> {
 
     std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
     std::string descriptions[8] = {
@@ -307,7 +304,7 @@ struct YWorldQuantity : ViaButtonQuantity<8> {
 
 };
 
-struct MapQuantity : ViaButtonQuantity<8> {
+struct Scanner::MapQuantity : ViaButtonQuantity<8> {
 
     std::string buttonModes[4] = {"Add", "Multiply", "Difference", "Lighten"};
 
@@ -337,7 +334,7 @@ struct MapQuantity : ViaButtonQuantity<8> {
 
 };
 
-struct XWorldQuantity : ViaButtonQuantity<8> {
+struct Scanner::XWorldQuantity : ViaButtonQuantity<8> {
 
     std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
 

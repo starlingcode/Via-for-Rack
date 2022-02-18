@@ -5,23 +5,20 @@
 #define GATESEQ_OVERSAMPLE_AMOUNT 1
 #define GATESEQ_OVERSAMPLE_QUALITY 1
 
-// Tooltip declarations
-
-struct PatternIQuantity;
-struct PatternIModQuantity;
-struct PatternIIQuantity;
-struct SHIButtonQuantity;
-struct GateIButtonQuantity;
-struct SeqIButtonQuantity;
-struct SHIIButtonQuantity;
-struct GateIIButtonQuantity;
-struct SeqIIButtonQuantity;
-struct ModulationQuantity;
-struct ModulationCVQuantity;
-struct ButtonQuantity;
-
 struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
+    struct PatternIQuantity;
+    struct PatternIModQuantity;
+    struct PatternIIQuantity;
+    struct SHIButtonQuantity;
+    struct GateIButtonQuantity;
+    struct SeqIButtonQuantity;
+    struct SHIIButtonQuantity;
+    struct GateIIButtonQuantity;
+    struct SeqIIButtonQuantity;
+    struct ModulationQuantity;
+    struct ModulationCVQuantity;
+    struct ButtonQuantity;
     
     Gateseq() : Via(), virtualModule(asset::plugin(pluginInstance, "res/gateseqpatterns.bin")) {
 
@@ -347,7 +344,7 @@ Model *modelGateseq = createModel<Gateseq, GateseqWidget>("GATESEQ");
 
 // Tooltip definitions
 
-struct PatternIQuantity : ViaKnobQuantity {
+struct Gateseq::PatternIQuantity : ViaKnobQuantity {
 
     float translateParameter(float value) override {
 
@@ -374,7 +371,7 @@ struct PatternIQuantity : ViaKnobQuantity {
 
 };
 
-struct PatternIModQuantity : ViaKnobQuantity {
+struct Gateseq::PatternIModQuantity : ViaKnobQuantity {
 
     std::string labels[3] = {"Pattern I offset", "Pattern I shuffle/swing", "Pattern I multiplier"};
 
@@ -447,7 +444,7 @@ struct PatternIModQuantity : ViaKnobQuantity {
 
 };
 
-struct PatternIIQuantity : ViaKnobQuantity {
+struct Gateseq::PatternIIQuantity : ViaKnobQuantity {
 
     float translateParameter(float value) override {
 
@@ -474,7 +471,7 @@ struct PatternIIQuantity : ViaKnobQuantity {
 
 };
 
-struct SHIButtonQuantity : ViaButtonQuantity<3> {
+struct Gateseq::SHIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
 
@@ -504,7 +501,7 @@ struct SHIButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct GateIButtonQuantity : ViaButtonQuantity<3> {
+struct Gateseq::GateIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
 
@@ -534,7 +531,7 @@ struct GateIButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct SeqIButtonQuantity : ViaButtonQuantity<4> {
+struct Gateseq::SeqIButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Length 16 Euclidean", "3 vs 2", "Shuffle-Swing", "Multiplier/Divider"};
 
@@ -564,7 +561,7 @@ struct SeqIButtonQuantity : ViaButtonQuantity<4> {
 
 };
 
-struct SHIIButtonQuantity : ViaButtonQuantity<3> {
+struct Gateseq::SHIIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
     
@@ -594,7 +591,7 @@ struct SHIIButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct GateIIButtonQuantity : ViaButtonQuantity<3> {
+struct Gateseq::GateIIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
 
@@ -624,7 +621,7 @@ struct GateIIButtonQuantity : ViaButtonQuantity<3> {
 
 };
 
-struct SeqIIButtonQuantity : ViaButtonQuantity<4> {
+struct Gateseq::SeqIIButtonQuantity : ViaButtonQuantity<4> {
 
     std::string buttonModes[4] = {"Length 16 Euclidean", "Odd vs Even", "2 or 3 Gates", "Rhythmic Clock Division"};
 
@@ -654,7 +651,7 @@ struct SeqIIButtonQuantity : ViaButtonQuantity<4> {
 
 };
 
-struct ModulationQuantity : ParamQuantity {
+struct Gateseq::ModulationQuantity : ParamQuantity {
 
     std::string modes[4] = {"Offset", "Offset", "Shuffle to Swing", "Multiplier"};
 
@@ -672,7 +669,7 @@ struct ModulationQuantity : ParamQuantity {
 
 };
 
-struct ModulationCVQuantity : ParamQuantity {
+struct Gateseq::ModulationCVQuantity : ParamQuantity {
 
     std::string modes[4] = {"(Offset)", "(Offset)", "(Shufle to Swing)", "(Multiplier)"};
 
@@ -690,7 +687,7 @@ struct ModulationCVQuantity : ParamQuantity {
 
 };
 
-struct ButtonQuantity : ParamQuantity {
+struct Gateseq::ButtonQuantity : ParamQuantity {
 
     std::string getString() override {
         return "Manual reset";
