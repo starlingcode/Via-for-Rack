@@ -69,10 +69,11 @@ struct Sync3XLLevels : Module {
         voltageMix = clamp(voltageMix, 0.f, 10.f);
         voltageMix *= 0.2f;
 
-        Sync3XLExpand* from_host = (Sync3XLExpand*) leftExpander.consumerMessage;
-        Sync3XLExpand* to_host = (Sync3XLExpand*) leftExpander.module->rightExpander.producerMessage;
+        if (expanderAttached && leftExpander.module) {
 
-        if (expanderAttached) {
+            Sync3XLExpand* from_host = (Sync3XLExpand*) leftExpander.consumerMessage;
+            Sync3XLExpand* to_host = (Sync3XLExpand*) leftExpander.module->rightExpander.producerMessage;
+
             voltage1 *= from_host->out1;
             voltage2 *= from_host->out2;
             voltage3 *= from_host->out3;

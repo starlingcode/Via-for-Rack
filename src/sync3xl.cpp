@@ -576,11 +576,11 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         out2 = processFilterOuts(mode2, 1);
         out3 = processFilterOuts(mode3, 2);
 
-        Sync3XLExpand* from_host = (Sync3XLExpand*) rightExpander.module->leftExpander.producerMessage;
-        Sync3XLExpand* to_host = (Sync3XLExpand*) rightExpander.consumerMessage;
-
         float outMix;
-        if (expanderAttached) {
+        if (expanderAttached && rightExpander.module) {
+            Sync3XLExpand* from_host = (Sync3XLExpand*) rightExpander.module->leftExpander.producerMessage;
+            Sync3XLExpand* to_host = (Sync3XLExpand*) rightExpander.consumerMessage;
+
             from_host->out1 = out1;
             from_host->out2 = out2;
             from_host->out3 = out3;
