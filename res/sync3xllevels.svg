@@ -23,23 +23,23 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="-32.142857"
-     inkscape:cy="449.28572"
+     inkscape:zoom="3.3262574"
+     inkscape:cx="-13.528719"
+     inkscape:cy="443.89229"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="true"
      inkscape:pagecheckerboard="0"
      inkscape:snap-page="true"
-     inkscape:window-width="939"
-     inkscape:window-height="1030"
-     inkscape:window-x="12"
-     inkscape:window-y="12"
+     inkscape:window-width="1920"
+     inkscape:window-height="1176"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:snap-object-midpoints="true"
      inkscape:snap-bbox="true"
-     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-edge-midpoints="false"
      inkscape:snap-bbox-midpoints="true">
     <inkscape:grid
        type="xygrid"
@@ -64,8 +64,7 @@
   <g
      inkscape:groupmode="layer"
      id="layer2"
-     inkscape:label="pcb"
-     sodipodi:insensitive="true">
+     inkscape:label="pcb">
     <rect
        style="fill:#008000;fill-rule:evenodd;stroke-width:0.264583"
        id="rect993"
@@ -90,7 +89,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer6"
-     inkscape:label="relief">
+     inkscape:label="relief"
+     sodipodi:insensitive="true">
     <path
        style="fill:none;stroke:#0000ff;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 3.0125,9.3822915 h 34.375 V 36.882291 H 3.0125 Z"
@@ -105,7 +105,7 @@
        id="path2565-9" />
     <path
        style="fill:none;stroke:#0000ff;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 3.0124999,91.75 H 37.3875 l 0,30.9375 H 3.0125 Z"
+       d="M 3.0124999,91.75 H 37.3875 v 30.9375 H 3.0125 Z"
        id="path2565-1"
        sodipodi:nodetypes="ccccc" />
     <path
@@ -116,7 +116,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer4"
-     inkscape:label="silk">
+     inkscape:label="silk"
+     sodipodi:insensitive="true">
     <path
        style="fill:none;stroke:#ffffff;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 30.512498,19.5625 16.7625,26.4375 H 6.45 v 0"
@@ -182,7 +183,7 @@
        id="text25059"
        style="font-weight:100;font-size:3.52777px;line-height:1.25;font-family:'IBM Plex Sans';-inkscape-font-specification:'IBM Plex Sans Thin';letter-spacing:0px;fill:#ffffff;stroke:#ffffff;stroke-width:0.264583">
       <path
-         d="m 17.262499,6.9532124 q -0.194027,0 -0.345721,-0.070555 -0.148166,-0.074083 -0.254,-0.2257773 -0.102305,-0.1552219 -0.155221,-0.3951103 -0.05292,-0.2434161 -0.05292,-0.582082 0,-0.3386659 0.05292,-0.5785543 0.05292,-0.2434161 0.155221,-0.3951102 0.105834,-0.1552219 0.254,-0.2257773 0.151694,-0.074083 0.345721,-0.074083 0.194028,0 0.342194,0.074083 0.151694,0.070555 0.253999,0.2257773 0.102306,0.1516941 0.155222,0.3951102 0.05645,0.2398884 0.05645,0.5785543 0,0.3386659 -0.05645,0.582082 -0.05292,0.2398884 -0.155222,0.3951103 -0.102305,0.1516941 -0.253999,0.2257773 -0.148166,0.070555 -0.342194,0.070555 z m 0,-0.070555 q 0.352777,0 0.536221,-0.2716383 0.186972,-0.2716383 0.186972,-0.8184427 V 5.5667987 q 0,-0.5468043 -0.186972,-0.8184426 -0.183444,-0.2716383 -0.536221,-0.2716383 -0.352777,0 -0.539748,0.2716383 -0.183445,0.2716383 -0.183445,0.8184426 V 5.792576 q 0,0.5468044 0.183445,0.8184427 0.186971,0.2716383 0.539748,0.2716383 z"
+         d="m 17.262499,6.9532124 q -0.194027,0 -0.345721,-0.070555 -0.148166,-0.074083 -0.254,-0.2257773 -0.102305,-0.1552219 -0.155221,-0.3951103 -0.05292,-0.2434161 -0.05292,-0.582082 0,-0.3386659 0.05292,-0.5785543 0.05292,-0.2434161 0.155221,-0.3951102 0.105834,-0.1552219 0.254,-0.2257773 0.151694,-0.074083 0.345721,-0.074083 0.194028,0 0.342194,0.074083 0.151694,0.070555 0.253999,0.2257773 0.102306,0.1516941 0.155222,0.3951102 0.05645,0.2398884 0.05645,0.5785543 0,0.3386659 -0.05645,0.582082 -0.05292,0.2398884 -0.155222,0.3951103 -0.102305,0.1516941 -0.253999,0.2257773 -0.148166,0.070555 -0.342194,0.070555 z m 0,-0.070555 q 0.352777,0 0.536221,-0.2716383 0.186972,-0.2716383 0.186972,-0.8184427 V 5.5667987 q 0,-0.5468043 -0.186972,-0.8184426 -0.183444,-0.2716383 -0.536221,-0.2716383 -0.352777,0 -0.539748,0.2716383 -0.183445,0.2716383 -0.183445,0.8184426 V 5.792576 q 0,0.5468044 0.183445,0.8184427 0.186971,0.2716383 0.539748,0.2716387 z"
          id="path36348" />
     </g>
     <g
@@ -190,19 +191,21 @@
        id="text25059-3"
        style="font-weight:100;font-size:3.52777px;line-height:1.25;font-family:'IBM Plex Sans';-inkscape-font-specification:'IBM Plex Sans Thin';letter-spacing:0px;fill:#ffffff;stroke:#ffffff;stroke-width:0.264583">
       <path
-         d="m 23.363155,6.9108791 v -0.070555 h 0.772582 V 4.50494 h -0.01058 l -0.761998,0.6385263 -0.04586,-0.056444 0.761998,-0.6385264 h 0.134056 v 2.3918281 h 0.744359 v 0.070555 z"
+         d="m 23.363155,6.9108791 v -0.070555 h 0.772582 V 4.50494 h -0.01058 l -0.761998,0.6385263 -0.04586,-0.056444 0.761998,-0.6385264 h 0.134056 V 6.840324 h 0.744359 v 0.070555 z"
          id="path36351" />
     </g>
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer5"
-     inkscape:label="copper" />
+     inkscape:label="copper"
+     sodipodi:insensitive="true" />
   <g
      inkscape:label="components"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:none">
+     style="display:none"
+     sodipodi:insensitive="true">
     <circle
        style="display:inline;fill:#ff00ff;fill-rule:evenodd;stroke-width:0.264583"
        id="LVL1LED"
@@ -269,11 +272,12 @@
        cx="30.512501"
        cy="74.5625"
        r="2.0960543" />
-    <circle
-       style="display:inline;fill:#ff0000;fill-rule:evenodd;stroke-width:0.264583"
+    <ellipse
+       style="display:inline;fill:#ff0000;fill-rule:evenodd;stroke-width:0.26458"
        id="LVLMIXKNOB"
        cx="30.512501"
        cy="102.0625"
-       r="2.0960543" />
+       rx="2.096"
+       ry="2.0960543" />
   </g>
 </svg>

@@ -21,6 +21,8 @@ struct RGBTriangle : ModuleLightWidget {
         addBaseColor(nvgRGBAf(0.0, 0.0, 1.0, 1.0));
     }
     
+    void drawBackground(const DrawArgs &args) override {}
+
     void drawLight(const DrawArgs &args) override {
         
         nvgBeginPath(args.vg);
@@ -32,7 +34,7 @@ struct RGBTriangle : ModuleLightWidget {
         // Solid color
         
         nvgFillColor(args.vg, color);
-        nvgTransRGBAf(color, 1.0);
+        //nvgTransRGBAf(color, 1.0);
         nvgFill(args.vg);
         
         // Border

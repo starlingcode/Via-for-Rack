@@ -5,356 +5,23 @@
 #define SYNC_OVERSAMPLE_AMOUNT 8
 #define SYNC_OVERSAMPLE_QUALITY 6
 
+// Tooltip declarations
+
+struct RatioXQuantity;
+struct RatioYQuantity;
+struct WaveshapeQuantity;
+struct SHButtonQuantity;
+struct ScaleButtonQuantity;
+struct ModButtonQuantity;
+struct SyncButtonQuantity;
+struct GroupButtonQuantity;
+struct TableButtonQuantity;
+
 struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
 
     // not working, takes forever to compile
     SyncScaleKey scaleKey;
 
-    struct RatioXQuantity : ViaKnobQuantity {
-        
-        float translateParameter(float value) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            int group = syncModule->virtualModule.syncUI.button5Mode;
-            int scale = syncModule->virtualModule.syncUI.button2Mode;
-            int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
-            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
-
-            ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
-
-            ScaleRow row = grid[yIndex];
-
-            int numerator = row[0][xIndex][0];
-            int denominator = row[0][xIndex][1];
-
-            int xIndexCV = syncModule->virtualModule.lastRatioX;
-            int yIndexCV = syncModule->virtualModule.lastRatioY;
-
-            ScaleRow rowCV = grid[yIndexCV];
-
-            int numeratorCV = rowCV[0][xIndexCV][0];
-            int denominatorCV = rowCV[0][xIndexCV][1];
-
-            bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[CV2_INPUT].isConnected();
-            bool xMod = syncModule->inputs[CV1_INPUT].isConnected();
-
-            if (yMod || xMod) {
-                description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-                description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
-            } else {
-                description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-            }
-
-
-            return xIndex;         
-        
-        }
-        float translateInput(float userInput) override {
-
-            // Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return (userInput * 32.0);
-
-        };
-
-    };
-
-    struct RatioYQuantity : ViaKnobQuantity {
-        
-        float translateParameter(float value) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            int group = syncModule->virtualModule.syncUI.button5Mode;
-            int scale = syncModule->virtualModule.syncUI.button2Mode;
-            int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
-            int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
-
-            ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
-
-            ScaleRow row = grid[yIndex];
-
-            int numerator = row[0][xIndex][0];
-            int denominator = row[0][xIndex][1];
-
-            int xIndexCV = syncModule->virtualModule.lastRatioX;
-            int yIndexCV = syncModule->virtualModule.lastRatioY;
-
-            ScaleRow rowCV = grid[yIndexCV];
-
-            int numeratorCV = rowCV[0][xIndexCV][0];
-            int denominatorCV = rowCV[0][xIndexCV][1];
-
-            bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[CV2_INPUT].isConnected();
-            bool xMod = syncModule->inputs[CV1_INPUT].isConnected();
-
-            if (yMod || xMod) {
-                description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-                description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
-            } else {
-                description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-            }
-
-            return yIndex;            
-        
-        }
-        float translateInput(float userInput) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return userInput * pow(2, syncModule->virtualModule.scale->t2Bitshift);
-
-        };
-
-    };
-
-    struct WaveshapeQuantity : ViaKnobQuantity {
-        
-        float translateParameter(float value) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return syncModule->virtualModule.syncWavetable.tableSize * value/4095.0;            
-        
-        }
-        float translateInput(float userInput) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return (userInput * 4095.0)/((float) syncModule->virtualModule.syncWavetable.tableSize);
-
-        };
-
-        std::string getDisplayValueString(void) override {
-
-            std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
-
-            return displayValueRaw;
-
-        }
-
-    };
-
-    // Buttons
-
-    struct SHButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Off", "Track and Hold", "Resample"};
-
-        SHButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return syncModule->virtualModule.syncUI.button1Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            syncModule->virtualModule.syncUI.button1Mode = mode;
-            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
-            syncModule->virtualModule.handleButton1ModeChange(mode);
-
-        }
-
-    };
-
-    struct ScaleButtonQuantity : ViaComplexButtonQuantity {
-
-        std::string buttonModes[4][4] = {{"Integers", "Evens", "Multiples of 3", "Odds"},
-                                        {"Modal Tetrads", "Maj to Min", "Impressionist", "Bohlen-Pierce"},
-                                        {"Modes", "Tetrads", "Harmonic Entropy", "Bohlen-Pierce"},
-                                        {"All Rhythms", "No Triplets", "Triplets", "Dotted"}};
-
-
-        ScaleButtonQuantity() {
-            modes = buttonModes[0];
-            numModes = 4;
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return syncModule->virtualModule.syncUI.button2Mode;
-
-        }
-
-        void getModeArray(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            modes = buttonModes[syncModule->virtualModule.syncUI.button5Mode];
-
-            numModes = 4;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            syncModule->virtualModule.syncUI.button2Mode = mode;
-            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
-            syncModule->virtualModule.handleButton2ModeChange(mode);
-
-        }
-
-    };
-
-    struct ModButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Y Ratio", "Phase", "Skew"};
-
-        ModButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return syncModule->virtualModule.syncUI.button3Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            syncModule->virtualModule.syncUI.button3Mode = mode;
-            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
-            syncModule->virtualModule.handleButton3ModeChange(mode);
-
-        }
-
-    };
-
-    struct SyncButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Slow", "Medium", "Fast", "Instantaneous"};
-
-        SyncButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return syncModule->virtualModule.syncUI.button4Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            syncModule->virtualModule.syncUI.button4Mode = mode;
-            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
-            syncModule->virtualModule.handleButton4ModeChange(mode);
-
-        }
-
-    };
-
-    struct GroupButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Harmonics", "Arppegios", "1V/Oct", "Rhythms"};
-        std::string baseDescription = "Purpose specific set of scales and waves \n";
-        std::string descriptions[4] = {"X selects numerator, Y selects denominator",
-                                        "X scans through arpeggio, Y selects 'chord'",
-                                        "X is scaled for v/oct response, Y selects quantization",
-                                        "X selects numerator, Y selects denominator"};
-
-        GroupButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            int mode = syncModule->virtualModule.syncUI.button5Mode;
-
-            description = baseDescription + descriptions[mode];
-
-            return mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            syncModule->virtualModule.syncUI.button5Mode = mode;
-            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
-            syncModule->virtualModule.handleButton5ModeChange(mode);
-
-        }
-
-    };
-
-    struct TableButtonQuantity : ViaComplexButtonQuantity {
-
-        std::string buttonModes[5][4] = {{"Additive Evens", "Ramps", "Bounce", "Plateaus"},
-                                        {"Impulse", "Additive Tri to Square", "Perlin", "Synthesized Vowels"},
-                                        {"Additive Pairs", "Filter Model", "FM", "Trains"},
-                                        {"Expo/Log Symmetric", "Expo/Log Asymmetric", "Steps", "Sequences"},
-                                        {"Odd Triangles", "Odd Sines", "Euclidean Ridges", "Skip Saw"}};
-
-
-        TableButtonQuantity() {
-            modes = buttonModes[0];
-            numModes = 4;
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            return syncModule->virtualModule.syncUI.button6Mode;
-
-        }
-
-        void getModeArray(void) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            if (syncModule->virtualModule.syncUI.aux4Mode) {
-                modes = buttonModes[4];
-            } else {
-                modes = buttonModes[syncModule->virtualModule.syncUI.button5Mode];
-            }
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync * syncModule = dynamic_cast<Sync *>(this->module);
-
-            syncModule->virtualModule.syncUI.button6Mode = mode;
-            syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
-            syncModule->virtualModule.handleButton6ModeChange(mode);
-
-        }
-
-    };
 
 
 
@@ -539,7 +206,7 @@ struct Sync_Widget : ModuleWidget  {
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Sync::LED3_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Sync::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Sync::OUTPUT_GREEN_LIGHT));
-        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Sync::RED_LIGHT));
+        addChild(createLight<LargeSimpleLight<RGBTriangle>>(Vec(59 + .753, 221), module, Sync::RED_LIGHT));
 
         }
 
@@ -683,4 +350,350 @@ struct Sync_Widget : ModuleWidget  {
 
 Model *modelSync = createModel<Sync, Sync_Widget>("SYNC");
 
+// Tooltip definitions
 
+struct RatioXQuantity : ViaKnobQuantity {
+    
+    float translateParameter(float value) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        int group = syncModule->virtualModule.syncUI.button5Mode;
+        int scale = syncModule->virtualModule.syncUI.button2Mode;
+        int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
+        int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
+
+        ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
+
+        ScaleRow row = grid[yIndex];
+
+        int numerator = row[0][xIndex][0];
+        int denominator = row[0][xIndex][1];
+
+        int xIndexCV = syncModule->virtualModule.lastRatioX;
+        int yIndexCV = syncModule->virtualModule.lastRatioY;
+
+        ScaleRow rowCV = grid[yIndexCV];
+
+        int numeratorCV = rowCV[0][xIndexCV][0];
+        int denominatorCV = rowCV[0][xIndexCV][1];
+
+        bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[Sync::CV2_INPUT].isConnected();
+        bool xMod = syncModule->inputs[Sync::CV1_INPUT].isConnected();
+
+        if (yMod || xMod) {
+            description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+            description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
+        } else {
+            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+        }
+
+
+        return xIndex;         
+    
+    }
+    float translateInput(float userInput) override {
+
+        // Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return (userInput * 32.0);
+
+    };
+
+};
+
+struct RatioYQuantity : ViaKnobQuantity {
+    
+    float translateParameter(float value) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        int group = syncModule->virtualModule.syncUI.button5Mode;
+        int scale = syncModule->virtualModule.syncUI.button2Mode;
+        int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
+        int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
+
+        ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
+
+        ScaleRow row = grid[yIndex];
+
+        int numerator = row[0][xIndex][0];
+        int denominator = row[0][xIndex][1];
+
+        int xIndexCV = syncModule->virtualModule.lastRatioX;
+        int yIndexCV = syncModule->virtualModule.lastRatioY;
+
+        ScaleRow rowCV = grid[yIndexCV];
+
+        int numeratorCV = rowCV[0][xIndexCV][0];
+        int denominatorCV = rowCV[0][xIndexCV][1];
+
+        bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[Sync::CV2_INPUT].isConnected();
+        bool xMod = syncModule->inputs[Sync::CV1_INPUT].isConnected();
+
+        if (yMod || xMod) {
+            description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+            description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
+        } else {
+            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+        }
+
+        return yIndex;            
+    
+    }
+    float translateInput(float userInput) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return userInput * pow(2, syncModule->virtualModule.scale->t2Bitshift);
+
+    };
+
+};
+
+struct WaveshapeQuantity : ViaKnobQuantity {
+    
+    float translateParameter(float value) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return syncModule->virtualModule.syncWavetable.tableSize * value/4095.0;            
+    
+    }
+    float translateInput(float userInput) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return (userInput * 4095.0)/((float) syncModule->virtualModule.syncWavetable.tableSize);
+
+    };
+
+    std::string getDisplayValueString(void) override {
+
+        std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+        return displayValueRaw;
+
+    }
+
+};
+
+// Buttons
+
+struct SHButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Off", "Track and Hold", "Resample"};
+
+    SHButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return syncModule->virtualModule.syncUI.button1Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        syncModule->virtualModule.syncUI.button1Mode = mode;
+        syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+        syncModule->virtualModule.handleButton1ModeChange(mode);
+
+    }
+
+};
+
+struct ScaleButtonQuantity : ViaComplexButtonQuantity {
+
+    std::string buttonModes[4][4] = {{"Integers", "Evens", "Multiples of 3", "Odds"},
+                                    {"Modal Tetrads", "Maj to Min", "Impressionist", "Bohlen-Pierce"},
+                                    {"Modes", "Tetrads", "Harmonic Entropy", "Bohlen-Pierce"},
+                                    {"All Rhythms", "No Triplets", "Triplets", "Dotted"}};
+
+
+    ScaleButtonQuantity() {
+        modes = buttonModes[0];
+        numModes = 4;
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return syncModule->virtualModule.syncUI.button2Mode;
+
+    }
+
+    void getModeArray(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        modes = buttonModes[syncModule->virtualModule.syncUI.button5Mode];
+
+        numModes = 4;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        syncModule->virtualModule.syncUI.button2Mode = mode;
+        syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+        syncModule->virtualModule.handleButton2ModeChange(mode);
+
+    }
+
+};
+
+struct ModButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Y Ratio", "Phase", "Skew"};
+
+    ModButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return syncModule->virtualModule.syncUI.button3Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        syncModule->virtualModule.syncUI.button3Mode = mode;
+        syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+        syncModule->virtualModule.handleButton3ModeChange(mode);
+
+    }
+
+};
+
+struct SyncButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Slow", "Medium", "Fast", "Instantaneous"};
+
+    SyncButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return syncModule->virtualModule.syncUI.button4Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        syncModule->virtualModule.syncUI.button4Mode = mode;
+        syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+        syncModule->virtualModule.handleButton4ModeChange(mode);
+
+    }
+
+};
+
+struct GroupButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Harmonics", "Arppegios", "1V/Oct", "Rhythms"};
+    std::string baseDescription = "Purpose specific set of scales and waves \n";
+    std::string descriptions[4] = {"X selects numerator, Y selects denominator",
+                                    "X scans through arpeggio, Y selects 'chord'",
+                                    "X is scaled for v/oct response, Y selects quantization",
+                                    "X selects numerator, Y selects denominator"};
+
+    GroupButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        int mode = syncModule->virtualModule.syncUI.button5Mode;
+
+        description = baseDescription + descriptions[mode];
+
+        return mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        syncModule->virtualModule.syncUI.button5Mode = mode;
+        syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
+        syncModule->virtualModule.handleButton5ModeChange(mode);
+
+    }
+
+};
+
+struct TableButtonQuantity : ViaComplexButtonQuantity {
+
+    std::string buttonModes[5][4] = {{"Additive Evens", "Ramps", "Bounce", "Plateaus"},
+                                    {"Impulse", "Additive Tri to Square", "Perlin", "Synthesized Vowels"},
+                                    {"Additive Pairs", "Filter Model", "FM", "Trains"},
+                                    {"Expo/Log Symmetric", "Expo/Log Asymmetric", "Steps", "Sequences"},
+                                    {"Odd Triangles", "Odd Sines", "Euclidean Ridges", "Skip Saw"}};
+
+
+    TableButtonQuantity() {
+        modes = buttonModes[0];
+        numModes = 4;
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        return syncModule->virtualModule.syncUI.button6Mode;
+
+    }
+
+    void getModeArray(void) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        if (syncModule->virtualModule.syncUI.aux4Mode) {
+            modes = buttonModes[4];
+        } else {
+            modes = buttonModes[syncModule->virtualModule.syncUI.button5Mode];
+        }
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync * syncModule = dynamic_cast<Sync *>(this->module);
+
+        syncModule->virtualModule.syncUI.button6Mode = mode;
+        syncModule->virtualModule.syncUI.storeMode(syncModule->virtualModule.syncUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+        syncModule->virtualModule.handleButton6ModeChange(mode);
+
+    }
+
+};

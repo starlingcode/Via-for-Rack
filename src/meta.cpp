@@ -4,596 +4,22 @@
 #define META_OVERSAMPLE_AMOUNT 8
 #define META_OVERSAMPLE_QUALITY 6
 
+// Tooltip declarations
+
+struct Time1Quantity;
+struct Time2Quantity;
+struct WaveshapeQuantity;
+struct SHButtonQuantity;
+struct TableButtonQuantity;
+struct FreqButtonQuantity;
+struct TrigButtonQuantity;
+struct LoopButtonQuantity;
 
 struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     #define META_WAVETABLE_LENGTH 33554432.0
 
     ExpoConverter expo;
-
-    struct Time1Quantity : ViaKnobQuantity {
-
-        std::string labels[3] = {"Coarse tune", "Attack time", "Cycle time"};
-        std::string units[3] = {"Hz", "s", "s"};
-
-        void setDisplayValueString(std::string s) override {
-
-            if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
-                setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
-                setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
-                setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
-                setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
-                setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
-                setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
-                setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
-               setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
-                setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
-                setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
-                setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
-                setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
-            } else {
-                float v = 0.f;
-                char suffix[2];
-                int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
-                if (n >= 2) {
-                    // Parse SI prefixes
-                    switch (suffix[0]) {
-                        case 'n': v *= 1e-9f; break;
-                        case 'u': v *= 1e-6f; break;
-                        case 'm': v *= 1e-3f; break;
-                        case 'k': v *= 1e3f; break;
-                        case 'M': v *= 1e6f; break;
-                        case 'G': v *= 1e9f; break;
-                        default: break;
-                    }
-                }
-                if (n >= 1)
-                    setDisplayValue(v);
-            }
-        }
-
-        float translateParameter(float value) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
-
-            if (drumMode) {
-
-                int32_t timeBase1 = fix16_mul(fix16_mul(metaModule->expo.convert((metaModule->virtualModule.controls.knob1Value >> 3)*3 + 1024) >> 5, // 2 << 11
-                    metaModule->expo.convert(2047)), // expoTable[2048]
-                    metaModule->virtualModule.metaController.drumBaseIncrement);
-
-                int32_t drumType = metaModule->virtualModule.metaUI.aux3Mode;
-
-                if (drumType < 2) {
-                    timeBase1 /= 32.0;
-                } else {
-                    timeBase1 /= 8.0 * 4.0;
-                    timeBase1 *= 3.0;
-                }
-
-                return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;  
-
-            } else if (freqMode == 0) {
-
-                int32_t timeBase1 = fix16_mul(fix16_mul(fix16_mul(metaModule->expo.convert((metaModule->virtualModule.controls.knob1Value >> 2)*3) >> 5, // 2 << 11
-                    65535 + (metaModule->virtualModule.controls.knob2Value << 4)), // 2 << 16
-                    metaModule->expo.convert(2047)), // expoTable[2048]
-                metaModule->virtualModule.metaController.audioBaseIncrement);
-
-                timeBase1 /= 4.0;
-
-                return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;       
-
-            } else if (freqMode == 1) {
-
-                int32_t timeBase1 = fix16_mul(metaModule->expo.convert(4095 - metaModule->virtualModule.controls.knob1Value) >> 7, // 2 << 11
-                    metaModule->expo.convert(2048) >> 8);
-
-                return 0.5/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
-
-            } else {
-
-                int32_t timeBase1 = fix16_mul(metaModule->expo.convert(4095 - metaModule->virtualModule.controls.knob1Value) >> 9, // 2 << 11
-                    metaModule->expo.convert(1024) >> 9);
-
-                return 1.0/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
-            }        
-        
-        }
-
-        float translateInput(float userInput) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
-
-            if (drumMode) {
-
-                int32_t drumType = metaModule->virtualModule.metaUI.aux3Mode;
-
-                float targetScale;
-
-                if (drumType < 2) {
-
-                    targetScale = userInput/21.797;                    
-
-                } else {
-
-                    targetScale = userInput/65.41;
-
-                }
-
-                targetScale = log2(targetScale * 2.0);                
-
-                float time1 = roundf(targetScale * 384.0 * (8.0/3.0)) - 1024.0;
-               
-                return time1;  
-
-            } else if (freqMode == 0) {
-
-                float targetScale = userInput/16.34;
-
-                targetScale = log2(targetScale);                
-
-                float time1 = targetScale * 384.0 * (4.0/3.0);
-
-                float timeBase1 = fix16_mul(fix16_mul(metaModule->expo.convert(((int)time1 >> 2)*3) >> 5, // 2 << 11
-                    metaModule->expo.convert(2047)), // expoTable[2048]
-                metaModule->virtualModule.metaController.audioBaseIncrement);
-
-                timeBase1 /= 4.0;
-
-                timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;
-
-                metaModule->paramQuantities[KNOB2_PARAM]->setValue((userInput/timeBase1 - 1.0) * 4095.0); 
-               
-                return time1;     
-
-            } else if (freqMode == 1) {
-
-                float lengthInSamples = userInput * metaModule->sampleRateStore;
-                float desiredIncrement = 256.0/lengthInSamples;
-                float normalizedCycleMod = ((float) (metaModule->expo.convert(2048)))/(65536.0 * 256.0);
-                desiredIncrement = desiredIncrement/normalizedCycleMod;
-                desiredIncrement *= 65536.0 * 128.0;
-
-                return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
-
-            } else {
-
-                float lengthInSamples = userInput * metaModule->sampleRateStore;
-                float desiredIncrement = 512.0/lengthInSamples;
-                float normalizedCycleMod = ((float) (metaModule->expo.convert(1024)))/(65536.0 * 512.0);
-                desiredIncrement = desiredIncrement/normalizedCycleMod;
-                desiredIncrement *= 65536.0 * 512.0;
-
-                return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
-
-            }  
-
-        };
-        void setLabel(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            name = labels[metaModule->virtualModule.metaUI.button3Mode];
-            unit = units[metaModule->virtualModule.metaUI.button3Mode];
-
-        }
-        int getDisplayPrecision(void) override {
-            return 3;
-        } 
- 
-    };
-    
-    struct Time2Quantity : ViaKnobQuantity {
-
-        std::string labels[3] = {"Fine tune", "Release time", "Skew"};
-        std::string units[3] = {"Hz", "s", "%"};
-
-        void setDisplayValueString(std::string s) override {
-
-            if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
-                setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
-                setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
-                setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
-                setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
-                setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
-                setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
-                setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
-               setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
-                setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
-                setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
-                setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
-                setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
-            } else {
-                float v = 0.f;
-                char suffix[2];
-                int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
-                if (n >= 2) {
-                    // Parse SI prefixes
-                    switch (suffix[0]) {
-                        case 'n': v *= 1e-9f; break;
-                        case 'u': v *= 1e-6f; break;
-                        case 'm': v *= 1e-3f; break;
-                        case 'k': v *= 1e3f; break;
-                        case 'M': v *= 1e6f; break;
-                        case 'G': v *= 1e9f; break;
-                        default: break;
-                    }
-                }
-                if (n >= 1)
-                    setDisplayValue(v);
-            }
-        }
-
-        float translateParameter(float value) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
-
-            if (drumMode) {
-
-                float release = (float) fix16_mul(metaModule->expo.convert(((4095 - metaModule->virtualModule.controls.knob2Value) >> 2) * 3) >> 11,
-                    metaModule->expo.convert(1536));
-
-                release /= 4.0;
-
-                return 1.0/(release/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
-
-            } else if (freqMode == 0) {
-
-                float timeBase1 = fix16_mul(fix16_mul(fix16_mul(metaModule->expo.convert((metaModule->virtualModule.controls.knob1Value >> 2)*3) >> 5, // 2 << 11
-                    65535 + (metaModule->virtualModule.controls.knob2Value << 4)), // 2 << 16
-                    metaModule->expo.convert(2047)), // expoTable[2048]
-                metaModule->virtualModule.metaController.audioBaseIncrement);
-
-                timeBase1 /= 4.0;
-
-                return timeBase1/META_WAVETABLE_LENGTH *  metaModule->sampleRateStore;       
-
-            } else if (freqMode == 1) {
-
-                int32_t timeBase1 = fix16_mul(metaModule->expo.convert(4095 - metaModule->virtualModule.controls.knob2Value) >> 9, // 2 << 11
-                    metaModule->expo.convert(2048) >> 8);
-
-                return 0.5/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
-
-            } else {
-
-                return (((float) metaModule->virtualModule.controls.knob2Value) / 4095.0) * 60.0 + 20.0;
-
-            }
-                         
-        
-        }
-
-        float translateInput(float userInput) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
-
-            if (drumMode) {
-
-                float lengthInSamples = userInput * metaModule->sampleRateStore;
-                float desiredIncrement = 256.0/lengthInSamples;
-                float normalizedCycleMod = ((float) (metaModule->expo.convert(1536)))/65536.0;
-                desiredIncrement = desiredIncrement/normalizedCycleMod;
-                desiredIncrement *= 65536.0 * 2048 * 8.0;
-
-                return (4095.0 - (metaModule->reverseExpo(desiredIncrement)/3.0) * 384.0 * 4.0);
-
-
-            } else if (freqMode == 0) {
-
-                float targetScale = userInput/16.34;
-
-                targetScale = log2(targetScale);                
-
-                float time1 = targetScale * 384.0 * (4.0/3.0);
-
-                metaModule->paramQuantities[KNOB1_PARAM]->setValue(time1);
-
-                float timeBase1 = fix16_mul(fix16_mul(metaModule->expo.convert(((int)time1 >> 2)*3) >> 5, // 2 << 11
-                    metaModule->expo.convert(2047)), // expoTable[2048]
-                metaModule->virtualModule.metaController.audioBaseIncrement);
-
-                timeBase1 /= 4.0;
-
-                timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore; 
-               
-                return (userInput/timeBase1 - 1.0) * 4095.0;     
-
-            } else if (freqMode == 1) {
-
-                float lengthInSamples = userInput * metaModule->sampleRateStore;
-                float desiredIncrement = 256.0/lengthInSamples;
-                float normalizedCycleMod = ((float) (metaModule->expo.convert(2048)))/(65536.0 * 256.0);
-                desiredIncrement = desiredIncrement/normalizedCycleMod;
-                desiredIncrement *= 65536.0 * 512.0;
-
-                return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
-
-            } else {
-
-                return ((userInput - 20.0)/60.0) * 4095.0;
-
-            }  
-
-        };
-
-        void setLabel(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            if (drumMode) {
-                name = "Drum decay";
-                unit = "s";
-            } else {
-                name = labels[metaModule->virtualModule.metaUI.button3Mode];
-                unit = units[metaModule->virtualModule.metaUI.button3Mode];
-            }
-
-        }
-
-        int getDisplayPrecision(void) override {
-            return 3;
-        }
- 
-    };
-
-    struct WaveshapeQuantity : ViaKnobQuantity {
-        float translateParameter(float value) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            return metaModule->virtualModule.metaWavetable.tableSize * value/4095.0;            
-        
-        }
-        float translateInput(float userInput) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            return (userInput * 4095.0)/((float) metaModule->virtualModule.metaWavetable.tableSize);
-
-        };
-
-        std::string getDisplayValueString(void) override {
-
-            std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
-
-            return displayValueRaw;
-
-        }
-
-    };
-
-    struct SHButtonQuantity : ViaButtonQuantity<6> {
-
-        std::string buttonModes[6] = {"Off", "Track and hold A", "Resample B", "Track and hold A, resample B", "Track and hold A and B", "Resample A and B (Decimate)"};
-
-        SHButtonQuantity() {
-            for (int i = 0; i < 6; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            return metaModule->virtualModule.metaUI.button1Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            metaModule->virtualModule.metaUI.button1Mode = mode;
-            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
-            metaModule->virtualModule.handleButton1ModeChange(mode);
-
-        }
-
-    };
-
-    struct TableButtonQuantity : ViaComplexButtonQuantity {
-
-        std::string buttonModes[3][8] = {{"Impulse", "Additive", "Linear Folds", "Skip Saw", "Perlin Noise", "Synthesized Vowels", "Sampled Vowels", "Trains"},
-                                    {"Expo/Log Asymmetrical", "Expo/Log Symmetrical", "Circular Symmetrical", "Plateaus and Cliffs", "Moving Lump", "Fixed Lump", "Compressor", "Variable Sustain"},
-                                    {"Ridges", "Euclidean Ridges", "Bounce", "Spring", "Ramps", "Sinusoids", "Sequences", "Steps"}};
-
-        TableButtonQuantity() {
-            modes = buttonModes[0];
-            numModes = 8;
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            return metaModule->virtualModule.metaUI.button2Mode;
-
-        }
-
-        void getModeArray(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            modes = buttonModes[metaModule->virtualModule.metaUI.button3Mode];
-
-            numModes = 8;
-
-        }
-
-        void setMode(int mode) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            metaModule->virtualModule.metaUI.button2Mode = mode;
-            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
-            metaModule->virtualModule.handleButton2ModeChange(mode);
-
-        }
-
-    };
-
-    struct FreqButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Audio","Envelope","Sequence"};
-
-        FreqButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            return metaModule->virtualModule.metaUI.button3Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            metaModule->virtualModule.metaUI.button3Mode = mode;
-            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
-            metaModule->virtualModule.handleButton3ModeChange(mode);
-
-        }
-
-    };
-
-    struct TrigButtonQuantity : ViaComplexButtonQuantity {
-
-        std::string trigModes[5] = {"No Retrigger","Hard Sync","A/R Model","Gated A/R Model","Pendulum"};
-        std::string drumModes[4] = {"808 Kick","Tom","Pluck","Tone"};
-
-        TrigButtonQuantity() {
-            modes = trigModes;
-            numModes = 0;
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            if (drumMode) {
-                return metaModule->virtualModule.metaUI.aux3Mode;
-            } else {
-                return metaModule->virtualModule.metaUI.button4Mode;
-            }
-
-        }
-
-        void getModeArray(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            if (drumMode) {
-                modes = drumModes;
-                numModes = 4;
-            } else {
-                modes = trigModes;
-                numModes = 5;
-            }
-
-        }
-
-        void setMode(int mode) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
-
-            if (drumMode) {
-                metaModule->virtualModule.metaUI.aux3Mode = mode;
-                metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
-                metaModule->virtualModule.handleAux3ModeChange(mode);
-            } else {
-                metaModule->virtualModule.metaUI.button4Mode = mode;
-                metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
-                metaModule->virtualModule.handleButton4ModeChange(mode);
-            }
-
-        }
-
-    };
-
-    struct LoopButtonQuantity : ViaButtonQuantity<2> {
-
-        std::string buttonModes[2] = {"Off", "On"};
-
-        LoopButtonQuantity() {
-            for (int i = 0; i < 2; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            return metaModule->virtualModule.metaUI.button6Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Meta * metaModule = dynamic_cast<Meta *>(this->module);
-
-            metaModule->virtualModule.metaUI.button6Mode = mode;
-            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
-            metaModule->virtualModule.handleButton6ModeChange(mode);
-
-        }
-
-    };
 
     Meta() : Via() {
         
@@ -826,7 +252,7 @@ struct MetaWidget : ModuleWidget  {
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Meta::LED3_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.1 + .753, 309.9), module, Meta::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Meta::OUTPUT_GREEN_LIGHT));
-        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Meta::RED_LIGHT));
+        addChild(createLight<LargeSimpleLight<RGBTriangle>>(Vec(59 + .753, 221), module, Meta::RED_LIGHT));
 
         }
 
@@ -955,3 +381,588 @@ struct MetaWidget : ModuleWidget  {
 
 Model *modelMeta = createModel<Meta, MetaWidget>("META");
 
+// Tooltip definitions
+
+struct Time1Quantity : ViaKnobQuantity {
+
+    std::string labels[3] = {"Coarse tune", "Attack time", "Cycle time"};
+    std::string units[3] = {"Hz", "s", "s"};
+
+    void setDisplayValueString(std::string s) override {
+
+        if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
+            setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
+            setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
+            setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
+            setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
+            setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
+            setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
+            setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
+           setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
+            setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
+            setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
+            setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
+            setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
+        } else {
+            float v = 0.f;
+            char suffix[2];
+            int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
+            if (n >= 2) {
+                // Parse SI prefixes
+                switch (suffix[0]) {
+                    case 'n': v *= 1e-9f; break;
+                    case 'u': v *= 1e-6f; break;
+                    case 'm': v *= 1e-3f; break;
+                    case 'k': v *= 1e3f; break;
+                    case 'M': v *= 1e6f; break;
+                    case 'G': v *= 1e9f; break;
+                    default: break;
+                }
+            }
+            if (n >= 1)
+                setDisplayValue(v);
+        }
+    }
+
+    float translateParameter(float value) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
+
+        if (drumMode) {
+
+            int32_t timeBase1 = fix16_mul(fix16_mul(metaModule->expo.convert((metaModule->virtualModule.controls.knob1Value >> 3)*3 + 1024) >> 5, // 2 << 11
+                metaModule->expo.convert(2047)), // expoTable[2048]
+                metaModule->virtualModule.metaController.drumBaseIncrement);
+
+            int32_t drumType = metaModule->virtualModule.metaUI.aux3Mode;
+
+            if (drumType < 2) {
+                timeBase1 /= 32.0;
+            } else {
+                timeBase1 /= 8.0 * 4.0;
+                timeBase1 *= 3.0;
+            }
+
+            return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;  
+
+        } else if (freqMode == 0) {
+
+            int32_t timeBase1 = fix16_mul(fix16_mul(fix16_mul(metaModule->expo.convert((metaModule->virtualModule.controls.knob1Value >> 2)*3) >> 5, // 2 << 11
+                65535 + (metaModule->virtualModule.controls.knob2Value << 4)), // 2 << 16
+                metaModule->expo.convert(2047)), // expoTable[2048]
+            metaModule->virtualModule.metaController.audioBaseIncrement);
+
+            timeBase1 /= 4.0;
+
+            return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;       
+
+        } else if (freqMode == 1) {
+
+            int32_t timeBase1 = fix16_mul(metaModule->expo.convert(4095 - metaModule->virtualModule.controls.knob1Value) >> 7, // 2 << 11
+                metaModule->expo.convert(2048) >> 8);
+
+            return 0.5/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
+
+        } else {
+
+            int32_t timeBase1 = fix16_mul(metaModule->expo.convert(4095 - metaModule->virtualModule.controls.knob1Value) >> 9, // 2 << 11
+                metaModule->expo.convert(1024) >> 9);
+
+            return 1.0/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
+        }        
+    
+    }
+
+    float translateInput(float userInput) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
+
+        if (drumMode) {
+
+            int32_t drumType = metaModule->virtualModule.metaUI.aux3Mode;
+
+            float targetScale;
+
+            if (drumType < 2) {
+
+                targetScale = userInput/21.797;                    
+
+            } else {
+
+                targetScale = userInput/65.41;
+
+            }
+
+            targetScale = log2(targetScale * 2.0);                
+
+            float time1 = roundf(targetScale * 384.0 * (8.0/3.0)) - 1024.0;
+           
+            return time1;  
+
+        } else if (freqMode == 0) {
+
+            float targetScale = userInput/16.34;
+
+            targetScale = log2(targetScale);                
+
+            float time1 = targetScale * 384.0 * (4.0/3.0);
+
+            float timeBase1 = fix16_mul(fix16_mul(metaModule->expo.convert(((int)time1 >> 2)*3) >> 5, // 2 << 11
+                metaModule->expo.convert(2047)), // expoTable[2048]
+            metaModule->virtualModule.metaController.audioBaseIncrement);
+
+            timeBase1 /= 4.0;
+
+            timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;
+
+            metaModule->paramQuantities[Meta::KNOB2_PARAM]->setValue((userInput/timeBase1 - 1.0) * 4095.0); 
+           
+            return time1;     
+
+        } else if (freqMode == 1) {
+
+            float lengthInSamples = userInput * metaModule->sampleRateStore;
+            float desiredIncrement = 256.0/lengthInSamples;
+            float normalizedCycleMod = ((float) (metaModule->expo.convert(2048)))/(65536.0 * 256.0);
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 128.0;
+
+            return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
+
+        } else {
+
+            float lengthInSamples = userInput * metaModule->sampleRateStore;
+            float desiredIncrement = 512.0/lengthInSamples;
+            float normalizedCycleMod = ((float) (metaModule->expo.convert(1024)))/(65536.0 * 512.0);
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 512.0;
+
+            return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
+
+        }  
+
+    };
+    void setLabel(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        name = labels[metaModule->virtualModule.metaUI.button3Mode];
+        unit = units[metaModule->virtualModule.metaUI.button3Mode];
+
+    }
+    int getDisplayPrecision(void) override {
+        return 3;
+    } 
+
+};
+
+struct Time2Quantity : ViaKnobQuantity {
+
+    std::string labels[3] = {"Fine tune", "Release time", "Skew"};
+    std::string units[3] = {"Hz", "s", "%"};
+
+    void setDisplayValueString(std::string s) override {
+
+        if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
+            setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
+            setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
+            setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
+            setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
+            setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
+            setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
+            setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
+           setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
+            setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
+            setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
+            setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
+            setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
+        } else {
+            float v = 0.f;
+            char suffix[2];
+            int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
+            if (n >= 2) {
+                // Parse SI prefixes
+                switch (suffix[0]) {
+                    case 'n': v *= 1e-9f; break;
+                    case 'u': v *= 1e-6f; break;
+                    case 'm': v *= 1e-3f; break;
+                    case 'k': v *= 1e3f; break;
+                    case 'M': v *= 1e6f; break;
+                    case 'G': v *= 1e9f; break;
+                    default: break;
+                }
+            }
+            if (n >= 1)
+                setDisplayValue(v);
+        }
+    }
+
+    float translateParameter(float value) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
+
+        if (drumMode) {
+
+            float release = (float) fix16_mul(metaModule->expo.convert(((4095 - metaModule->virtualModule.controls.knob2Value) >> 2) * 3) >> 11,
+                metaModule->expo.convert(1536));
+
+            release /= 4.0;
+
+            return 1.0/(release/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
+
+        } else if (freqMode == 0) {
+
+            float timeBase1 = fix16_mul(fix16_mul(fix16_mul(metaModule->expo.convert((metaModule->virtualModule.controls.knob1Value >> 2)*3) >> 5, // 2 << 11
+                65535 + (metaModule->virtualModule.controls.knob2Value << 4)), // 2 << 16
+                metaModule->expo.convert(2047)), // expoTable[2048]
+            metaModule->virtualModule.metaController.audioBaseIncrement);
+
+            timeBase1 /= 4.0;
+
+            return timeBase1/META_WAVETABLE_LENGTH *  metaModule->sampleRateStore;       
+
+        } else if (freqMode == 1) {
+
+            int32_t timeBase1 = fix16_mul(metaModule->expo.convert(4095 - metaModule->virtualModule.controls.knob2Value) >> 9, // 2 << 11
+                metaModule->expo.convert(2048) >> 8);
+
+            return 0.5/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
+
+        } else {
+
+            return (((float) metaModule->virtualModule.controls.knob2Value) / 4095.0) * 60.0 + 20.0;
+
+        }
+                     
+    
+    }
+
+    float translateInput(float userInput) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        int32_t freqMode = metaModule->virtualModule.metaUI.button3Mode;
+
+        if (drumMode) {
+
+            float lengthInSamples = userInput * metaModule->sampleRateStore;
+            float desiredIncrement = 256.0/lengthInSamples;
+            float normalizedCycleMod = ((float) (metaModule->expo.convert(1536)))/65536.0;
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 2048 * 8.0;
+
+            return (4095.0 - (metaModule->reverseExpo(desiredIncrement)/3.0) * 384.0 * 4.0);
+
+
+        } else if (freqMode == 0) {
+
+            float targetScale = userInput/16.34;
+
+            targetScale = log2(targetScale);                
+
+            float time1 = targetScale * 384.0 * (4.0/3.0);
+
+            metaModule->paramQuantities[Meta::KNOB1_PARAM]->setValue(time1);
+
+            float timeBase1 = fix16_mul(fix16_mul(metaModule->expo.convert(((int)time1 >> 2)*3) >> 5, // 2 << 11
+                metaModule->expo.convert(2047)), // expoTable[2048]
+            metaModule->virtualModule.metaController.audioBaseIncrement);
+
+            timeBase1 /= 4.0;
+
+            timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore; 
+           
+            return (userInput/timeBase1 - 1.0) * 4095.0;     
+
+        } else if (freqMode == 1) {
+
+            float lengthInSamples = userInput * metaModule->sampleRateStore;
+            float desiredIncrement = 256.0/lengthInSamples;
+            float normalizedCycleMod = ((float) (metaModule->expo.convert(2048)))/(65536.0 * 256.0);
+            desiredIncrement = desiredIncrement/normalizedCycleMod;
+            desiredIncrement *= 65536.0 * 512.0;
+
+            return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
+
+        } else {
+
+            return ((userInput - 20.0)/60.0) * 4095.0;
+
+        }  
+
+    };
+
+    void setLabel(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        if (drumMode) {
+            name = "Drum decay";
+            unit = "s";
+        } else {
+            name = labels[metaModule->virtualModule.metaUI.button3Mode];
+            unit = units[metaModule->virtualModule.metaUI.button3Mode];
+        }
+
+    }
+
+    int getDisplayPrecision(void) override {
+        return 3;
+    }
+
+};
+
+struct WaveshapeQuantity : ViaKnobQuantity {
+    float translateParameter(float value) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        return metaModule->virtualModule.metaWavetable.tableSize * value/4095.0;            
+    
+    }
+    float translateInput(float userInput) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        return (userInput * 4095.0)/((float) metaModule->virtualModule.metaWavetable.tableSize);
+
+    };
+
+    std::string getDisplayValueString(void) override {
+
+        std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+        return displayValueRaw;
+
+    }
+
+};
+
+struct SHButtonQuantity : ViaButtonQuantity<6> {
+
+    std::string buttonModes[6] = {"Off", "Track and hold A", "Resample B", "Track and hold A, resample B", "Track and hold A and B", "Resample A and B (Decimate)"};
+
+    SHButtonQuantity() {
+        for (int i = 0; i < 6; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        return metaModule->virtualModule.metaUI.button1Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        metaModule->virtualModule.metaUI.button1Mode = mode;
+        metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+        metaModule->virtualModule.handleButton1ModeChange(mode);
+
+    }
+
+};
+
+struct TableButtonQuantity : ViaComplexButtonQuantity {
+
+    std::string buttonModes[3][8] = {{"Impulse", "Additive", "Linear Folds", "Skip Saw", "Perlin Noise", "Synthesized Vowels", "Sampled Vowels", "Trains"},
+                                {"Expo/Log Asymmetrical", "Expo/Log Symmetrical", "Circular Symmetrical", "Plateaus and Cliffs", "Moving Lump", "Fixed Lump", "Compressor", "Variable Sustain"},
+                                {"Ridges", "Euclidean Ridges", "Bounce", "Spring", "Ramps", "Sinusoids", "Sequences", "Steps"}};
+
+    TableButtonQuantity() {
+        modes = buttonModes[0];
+        numModes = 8;
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        return metaModule->virtualModule.metaUI.button2Mode;
+
+    }
+
+    void getModeArray(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        modes = buttonModes[metaModule->virtualModule.metaUI.button3Mode];
+
+        numModes = 8;
+
+    }
+
+    void setMode(int mode) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        metaModule->virtualModule.metaUI.button2Mode = mode;
+        metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+        metaModule->virtualModule.handleButton2ModeChange(mode);
+
+    }
+
+};
+
+struct FreqButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Audio","Envelope","Sequence"};
+
+    FreqButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        return metaModule->virtualModule.metaUI.button3Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        metaModule->virtualModule.metaUI.button3Mode = mode;
+        metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+        metaModule->virtualModule.handleButton3ModeChange(mode);
+
+    }
+
+};
+
+struct TrigButtonQuantity : ViaComplexButtonQuantity {
+
+    std::string trigModes[5] = {"No Retrigger","Hard Sync","A/R Model","Gated A/R Model","Pendulum"};
+    std::string drumModes[4] = {"808 Kick","Tom","Pluck","Tone"};
+
+    TrigButtonQuantity() {
+        modes = trigModes;
+        numModes = 0;
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        if (drumMode) {
+            return metaModule->virtualModule.metaUI.aux3Mode;
+        } else {
+            return metaModule->virtualModule.metaUI.button4Mode;
+        }
+
+    }
+
+    void getModeArray(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        if (drumMode) {
+            modes = drumModes;
+            numModes = 4;
+        } else {
+            modes = trigModes;
+            numModes = 5;
+        }
+
+    }
+
+    void setMode(int mode) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        int32_t drumMode = !metaModule->virtualModule.metaUI.button3Mode && !metaModule->virtualModule.metaUI.button6Mode;
+
+        if (drumMode) {
+            metaModule->virtualModule.metaUI.aux3Mode = mode;
+            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.aux3Mode, AUX_MODE3_MASK, AUX_MODE3_SHIFT);
+            metaModule->virtualModule.handleAux3ModeChange(mode);
+        } else {
+            metaModule->virtualModule.metaUI.button4Mode = mode;
+            metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+            metaModule->virtualModule.handleButton4ModeChange(mode);
+        }
+
+    }
+
+};
+
+struct LoopButtonQuantity : ViaButtonQuantity<2> {
+
+    std::string buttonModes[2] = {"Off", "On"};
+
+    LoopButtonQuantity() {
+        for (int i = 0; i < 2; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        return metaModule->virtualModule.metaUI.button6Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Meta * metaModule = dynamic_cast<Meta *>(this->module);
+
+        metaModule->virtualModule.metaUI.button6Mode = mode;
+        metaModule->virtualModule.metaUI.storeMode(metaModule->virtualModule.metaUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+        metaModule->virtualModule.handleButton6ModeChange(mode);
+
+    }
+
+};

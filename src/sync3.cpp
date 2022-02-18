@@ -6,194 +6,17 @@
 #define SYNC3_OVERSAMPLE_AMOUNT 24
 #define SYNC3_OVERSAMPLE_QUALITY 6
 
+struct IRatioQuantity;
+struct IIRatioQuantity;
+struct IIIRatioQuantity;
+struct IButtonQuantity;
+struct RatioButtonQuantity;
+struct IIButtonQuantity;
+struct CVButtonQuantity;
+struct IIIButtonQuantity;
+
 struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
-    struct IRatioQuantity : ViaKnobQuantity {
-
-        std::string getDisplayValueString(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return string::f("%d", sync3Module->virtualModule.numerator1Alt) + "/" + 
-                        string::f("%d", sync3Module->virtualModule.denominator1Select);
-
-        }
-
-    };
-
-    struct IIRatioQuantity : ViaKnobQuantity {
-
-        std::string getDisplayValueString(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return string::f("%i", sync3Module->virtualModule.numerator2Alt) + "/" + 
-                        string::f("%i", sync3Module->virtualModule.denominator2Select);
-        }
-
-    };
-
-    struct IIIRatioQuantity : ViaKnobQuantity {
-
-        std::string getDisplayValueString(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return string::f("%i", sync3Module->virtualModule.numerator3Alt) + "/" + 
-                        string::f("%i", sync3Module->virtualModule.denominator3Select);
-        }
-
-    };
-
-    struct IButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
-
-        IButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return sync3Module->virtualModule.sync3UI.button1Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            sync3Module->virtualModule.sync3UI.button1Mode = mode;
-            sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
-            sync3Module->virtualModule.handleButton1ModeChange(mode);
-
-        }
-
-    };
-
-    struct RatioButtonQuantity : ViaButtonQuantity<8> {
-
-        std::string buttonModes[8] = {"Rhythms", "Integers", "Open Intervals", "Circle of Fifths", "Major Arp", "Minor Arp", "Microtonal", "Bohlen-Pierce (Spooky)"};
-
-        RatioButtonQuantity() {
-            for (int i = 0; i < 8; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return sync3Module->virtualModule.sync3UI.button2Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            sync3Module->virtualModule.sync3UI.button2Mode = mode;
-            sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
-            sync3Module->virtualModule.handleButton2ModeChange(mode);
-
-        }
-
-    };
-
-    struct IIButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
-
-        IIButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return sync3Module->virtualModule.sync3UI.button3Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            sync3Module->virtualModule.sync3UI.button3Mode = mode;
-            sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
-            sync3Module->virtualModule.handleButton3ModeChange(mode);
-
-        }
-
-    };
-
-    struct CVButtonQuantity : ViaButtonQuantity<2> {
-
-        std::string buttonModes[2] = {"Independent Ratios", "II + III and Phase Modulation"};
-
-        CVButtonQuantity() {
-            for (int i = 0; i < 2; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return sync3Module->virtualModule.sync3UI.button4Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            sync3Module->virtualModule.sync3UI.button4Mode = mode;
-            sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
-            sync3Module->virtualModule.handleButton4ModeChange(mode);
-
-        }
-
-    };
-
-    struct IIIButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
-
-        IIIButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            return sync3Module->virtualModule.sync3UI.button6Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
-
-            sync3Module->virtualModule.sync3UI.button6Mode = mode;
-            sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
-            sync3Module->virtualModule.handleButton6ModeChange(mode);
-
-        }
-
-    };
     
     Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/sync3scales.bin")) {
 
@@ -579,7 +402,7 @@ struct Sync3Widget : ModuleWidget  {
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.9 + .753, 309.8), module, Sync3::LED3_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.8 + .753, 309.8), module, Sync3::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Sync3::OUTPUT_GREEN_LIGHT));
-        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Sync3::RED_LIGHT));
+        addChild(createLight<LargeSimpleLight<RGBTriangle>>(Vec(59 + .753, 221), module, Sync3::RED_LIGHT));
 
     };
 
@@ -643,4 +466,191 @@ struct Sync3Widget : ModuleWidget  {
 
 Model *modelSync3 = createModel<Sync3, Sync3Widget>("SYNC3");
 
+// Tooltip definitions
 
+struct IRatioQuantity : ViaKnobQuantity {
+
+    std::string getDisplayValueString(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return string::f("%d", sync3Module->virtualModule.numerator1Alt) + "/" + 
+                    string::f("%d", sync3Module->virtualModule.denominator1Select);
+
+    }
+
+};
+
+struct IIRatioQuantity : ViaKnobQuantity {
+
+    std::string getDisplayValueString(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return string::f("%i", sync3Module->virtualModule.numerator2Alt) + "/" + 
+                    string::f("%i", sync3Module->virtualModule.denominator2Select);
+    }
+
+};
+
+struct IIIRatioQuantity : ViaKnobQuantity {
+
+    std::string getDisplayValueString(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return string::f("%i", sync3Module->virtualModule.numerator3Alt) + "/" + 
+                    string::f("%i", sync3Module->virtualModule.denominator3Select);
+    }
+
+};
+
+struct IButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
+
+    IButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return sync3Module->virtualModule.sync3UI.button1Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        sync3Module->virtualModule.sync3UI.button1Mode = mode;
+        sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+        sync3Module->virtualModule.handleButton1ModeChange(mode);
+
+    }
+
+};
+
+struct RatioButtonQuantity : ViaButtonQuantity<8> {
+
+    std::string buttonModes[8] = {"Rhythms", "Integers", "Open Intervals", "Circle of Fifths", "Major Arp", "Minor Arp", "Microtonal", "Bohlen-Pierce (Spooky)"};
+
+    RatioButtonQuantity() {
+        for (int i = 0; i < 8; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return sync3Module->virtualModule.sync3UI.button2Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        sync3Module->virtualModule.sync3UI.button2Mode = mode;
+        sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+        sync3Module->virtualModule.handleButton2ModeChange(mode);
+
+    }
+
+};
+
+struct IIButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
+
+    IIButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return sync3Module->virtualModule.sync3UI.button3Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        sync3Module->virtualModule.sync3UI.button3Mode = mode;
+        sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+        sync3Module->virtualModule.handleButton3ModeChange(mode);
+
+    }
+
+};
+
+struct CVButtonQuantity : ViaButtonQuantity<2> {
+
+    std::string buttonModes[2] = {"Independent Ratios", "II + III and Phase Modulation"};
+
+    CVButtonQuantity() {
+        for (int i = 0; i < 2; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return sync3Module->virtualModule.sync3UI.button4Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        sync3Module->virtualModule.sync3UI.button4Mode = mode;
+        sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+        sync3Module->virtualModule.handleButton4ModeChange(mode);
+
+    }
+
+};
+
+struct IIIButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Saw", "Square", "Triangle"};
+
+    IIIButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        return sync3Module->virtualModule.sync3UI.button6Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
+
+        sync3Module->virtualModule.sync3UI.button6Mode = mode;
+        sync3Module->virtualModule.sync3UI.storeMode(sync3Module->virtualModule.sync3UI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+        sync3Module->virtualModule.handleButton6ModeChange(mode);
+
+    }
+
+};

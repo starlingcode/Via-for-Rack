@@ -4,159 +4,15 @@
 #define SCANNER_OVERSAMPLE_AMOUNT 8
 #define SCANNER_OVERSAMPLE_QUALITY 6
 
+// Tooltip definitions
+
+struct JumpQuantity;
+struct YWorldQuantity;
+struct MapQuantity;
+struct XWorldQuantity;
+
 struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
 
-        // Buttons
-
-    struct JumpQuantity : ViaButtonQuantity<2> {
-
-        std::string buttonModes[2] = {"Reverse", "Teleport"};
-
-        JumpQuantity() {
-            for (int i = 0; i < 2; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            return scannerModule->virtualModule.scannerUI.button1Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            scannerModule->virtualModule.scannerUI.button1Mode = mode;
-            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
-            scannerModule->virtualModule.handleButton1ModeChange(mode);
-
-        }
-
-    };
-
-    struct YWorldQuantity : ViaButtonQuantity<8> {
-
-        std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
-        std::string descriptions[8] = {
-            "Exponential to logarithmic shaping",
-            "Evenly spaced half-sine peaks and valleys",
-            "Samples of a vibrating string model",
-            "A trio of peaks with changing shape",
-            "Linear slopes with dropoffs",
-            "Modeled lowpass filter with increasing cutoff",
-            "Bitcrushing from 1-5 bits",
-            "Ascending/descending 16 step patterns"
-        };
-
-
-        YWorldQuantity() {
-            for (int i = 0; i < 8; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            int mode = scannerModule->virtualModule.scannerUI.button2Mode;
-
-            description = descriptions[mode];
-
-            return mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            scannerModule->virtualModule.scannerUI.button2Mode = mode;
-            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
-            scannerModule->virtualModule.handleButton2ModeChange(mode);
-
-        }
-
-    };
-
-    struct MapQuantity : ViaButtonQuantity<8> {
-
-        std::string buttonModes[4] = {"Add", "Multiply", "Difference", "Lighten"};
-
-        MapQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            return scannerModule->virtualModule.scannerUI.button3Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            scannerModule->virtualModule.scannerUI.button3Mode = mode;
-            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
-            scannerModule->virtualModule.handleButton3ModeChange(mode);
-
-        }
-
-    };
-
-    struct XWorldQuantity : ViaButtonQuantity<8> {
-
-        std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
-
-        std::string descriptions[8] = {
-            "Smooth tanh waveshaping",
-            "A steep slope followed by gentler hills",
-            "A bouncing ball trajectory",
-            "Add peaks and valleys to a simple slope",
-            "Sinusoidal slopes with steep dropoffs",
-            "Waveforms from 2 op FM with increasing mod freq",
-            "Staircases with 1-5 steps",
-            "Ascending patterns of 8 steps"
-        };
-
-        XWorldQuantity() {
-            for (int i = 0; i < 8; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            int mode = scannerModule->virtualModule.scannerUI.button4Mode;
-
-            description = descriptions[mode];
-
-            return mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
-
-            scannerModule->virtualModule.scannerUI.button4Mode = mode;
-            scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
-            scannerModule->virtualModule.handleButton4ModeChange(mode);
-
-        }
-
-    };
     
     Scanner() : Via() {
 
@@ -324,7 +180,7 @@ struct ScannerWidget : ModuleWidget  {
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Scanner::LED3_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Scanner::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Scanner::OUTPUT_GREEN_LIGHT));
-        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Scanner::RED_LIGHT));
+        addChild(createLight<LargeSimpleLight<RGBTriangle>>(Vec(59 + .753, 221), module, Scanner::RED_LIGHT));
 
     };
 
@@ -374,4 +230,154 @@ struct ScannerWidget : ModuleWidget  {
 
 Model *modelScanner = createModel<Scanner, ScannerWidget>("SCANNER");
 
+// Tooltip definitions
 
+struct JumpQuantity : ViaButtonQuantity<2> {
+
+    std::string buttonModes[2] = {"Reverse", "Teleport"};
+
+    JumpQuantity() {
+        for (int i = 0; i < 2; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        return scannerModule->virtualModule.scannerUI.button1Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        scannerModule->virtualModule.scannerUI.button1Mode = mode;
+        scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+        scannerModule->virtualModule.handleButton1ModeChange(mode);
+
+    }
+
+};
+
+struct YWorldQuantity : ViaButtonQuantity<8> {
+
+    std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
+    std::string descriptions[8] = {
+        "Exponential to logarithmic shaping",
+        "Evenly spaced half-sine peaks and valleys",
+        "Samples of a vibrating string model",
+        "A trio of peaks with changing shape",
+        "Linear slopes with dropoffs",
+        "Modeled lowpass filter with increasing cutoff",
+        "Bitcrushing from 1-5 bits",
+        "Ascending/descending 16 step patterns"
+    };
+
+
+    YWorldQuantity() {
+        for (int i = 0; i < 8; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        int mode = scannerModule->virtualModule.scannerUI.button2Mode;
+
+        description = descriptions[mode];
+
+        return mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        scannerModule->virtualModule.scannerUI.button2Mode = mode;
+        scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+        scannerModule->virtualModule.handleButton2ModeChange(mode);
+
+    }
+
+};
+
+struct MapQuantity : ViaButtonQuantity<8> {
+
+    std::string buttonModes[4] = {"Add", "Multiply", "Difference", "Lighten"};
+
+    MapQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        return scannerModule->virtualModule.scannerUI.button3Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        scannerModule->virtualModule.scannerUI.button3Mode = mode;
+        scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+        scannerModule->virtualModule.handleButton3ModeChange(mode);
+
+    }
+
+};
+
+struct XWorldQuantity : ViaButtonQuantity<8> {
+
+    std::string buttonModes[8] = {"Slopes", "Hills", "Pyhisics World", "Shapeshifting Range", "Multiplier Mountains", "Synthville", "Steppes", "Blockland"};
+
+    std::string descriptions[8] = {
+        "Smooth tanh waveshaping",
+        "A steep slope followed by gentler hills",
+        "A bouncing ball trajectory",
+        "Add peaks and valleys to a simple slope",
+        "Sinusoidal slopes with steep dropoffs",
+        "Waveforms from 2 op FM with increasing mod freq",
+        "Staircases with 1-5 steps",
+        "Ascending patterns of 8 steps"
+    };
+
+    XWorldQuantity() {
+        for (int i = 0; i < 8; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        int mode = scannerModule->virtualModule.scannerUI.button4Mode;
+
+        description = descriptions[mode];
+
+        return mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
+
+        scannerModule->virtualModule.scannerUI.button4Mode = mode;
+        scannerModule->virtualModule.scannerUI.storeMode(scannerModule->virtualModule.scannerUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+        scannerModule->virtualModule.handleButton4ModeChange(mode);
+
+    }
+
+};

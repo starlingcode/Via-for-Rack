@@ -5,357 +5,18 @@
 #define OSC3_OVERSAMPLE_AMOUNT 32
 #define OSC3_OVERSAMPLE_QUALITY 6
 
+struct FreqKnobQuantity;
+struct DetuneKnobQuantity;
+struct OctaveButtonQuantity;
+struct WaveshapeButtonQuantity;
+struct SHButtonQuantity;
+struct QuantizationButtonQuantity;
+struct DetuneButtonQuantity;
+
 struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
     float effectiveSR = 48000.0f;
-
-    struct FreqKnobQuantity: ViaKnobQuantity {
-
-        void setDisplayValueString(std::string s) override {
-
-            if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
-                setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
-                setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
-                setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
-                setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
-                setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
-                setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
-                setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
-               setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
-                setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
-                setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
-            } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
-                setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
-            } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
-                setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
-            } else {
-                float v = 0.f;
-                char suffix[2];
-                int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
-                if (n >= 2) {
-                    // Parse SI prefixes
-                    switch (suffix[0]) {
-                        case 'n': v *= 1e-9f; break;
-                        case 'u': v *= 1e-6f; break;
-                        case 'm': v *= 1e-3f; break;
-                        case 'k': v *= 1e3f; break;
-                        case 'M': v *= 1e6f; break;
-                        case 'G': v *= 1e9f; break;
-                        default: break;
-                    }
-                }
-                if (n >= 1)
-                    setDisplayValue(v);
-            }
-        }
-
-        float translateParameter(float value) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            int32_t rootIncrement = osc3Module->virtualModule.controls.knob1Value * 3;
-            rootIncrement >>= 3;
-
-            if (osc3Module->virtualModule.osc3UI.button5Mode) {
-                rootIncrement &= 0xFE0; 
-            }
-
-            rootIncrement = osc3Module->virtualModule.expo.convert(rootIncrement) >> 3;
-
-            rootIncrement *= 8;
-            rootIncrement = fix16_mul(rootIncrement, osc3Module->virtualModule.absoluteTune);
-            rootIncrement = fix16_mul(rootIncrement, 65536 + (osc3Module->virtualModule.controls.knob2Value << 3));
-
-            float frequency = osc3Module->effectiveSR * 32 * (rootIncrement/4294967296.0f);
-
-            frequency *= pow(2, osc3Module->virtualModule.octaveRange);
-           
-            return frequency;            
-        
-        }
-        void setDisplayValue(float input) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            float target = input / 32.39;
-
-            target = log2(target);
-
-            float knob1Set = 0;
-            float knob2Set = 0;
-            float octaveSet = 0;
-
-            printf("%9.6f Target \n", target);
-
-            if (target <= 4.0f) {
-                knob1Set = target/4.0 * 4095.0;
-            } else if (target < 9.0f) {
-                octaveSet = target - 4.0;
-                octaveSet = (int32_t) octaveSet;
-                octaveSet += 1;
-                target -= octaveSet;
-                knob1Set = target/4.0 * 4095.0;
-                printf("%9.6f Target \n", target);
-                printf("%9.6f Octave \n", octaveSet);
-
-            } else {
-                knob1Set = 4095;
-                octaveSet = 5;
-                knob2Set = 4095;
-            }
-
-            osc3Module->virtualModule.osc3UI.button1Mode = (int32_t) octaveSet;
-            osc3Module->virtualModule.osc3UI.storeMode((int32_t) octaveSet, BUTTON1_MASK, BUTTON1_SHIFT);
-            osc3Module->virtualModule.handleButton1ModeChange((int32_t) octaveSet);
-
-            osc3Module->paramQuantities[KNOB1_PARAM]->setValue(knob1Set);
-
-        };
-
-    };
-
-    struct DetuneKnobQuantity: ViaKnobQuantity {
-
-
-
-        std::string getDisplayValueString(void) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            int32_t mode = osc3Module->virtualModule.osc3UI.button6Mode;
-
-            if (mode == 0) {
-
-                name = "Beat Frequency";
-
-                unit = "Hz";
-
-                float freqDiff = osc3Module->virtualModule.aFreq - osc3Module->virtualModule.bFreq;
-
-                freqDiff = osc3Module->effectiveSR * 32 * (freqDiff/4294967296.0f);
-
-                if (osc3Module->virtualModule.detuneBase == 0) {
-                    freqDiff = 0;
-                }
-
-                return string::f("%4.2f", freqDiff);
-
-            } else if (mode == 1) {
-
-                name = "Detune Amount";
-
-                unit = "cents";
-
-                float freqRatio = (osc3Module->virtualModule.bFreq - osc3Module->virtualModule.aFreq)/
-                                    (float) osc3Module->virtualModule.bFreq;
-                freqRatio /= 0.06f;
-
-                freqRatio *= 100.0;
-
-                if (osc3Module->virtualModule.detuneBase == 0) {
-                    freqRatio = 0;
-                }
-
-                return string::f("%4.2f", freqRatio);
-
-            } else if (mode == 2) {
-
-                name = "Osc 2 and Osc 3 Chord Offsets";
-
-                unit = "Notes";
-
-                int32_t chord = __USAT(((osc3Module->virtualModule.controls.knob3Value << 4)) + 
-                    (int32_t) -osc3Module->virtualModule.inputs.cv3Samples[0], 16);
-
-                chord >>= 12;
-
-                int32_t osc2Note = osc3Module->virtualModule.chords[chord][1];
-
-                int32_t osc3Note = osc3Module->virtualModule.chords[chord][0];
-
-                return "+" + string::f("%d", osc2Note) + ", " + string::f("%d", osc3Note) + " ";
-
-            } else {
-
-                name = "Unity Input Clock Multiplier";
-
-                unit = "";
-
-                return string::f("%i", osc3Module->virtualModule.beatMultiplier);
-
-            }
-
-        }
-
-        // virtual float translateInput(float userInput) {
-
-        //     Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-        //     return 11;
-
-        // };
-
-    };
-
-    struct OctaveButtonQuantity : ViaButtonQuantity<6> {
-
-        std::string buttonModes[6] = {"+0 Octaves", "+1 Octaves", "+2 Octaves", "+3 Octaves", "+4 Octaves", "+5 Octaves"};
-
-        OctaveButtonQuantity() {
-            for (int i = 0; i < 6; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            return osc3Module->virtualModule.osc3UI.button1Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            osc3Module->virtualModule.osc3UI.button1Mode = mode;
-            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
-            osc3Module->virtualModule.handleButton1ModeChange(mode);
-
-        }
-
-    };
-
-    struct WaveshapeButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Saw", "Square", "Trapezoid", "Triangle"};
-
-        WaveshapeButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            return osc3Module->virtualModule.osc3UI.button2Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            osc3Module->virtualModule.osc3UI.button2Mode = mode;
-            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
-            osc3Module->virtualModule.handleButton2ModeChange(mode);
-
-        }
-
-    };
-
-    struct SHButtonQuantity : ViaButtonQuantity<2> {
-
-        std::string buttonModes[2] = {"Off", "On"};
-
-        SHButtonQuantity() {
-            for (int i = 0; i < 2; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            return osc3Module->virtualModule.osc3UI.button3Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            osc3Module->virtualModule.osc3UI.button3Mode = mode;
-            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
-            osc3Module->virtualModule.handleButton3ModeChange(mode);
-
-        }
-
-    };
-
-    struct QuantizationButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Off", "Semitone", "Major", "Minor"};
-
-        QuantizationButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            return osc3Module->virtualModule.osc3UI.button5Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            osc3Module->virtualModule.osc3UI.button5Mode = mode;
-            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
-            osc3Module->virtualModule.handleButton5ModeChange(mode);
-
-        }
-
-    };
-
-    struct DetuneButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Even", "Scaled", "Chords", "Sync to Unity Input"};
-
-        DetuneButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            return osc3Module->virtualModule.osc3UI.button6Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
-
-            osc3Module->virtualModule.osc3UI.button6Mode = mode;
-            osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
-            osc3Module->virtualModule.handleButton6ModeChange(mode);
-
-        }
-
-    };
-    
+ 
     Osc3() : Via() {
 
         virtualIO = &virtualModule;
@@ -887,7 +548,7 @@ struct Osc3Widget : ModuleWidget  {
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.9 + .753, 309.8), module, Osc3::LED3_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.8 + .753, 309.8), module, Osc3::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Osc3::OUTPUT_GREEN_LIGHT));
-        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Osc3::RED_LIGHT));
+        addChild(createLight<LargeSimpleLight<RGBTriangle>>(Vec(59 + .753, 221), module, Osc3::RED_LIGHT));
 
     };
 
@@ -931,4 +592,351 @@ struct Osc3Widget : ModuleWidget  {
 
 Model *modelOsc3 = createModel<Osc3, Osc3Widget>("OSC3");
 
+// Tooltip definitions
 
+struct FreqKnobQuantity: ViaKnobQuantity {
+
+    void setDisplayValueString(std::string s) override {
+
+        if (string::startsWith(s, "a#") || string::startsWith(s, "A#")) {
+            setDisplayValue(29.14 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "a") || string::startsWith(s, "A")) {
+            setDisplayValue(27.50 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "b") || string::startsWith(s, "B")) {
+            setDisplayValue(30.87 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "c#") || string::startsWith(s, "C#")) {
+            setDisplayValue(17.32 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "c") || string::startsWith(s, "C")) {
+            setDisplayValue(16.35 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "d#") || string::startsWith(s, "D#")) {
+            setDisplayValue(19.45 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "d") || string::startsWith(s, "D")) {
+            setDisplayValue(18.35 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "e") || string::startsWith(s, "E")) {
+           setDisplayValue(20.60 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "f#") || string::startsWith(s, "F#")) {
+            setDisplayValue(23.12 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "f") || string::startsWith(s, "F")) {
+            setDisplayValue(21.83 * pow(2, std::stof(s.substr(1, 1))));
+        } else if (string::startsWith(s, "g#") || string::startsWith(s, "G#")) {
+            setDisplayValue(25.96 * pow(2, std::stof(s.substr(2, 1))));
+        } else if (string::startsWith(s, "g") || string::startsWith(s, "G")) {
+            setDisplayValue(24.50 * pow(2, std::stof(s.substr(1, 1))));
+        } else {
+            float v = 0.f;
+            char suffix[2];
+            int n = std::sscanf(s.c_str(), "%f%1s", &v, suffix);
+            if (n >= 2) {
+                // Parse SI prefixes
+                switch (suffix[0]) {
+                    case 'n': v *= 1e-9f; break;
+                    case 'u': v *= 1e-6f; break;
+                    case 'm': v *= 1e-3f; break;
+                    case 'k': v *= 1e3f; break;
+                    case 'M': v *= 1e6f; break;
+                    case 'G': v *= 1e9f; break;
+                    default: break;
+                }
+            }
+            if (n >= 1)
+                setDisplayValue(v);
+        }
+    }
+
+    float translateParameter(float value) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        int32_t rootIncrement = osc3Module->virtualModule.controls.knob1Value * 3;
+        rootIncrement >>= 3;
+
+        if (osc3Module->virtualModule.osc3UI.button5Mode) {
+            rootIncrement &= 0xFE0; 
+        }
+
+        rootIncrement = osc3Module->virtualModule.expo.convert(rootIncrement) >> 3;
+
+        rootIncrement *= 8;
+        rootIncrement = fix16_mul(rootIncrement, osc3Module->virtualModule.absoluteTune);
+        rootIncrement = fix16_mul(rootIncrement, 65536 + (osc3Module->virtualModule.controls.knob2Value << 3));
+
+        float frequency = osc3Module->effectiveSR * 32 * (rootIncrement/4294967296.0f);
+
+        frequency *= pow(2, osc3Module->virtualModule.octaveRange);
+       
+        return frequency;            
+    
+    }
+    void setDisplayValue(float input) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        float target = input / 32.39;
+
+        target = log2(target);
+
+        float knob1Set = 0;
+        float knob2Set = 0;
+        float octaveSet = 0;
+
+        printf("%9.6f Target \n", target);
+
+        if (target <= 4.0f) {
+            knob1Set = target/4.0 * 4095.0;
+        } else if (target < 9.0f) {
+            octaveSet = target - 4.0;
+            octaveSet = (int32_t) octaveSet;
+            octaveSet += 1;
+            target -= octaveSet;
+            knob1Set = target/4.0 * 4095.0;
+            printf("%9.6f Target \n", target);
+            printf("%9.6f Octave \n", octaveSet);
+
+        } else {
+            knob1Set = 4095;
+            octaveSet = 5;
+            knob2Set = 4095;
+        }
+
+        osc3Module->virtualModule.osc3UI.button1Mode = (int32_t) octaveSet;
+        osc3Module->virtualModule.osc3UI.storeMode((int32_t) octaveSet, BUTTON1_MASK, BUTTON1_SHIFT);
+        osc3Module->virtualModule.handleButton1ModeChange((int32_t) octaveSet);
+
+        osc3Module->paramQuantities[Osc3::KNOB1_PARAM]->setValue(knob1Set);
+
+    };
+
+};
+
+struct DetuneKnobQuantity: ViaKnobQuantity {
+
+
+
+    std::string getDisplayValueString(void) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        int32_t mode = osc3Module->virtualModule.osc3UI.button6Mode;
+
+        if (mode == 0) {
+
+            name = "Beat Frequency";
+
+            unit = "Hz";
+
+            float freqDiff = osc3Module->virtualModule.aFreq - osc3Module->virtualModule.bFreq;
+
+            freqDiff = osc3Module->effectiveSR * 32 * (freqDiff/4294967296.0f);
+
+            if (osc3Module->virtualModule.detuneBase == 0) {
+                freqDiff = 0;
+            }
+
+            return string::f("%4.2f", freqDiff);
+
+        } else if (mode == 1) {
+
+            name = "Detune Amount";
+
+            unit = "cents";
+
+            float freqRatio = (osc3Module->virtualModule.bFreq - osc3Module->virtualModule.aFreq)/
+                                (float) osc3Module->virtualModule.bFreq;
+            freqRatio /= 0.06f;
+
+            freqRatio *= 100.0;
+
+            if (osc3Module->virtualModule.detuneBase == 0) {
+                freqRatio = 0;
+            }
+
+            return string::f("%4.2f", freqRatio);
+
+        } else if (mode == 2) {
+
+            name = "Osc 2 and Osc 3 Chord Offsets";
+
+            unit = "Notes";
+
+            int32_t chord = __USAT(((osc3Module->virtualModule.controls.knob3Value << 4)) + 
+                (int32_t) -osc3Module->virtualModule.inputs.cv3Samples[0], 16);
+
+            chord >>= 12;
+
+            int32_t osc2Note = osc3Module->virtualModule.chords[chord][1];
+
+            int32_t osc3Note = osc3Module->virtualModule.chords[chord][0];
+
+            return "+" + string::f("%d", osc2Note) + ", " + string::f("%d", osc3Note) + " ";
+
+        } else {
+
+            name = "Unity Input Clock Multiplier";
+
+            unit = "";
+
+            return string::f("%i", osc3Module->virtualModule.beatMultiplier);
+
+        }
+
+    }
+
+    // virtual float translateInput(float userInput) {
+
+    //     Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+    //     return 11;
+
+    // };
+
+};
+
+struct OctaveButtonQuantity : ViaButtonQuantity<6> {
+
+    std::string buttonModes[6] = {"+0 Octaves", "+1 Octaves", "+2 Octaves", "+3 Octaves", "+4 Octaves", "+5 Octaves"};
+
+    OctaveButtonQuantity() {
+        for (int i = 0; i < 6; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        return osc3Module->virtualModule.osc3UI.button1Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        osc3Module->virtualModule.osc3UI.button1Mode = mode;
+        osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+        osc3Module->virtualModule.handleButton1ModeChange(mode);
+
+    }
+
+};
+
+struct WaveshapeButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Saw", "Square", "Trapezoid", "Triangle"};
+
+    WaveshapeButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        return osc3Module->virtualModule.osc3UI.button2Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        osc3Module->virtualModule.osc3UI.button2Mode = mode;
+        osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+        osc3Module->virtualModule.handleButton2ModeChange(mode);
+
+    }
+
+};
+
+struct SHButtonQuantity : ViaButtonQuantity<2> {
+
+    std::string buttonModes[2] = {"Off", "On"};
+
+    SHButtonQuantity() {
+        for (int i = 0; i < 2; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        return osc3Module->virtualModule.osc3UI.button3Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        osc3Module->virtualModule.osc3UI.button3Mode = mode;
+        osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+        osc3Module->virtualModule.handleButton3ModeChange(mode);
+
+    }
+
+};
+
+struct QuantizationButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Off", "Semitone", "Major", "Minor"};
+
+    QuantizationButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        return osc3Module->virtualModule.osc3UI.button5Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        osc3Module->virtualModule.osc3UI.button5Mode = mode;
+        osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
+        osc3Module->virtualModule.handleButton5ModeChange(mode);
+
+    }
+
+};
+
+struct DetuneButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Even", "Scaled", "Chords", "Sync to Unity Input"};
+
+    DetuneButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        return osc3Module->virtualModule.osc3UI.button6Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
+
+        osc3Module->virtualModule.osc3UI.button6Mode = mode;
+        osc3Module->virtualModule.osc3UI.storeMode(osc3Module->virtualModule.osc3UI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+        osc3Module->virtualModule.handleButton6ModeChange(mode);
+
+    }
+
+};

@@ -5,358 +5,23 @@
 #define GATESEQ_OVERSAMPLE_AMOUNT 1
 #define GATESEQ_OVERSAMPLE_QUALITY 1
 
+// Tooltip declarations
+
+struct PatternIQuantity;
+struct PatternIModQuantity;
+struct PatternIIQuantity;
+struct SHIButtonQuantity;
+struct GateIButtonQuantity;
+struct SeqIButtonQuantity;
+struct SHIIButtonQuantity;
+struct GateIIButtonQuantity;
+struct SeqIIButtonQuantity;
+struct ModulationQuantity;
+struct ModulationCVQuantity;
+struct ButtonQuantity;
+
 struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
-    struct PatternIQuantity : ViaKnobQuantity {
-
-        float translateParameter(float value) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            description = "";
-
-            for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.aLength; i ++) {
-                if (gateseqModule->virtualModule.sequencer.currentAPattern[i]) {
-                    description += "^";
-                } else {
-                    description += "~";
-                }
-            }
-
-            return 1 + (gateseqModule->virtualModule.controls.knob1Value >> 8);            
-        
-        }
-        float translateInput(float userInput) override {
-
-            return (userInput - 1) * 256.0;
-
-        };
-
-    };
-
-    struct PatternIModQuantity : ViaKnobQuantity {
-
-        std::string labels[3] = {"Pattern I offset", "Pattern I shuffle/swing", "Pattern I multiplier"};
-
-        float multiplierLookup[8] = {0.5, 1, 1.5, 2, 3, 4, 6, 8};
-
-        float translateParameter(float value) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
-
-                int multIndex = gateseqModule->virtualModule.controls.knob2Value >> 9;
-                return (gateseqModule->virtualModule.sequencer.multipliers[multIndex]) * 0.5;
-
-            } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
-                int swing = gateseqModule->virtualModule.controls.knob2Value << 3;
-                return ((swing/65535.0) + 0.25) * 100.0;
-            } else {
-                return gateseqModule->virtualModule.controls.knob2Value >> 9;
-            }            
-        
-        }
-        float translateInput(float userInput) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
-                for (int i = 0; i < 8; i++) {
-                    if (userInput == multiplierLookup[i]) {
-                        return i * 512.0;
-                    }
-                }
-
-                return getValue();
-
-            } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
-                return (userInput - 25.0) * 4095.0/50.0;
-            } else {
-                return userInput * 512.0;
-            }
-
-        };
-        void setLabel(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
-                name = labels[2];
-                unit = "x";
-            } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
-                name = labels[1];
-                unit = "%";
-            } else {
-                name = labels[0];
-                unit = " steps";
-            }
-
-        }
-        int getDisplayPrecision(void) override {
-            return 2;
-        }
-
-        std::string getDisplayValueString(void) override {
-
-            std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
-
-            return displayValueRaw;
-
-        }
- 
-    };
-
-    struct PatternIIQuantity : ViaKnobQuantity {
-
-        float translateParameter(float value) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            description = "";
-
-            for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.bLength; i ++) {
-                if (gateseqModule->virtualModule.sequencer.currentBPattern[i]) {
-                    description += "^";
-                } else {
-                    description += "~";
-                }
-            }
-
-            return 1 + (gateseqModule->virtualModule.controls.knob3Value >> 8);            
-        
-        }
-        float translateInput(float userInput) override {
-
-            return (userInput - .5)  * 256.0;
-
-        };
-
-    };
-
-    struct SHIButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
-
-        SHIButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            return gateseqModule->virtualModule.gateseqUI.button1Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            gateseqModule->virtualModule.gateseqUI.button1Mode = mode;
-            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
-            gateseqModule->virtualModule.handleButton1ModeChange(mode);
-
-        }
-
-    };
-
-    struct GateIButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
-
-        GateIButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            return gateseqModule->virtualModule.gateseqUI.button2Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            gateseqModule->virtualModule.gateseqUI.button2Mode = mode;
-            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
-            gateseqModule->virtualModule.handleButton2ModeChange(mode);
-
-        }
-
-    };
-
-    struct SeqIButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Length 16 Euclidean", "3 vs 2", "Shuffle-Swing", "Multiplier/Divider"};
-
-        SeqIButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            return gateseqModule->virtualModule.gateseqUI.button3Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            gateseqModule->virtualModule.gateseqUI.button3Mode = mode;
-            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
-            gateseqModule->virtualModule.handleButton3ModeChange(mode);
-
-        }
-
-    };
-
-    struct SHIIButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
-        
-        SHIIButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            return gateseqModule->virtualModule.gateseqUI.button4Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            gateseqModule->virtualModule.gateseqUI.button4Mode = mode;
-            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
-            gateseqModule->virtualModule.handleButton4ModeChange(mode);
-
-        }
-
-    };
-
-    struct GateIIButtonQuantity : ViaButtonQuantity<3> {
-
-        std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
-
-        GateIIButtonQuantity() {
-            for (int i = 0; i < 3; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            return gateseqModule->virtualModule.gateseqUI.button5Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            gateseqModule->virtualModule.gateseqUI.button5Mode = mode;
-            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
-            gateseqModule->virtualModule.handleButton5ModeChange(mode);
-
-        }
-
-    };
-
-    struct SeqIIButtonQuantity : ViaButtonQuantity<4> {
-
-        std::string buttonModes[4] = {"Length 16 Euclidean", "Odd vs Even", "2 or 3 Gates", "Rhythmic Clock Division"};
-
-        SeqIIButtonQuantity() {
-            for (int i = 0; i < 4; i++) {
-                modes[i] = buttonModes[i];
-            }
-        }
-        
-        int getModeEnumeration(void) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            return gateseqModule->virtualModule.gateseqUI.button6Mode;
-
-        }
-
-        void setMode(int mode) override {
-
-            Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
-
-            gateseqModule->virtualModule.gateseqUI.button6Mode = mode;
-            gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
-            gateseqModule->virtualModule.handleButton6ModeChange(mode);
-
-        }
-
-    };
-
-    struct ModulationQuantity : ParamQuantity {
-
-        std::string modes[4] = {"Offset", "Offset", "Shuffle to Swing", "Multiplier"};
-
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];                
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
-        }
-
-    };
-
-    struct ModulationCVQuantity : ParamQuantity {
-
-        std::string modes[4] = {"(Offset)", "(Offset)", "(Shufle to Swing)", "(Multiplier)"};
-
-        std::string getDisplayValueString() override {
-
-            Gateseq * gateseqModule = (Gateseq *) module;
-
-            return "PTN I Modulation CV Attenuator " + modes[gateseqModule->virtualModule.gateseqUI.button3Mode];
-
-        }
-
-        std::string getString() override {
-            return getDisplayValueString();
-        }
-
-    };
-
-    struct ButtonQuantity : ParamQuantity {
-
-        std::string getString() override {
-            return "Manual Trigger";
-        }
-
-    };
     
     Gateseq() : Via(), virtualModule(asset::plugin(pluginInstance, "res/gateseqpatterns.bin")) {
 
@@ -580,7 +245,7 @@ struct GateseqWidget : ModuleWidget  {
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 309.9), module, Gateseq::LED3_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 309.9), module, Gateseq::LED4_LIGHT));
         addChild(createLight<MediumLight<GreenRedLight>>(Vec(54.8 + .753, 179.6), module, Gateseq::OUTPUT_GREEN_LIGHT));
-        addChild(createLight<LargeLight<RGBTriangle>>(Vec(59 + .753, 221), module, Gateseq::RED_LIGHT));
+        addChild(createLight<LargeSimpleLight<RGBTriangle>>(Vec(59 + .753, 221), module, Gateseq::RED_LIGHT));
 
         }
 
@@ -680,4 +345,355 @@ struct GateseqWidget : ModuleWidget  {
 
 Model *modelGateseq = createModel<Gateseq, GateseqWidget>("GATESEQ");
 
+// Tooltip definitions
 
+struct PatternIQuantity : ViaKnobQuantity {
+
+    float translateParameter(float value) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        description = "";
+
+        for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.aLength; i ++) {
+            if (gateseqModule->virtualModule.sequencer.currentAPattern[i]) {
+                description += "^";
+            } else {
+                description += "~";
+            }
+        }
+
+        return 1 + (gateseqModule->virtualModule.controls.knob1Value >> 8);            
+    
+    }
+    float translateInput(float userInput) override {
+
+        return (userInput - 1) * 256.0;
+
+    };
+
+};
+
+struct PatternIModQuantity : ViaKnobQuantity {
+
+    std::string labels[3] = {"Pattern I offset", "Pattern I shuffle/swing", "Pattern I multiplier"};
+
+    float multiplierLookup[8] = {0.5, 1, 1.5, 2, 3, 4, 6, 8};
+
+    float translateParameter(float value) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
+
+            int multIndex = gateseqModule->virtualModule.controls.knob2Value >> 9;
+            return (gateseqModule->virtualModule.sequencer.multipliers[multIndex]) * 0.5;
+
+        } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
+            int swing = gateseqModule->virtualModule.controls.knob2Value << 3;
+            return ((swing/65535.0) + 0.25) * 100.0;
+        } else {
+            return gateseqModule->virtualModule.controls.knob2Value >> 9;
+        }            
+    
+    }
+    float translateInput(float userInput) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
+            for (int i = 0; i < 8; i++) {
+                if (userInput == multiplierLookup[i]) {
+                    return i * 512.0;
+                }
+            }
+
+            return getValue();
+
+        } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
+            return (userInput - 25.0) * 4095.0/50.0;
+        } else {
+            return userInput * 512.0;
+        }
+
+    };
+    void setLabel(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        if (gateseqModule->virtualModule.sequencer.modulateMultiplier) {
+            name = labels[2];
+            unit = "x";
+        } else if (gateseqModule->virtualModule.sequencer.shuffleOn) {
+            name = labels[1];
+            unit = "%";
+        } else {
+            name = labels[0];
+            unit = " steps";
+        }
+
+    }
+    int getDisplayPrecision(void) override {
+        return 2;
+    }
+
+    std::string getDisplayValueString(void) override {
+
+        std::string displayValueRaw = string::f("%.*g", getDisplayPrecision(), math::normalizeZero(getDisplayValue()));
+
+        return displayValueRaw;
+
+    }
+
+};
+
+struct PatternIIQuantity : ViaKnobQuantity {
+
+    float translateParameter(float value) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        description = "";
+
+        for (uint32_t i = 0; i < gateseqModule->virtualModule.sequencer.bLength; i ++) {
+            if (gateseqModule->virtualModule.sequencer.currentBPattern[i]) {
+                description += "^";
+            } else {
+                description += "~";
+            }
+        }
+
+        return 1 + (gateseqModule->virtualModule.controls.knob3Value >> 8);            
+    
+    }
+    float translateInput(float userInput) override {
+
+        return (userInput - .5)  * 256.0;
+
+    };
+
+};
+
+struct SHIButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
+
+    SHIButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        return gateseqModule->virtualModule.gateseqUI.button1Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        gateseqModule->virtualModule.gateseqUI.button1Mode = mode;
+        gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button1Mode, BUTTON1_MASK, BUTTON1_SHIFT);
+        gateseqModule->virtualModule.handleButton1ModeChange(mode);
+
+    }
+
+};
+
+struct GateIButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
+
+    GateIButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        return gateseqModule->virtualModule.gateseqUI.button2Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        gateseqModule->virtualModule.gateseqUI.button2Mode = mode;
+        gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button2Mode, BUTTON2_MASK, BUTTON2_SHIFT);
+        gateseqModule->virtualModule.handleButton2ModeChange(mode);
+
+    }
+
+};
+
+struct SeqIButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Length 16 Euclidean", "3 vs 2", "Shuffle-Swing", "Multiplier/Divider"};
+
+    SeqIButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        return gateseqModule->virtualModule.gateseqUI.button3Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        gateseqModule->virtualModule.gateseqUI.button3Mode = mode;
+        gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button3Mode, BUTTON3_MASK, BUTTON3_SHIFT);
+        gateseqModule->virtualModule.handleButton3ModeChange(mode);
+
+    }
+
+};
+
+struct SHIIButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
+    
+    SHIIButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        return gateseqModule->virtualModule.gateseqUI.button4Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        gateseqModule->virtualModule.gateseqUI.button4Mode = mode;
+        gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button4Mode, BUTTON4_MASK, BUTTON4_SHIFT);
+        gateseqModule->virtualModule.handleButton4ModeChange(mode);
+
+    }
+
+};
+
+struct GateIIButtonQuantity : ViaButtonQuantity<3> {
+
+    std::string buttonModes[3] = {"Open", "Gated", "Smooth Gate"};
+
+    GateIIButtonQuantity() {
+        for (int i = 0; i < 3; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        return gateseqModule->virtualModule.gateseqUI.button5Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        gateseqModule->virtualModule.gateseqUI.button5Mode = mode;
+        gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button5Mode, BUTTON5_MASK, BUTTON5_SHIFT);
+        gateseqModule->virtualModule.handleButton5ModeChange(mode);
+
+    }
+
+};
+
+struct SeqIIButtonQuantity : ViaButtonQuantity<4> {
+
+    std::string buttonModes[4] = {"Length 16 Euclidean", "Odd vs Even", "2 or 3 Gates", "Rhythmic Clock Division"};
+
+    SeqIIButtonQuantity() {
+        for (int i = 0; i < 4; i++) {
+            modes[i] = buttonModes[i];
+        }
+    }
+    
+    int getModeEnumeration(void) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        return gateseqModule->virtualModule.gateseqUI.button6Mode;
+
+    }
+
+    void setMode(int mode) override {
+
+        Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
+
+        gateseqModule->virtualModule.gateseqUI.button6Mode = mode;
+        gateseqModule->virtualModule.gateseqUI.storeMode(gateseqModule->virtualModule.gateseqUI.button6Mode, BUTTON6_MASK, BUTTON6_SHIFT);
+        gateseqModule->virtualModule.handleButton6ModeChange(mode);
+
+    }
+
+};
+
+struct ModulationQuantity : ParamQuantity {
+
+    std::string modes[4] = {"Offset", "Offset", "Shuffle to Swing", "Multiplier"};
+
+    std::string getDisplayValueString() override {
+
+        Gateseq * gateseqModule = (Gateseq *) module;
+
+        return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];                
+
+    }
+
+    std::string getString() override {
+        return getDisplayValueString();
+    }
+
+};
+
+struct ModulationCVQuantity : ParamQuantity {
+
+    std::string modes[4] = {"(Offset)", "(Offset)", "(Shufle to Swing)", "(Multiplier)"};
+
+    std::string getDisplayValueString() override {
+
+        Gateseq * gateseqModule = (Gateseq *) module;
+
+        return "PTN I Modulation CV Attenuator " + modes[gateseqModule->virtualModule.gateseqUI.button3Mode];
+
+    }
+
+    std::string getString() override {
+        return getDisplayValueString();
+    }
+
+};
+
+struct ButtonQuantity : ParamQuantity {
+
+    std::string getString() override {
+        return "Manual Trigger";
+    }
+
+};

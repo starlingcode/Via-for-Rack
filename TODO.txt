@@ -1,0 +1,8 @@
+Custom triangle LED widget ghost LED outline
+Slight LED position offset error (too high and left)
+Gateseq button tooltip
+Gateseq pattern off by 1 error
+All jack tooltips
+Check issue on github
+SYNC3 level pot behavior (levels -> mixdown)
+SYNC3XL crash on delete
