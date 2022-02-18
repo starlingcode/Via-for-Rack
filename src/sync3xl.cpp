@@ -575,22 +575,25 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         out1 = processFilterOuts(mode1, 0);
         out2 = processFilterOuts(mode2, 1);
         out3 = processFilterOuts(mode3, 2);
-        float outMix = (out1 + out2 + out3)/3.f;
 
         Sync3XLExpand* from_host = (Sync3XLExpand*) rightExpander.module->leftExpander.producerMessage;
         Sync3XLExpand* to_host = (Sync3XLExpand*) rightExpander.consumerMessage;
 
+        float outMix;
         if (expanderAttached) {
             from_host->out1 = out1;
             from_host->out2 = out2;
             from_host->out3 = out3;
-            from_host->mix = outMix;
             out1 = to_host->out1;
             out2 = to_host->out2;
             out3 = to_host->out3;
+            outMix = (out1 + out2 + out3)/3;
+            from_host->mix = outMix;
             outMix = to_host->mix;
             rightExpander.module->leftExpander.messageFlipRequested = true;
-        }; 
+        } else {
+            outMix = (out1 + out2 + out3)/3;
+        } 
 
         outputs[OUT1_OUTPUT].setVoltage(out1);
         outputs[OUT2_OUTPUT].setVoltage(out2);
