@@ -39,6 +39,19 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
         
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual gate");
 
+        configInput(A_INPUT, "Attack voltage");
+        configInput(B_INPUT, "Sustain voltage");
+        configInput(CV1_INPUT, "Attack time");
+        configInput(CV2_INPUT, "Transition time");
+        configInput(CV3_INPUT, "Release time");
+        configInput(MAIN_LOGIC_INPUT, "Gate");
+        configInput(AUX_LOGIC_INPUT, "Retrigger");
+
+        configOutput(MAIN_OUTPUT, "Envelope");
+        configOutput(LOGICA_OUTPUT, "Stage gate");
+        configOutput(AUX_DAC_OUTPUT, "Loop creation gate");
+        configOutput(AUX_LOGIC_OUTPUT, "Delayed gate");
+
         onSampleRateChange();
     }
 

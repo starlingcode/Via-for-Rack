@@ -47,6 +47,19 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
 
+        configInput(A_INPUT, "A");
+        configInput(B_INPUT, "B");
+        configInput(CV1_INPUT, "Ratio X");
+        configInput(CV2_INPUT, "Assignable modulation");
+        configInput(CV3_INPUT, "Wave shape");
+        configInput(MAIN_LOGIC_INPUT, "Sync");
+        configInput(AUX_LOGIC_INPUT, "Resync");
+
+        configOutput(MAIN_OUTPUT, "Main");
+        configOutput(LOGICA_OUTPUT, "Gate");
+        configOutput(AUX_DAC_OUTPUT, "Contour");
+        configOutput(AUX_LOGIC_OUTPUT, "Ratio change");
+
         onSampleRateChange();
         presetData[0] = virtualModule.syncUI.stockPreset1;
         presetData[1] = virtualModule.syncUI.stockPreset2;

@@ -43,6 +43,19 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual Trigger");
 
+        configInput(A_INPUT, "A");
+        configInput(B_INPUT, "B");
+        configInput(CV1_INPUT, "Time 1");
+        configInput(CV2_INPUT, "Time 2");
+        configInput(CV3_INPUT, "Wave shape");
+        configInput(MAIN_LOGIC_INPUT, "Trigger");
+        configInput(AUX_LOGIC_INPUT, "Freeze");
+
+        configOutput(MAIN_OUTPUT, "Main");
+        configOutput(LOGICA_OUTPUT, "Gate");
+        configOutput(AUX_DAC_OUTPUT, "Contour");
+        configOutput(AUX_LOGIC_OUTPUT, "Contour direction");
+
         onSampleRateChange();
         presetData[0] = virtualModule.metaUI.stockPreset1;
         presetData[1] = virtualModule.metaUI.stockPreset2;

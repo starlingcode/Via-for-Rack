@@ -39,6 +39,19 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unity");
 
+        configInput(A_INPUT, "Oscillator 2 level");
+        configInput(B_INPUT, "Oscillator 3 level");
+        configInput(CV1_INPUT, "V/oct");
+        configInput(CV2_INPUT, "Phase");
+        configInput(CV3_INPUT, "Detune");
+        configInput(MAIN_LOGIC_INPUT, "Octave shift");
+        configInput(AUX_LOGIC_INPUT, "Unity");
+
+        configOutput(MAIN_OUTPUT, "Detuned output");
+        configOutput(LOGICA_OUTPUT, "Beat tracking gate");
+        configOutput(AUX_DAC_OUTPUT, "Oscillator 1 output");
+        configOutput(AUX_LOGIC_OUTPUT, "Pitch change trigger");
+
         onSampleRateChange();
 
     }

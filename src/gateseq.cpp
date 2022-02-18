@@ -42,6 +42,19 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Pattern reset");
 
+        configInput(A_INPUT, "A");
+        configInput(B_INPUT, "B");
+        configInput(CV1_INPUT, "I pattern");
+        configInput(CV2_INPUT, "I modulation");
+        configInput(CV3_INPUT, "II pattern");
+        configInput(MAIN_LOGIC_INPUT, "Gate");
+        configInput(AUX_LOGIC_INPUT, "Reset");
+
+        configOutput(MAIN_OUTPUT, "A + B");
+        configOutput(LOGICA_OUTPUT, "Sequencer I");
+        configOutput(AUX_DAC_OUTPUT, "Sequencer II");
+        configOutput(AUX_LOGIC_OUTPUT, "Logic");
+
         onSampleRateChange();
 
         presetData[0] = virtualModule.gateseqUI.stockPreset1;

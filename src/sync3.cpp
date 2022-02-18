@@ -40,6 +40,19 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap Tempo");
 
+        configInput(A_INPUT, "Oscillator II level");
+        configInput(B_INPUT, "Oscillator III level");
+        configInput(CV1_INPUT, "I ratio");
+        configInput(CV2_INPUT, "II or II+III ratio");
+        configInput(CV3_INPUT, "III ratio or PM");
+        configInput(MAIN_LOGIC_INPUT, "Sync");
+        configInput(AUX_LOGIC_INPUT, "Hold II and III level inputs");
+
+        configOutput(MAIN_OUTPUT, "II + III");
+        configOutput(LOGICA_OUTPUT, "Ratio change gate");
+        configOutput(AUX_DAC_OUTPUT, "I");
+        configOutput(AUX_LOGIC_OUTPUT, "Divided by two gate");
+
         onSampleRateChange();
 
     }

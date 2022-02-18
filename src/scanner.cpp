@@ -34,6 +34,20 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         configParam<XWorldQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "X scan world");
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unused");
+
+        configInput(A_INPUT, "A");
+        configInput(B_INPUT, "B");
+        configInput(CV1_INPUT, "Z CV");
+        configInput(CV2_INPUT, "X signal");
+        configInput(CV3_INPUT, "Y signal");
+        configInput(MAIN_LOGIC_INPUT, "Jump");
+        configInput(AUX_LOGIC_INPUT, "A and B hold");
+
+        configOutput(MAIN_OUTPUT, "Main");
+        configOutput(LOGICA_OUTPUT, "One bit");
+        configOutput(AUX_DAC_OUTPUT, "Unshaped");
+        configOutput(AUX_LOGIC_OUTPUT, "Alt one bit");
+
         paramQuantities[TRIGBUTTON_PARAM]->description = "Enter preset menu on hardware module";
 
 
