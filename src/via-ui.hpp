@@ -1,8 +1,8 @@
 #include "starling.hpp"
-#include "color.hpp"
-#include <app/ParamWidget.hpp>
-#include <iomanip> // setprecision
-#include <sstream> // stringstream
+// #include "color.hpp"
+// #include <app/ParamWidget.hpp>
+// #include <iomanip> // setprecision
+// #include <sstream> // stringstream
 
 // Modified light widget for the white LED
 

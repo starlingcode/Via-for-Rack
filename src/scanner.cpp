@@ -1,5 +1,5 @@
 #include "scanner.hpp"
-#include "via_module.hpp"
+#include "via-module.hpp"
 
 #define SCANNER_OVERSAMPLE_AMOUNT 8
 #define SCANNER_OVERSAMPLE_QUALITY 6

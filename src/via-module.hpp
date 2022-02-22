@@ -1,8 +1,8 @@
 #pragma once
 
-#include "via_ui.hpp"
-#include "via_virtual_module.hpp"
-#include "pow2decimate.hpp"
+#include "via-ui.hpp"
+#include "via-virtual-module.hpp"
+#include "starling-dsp.hpp"
 
 template<int OVERSAMPLE_AMOUNT, int OVERSAMPLE_QUALITY> 
 struct Via : Module {
@@ -89,7 +89,7 @@ struct Via : Module {
 
     float_4 * dacDecimatorBuffer;
 
-    pow2Decimate<OVERSAMPLE_AMOUNT, float_4> dacDecimator;
+    DecimatePow2<OVERSAMPLE_AMOUNT, float_4> dacDecimator;
 
     virtual void updateSlowIO(void) {
 

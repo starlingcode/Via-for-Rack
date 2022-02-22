@@ -1,5 +1,3 @@
-Tooltips in sentence punctuation
-Check issue on github
 OSC3 pitch input check
 Add lower sample rates
 Check filter cutoff when changing sample rate

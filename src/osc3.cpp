@@ -1,6 +1,6 @@
 #include "osc3.hpp"
-#include "via_module.hpp"
-#include "polyblamp.hpp"
+#include "via-module.hpp"
+#include "starling-dsp.hpp"
 
 #define OSC3_OVERSAMPLE_AMOUNT 32
 #define OSC3_OVERSAMPLE_QUALITY 6
@@ -22,20 +22,20 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam<FreqKnobQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Base Frequency", "Hz");
-        configParam<FreqKnobQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Base Frequency", "Hz");
+        configParam<FreqKnobQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "Base frequency", "Hz");
+        configParam<FreqKnobQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "Base frequency", "Hz");
         configParam<DetuneKnobQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "Detune");
-        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, -1.0, "Oscillator 3 Level");
-        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "2 + 3 Phase CV Scale");
-        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator 2 Level");
-        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Detune CV Scale");
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, -1.0, "Oscillator 3 level");
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "2 + 3 Phase CV scale");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator 2 level");
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Detune CV scale");
         
-        configParam<OctaveButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Octave Offset");
+        configParam<OctaveButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Octave offset");
         configParam<WaveshapeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Waveshape");
-        configParam<SHButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Osc1 -> 2 and 3 Leve SH");
-        configParam<OctaveButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Octave Offset");
+        configParam<SHButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Osc1 -> 2 and 3 level SH");
+        configParam<OctaveButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Octave offset");
         configParam<QuantizationButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Quantization");
-        configParam<DetuneButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Beat/Detune Mode");
+        configParam<DetuneButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Beat/detune mode");
         
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unity");
 

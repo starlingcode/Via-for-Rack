@@ -1,5 +1,5 @@
 #include "sync3.hpp"
-#include "via_module.hpp"
+#include "via-module.hpp"
 #include "polyblamp.hpp"
 #include "osdialog.h"
 
@@ -23,22 +23,22 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam<IRatioQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "I Ratio");
-        configParam<IIRatioQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "II Ratio");
-        configParam<IIIRatioQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "III Ratio");
-        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, -1.0, "Oscillator III Level", "V");
-        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "II CV Scale");
-        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator II Level", "V");
-        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "III CV Scale");
+        configParam<IRatioQuantity>(KNOB1_PARAM, 0, 4095.0, 2048.0, "I ratio");
+        configParam<IIRatioQuantity>(KNOB2_PARAM, 0, 4095.0, 2048.0, "II ratio");
+        configParam<IIIRatioQuantity>(KNOB3_PARAM, 0, 4095.0, 2048.0, "III ratio");
+        configParam<BScaleQuantity>(B_PARAM, -1.0, 1.0, -1.0, "Oscillator III level", "V");
+        configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "II CV scale");
+        configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator II level", "V");
+        configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "III CV scale");
         
-        configParam<IButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Oscillator I Shape");
-        configParam<RatioButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio Set");
-        configParam<IIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Oscillator II Shape");
-        configParam<CVButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "CV Mapping");
-        configParam<RatioButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Ratio Set");
-        configParam<IIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Oscillator III Shape");
+        configParam<IButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Oscillator I shape");
+        configParam<RatioButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio set");
+        configParam<IIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Oscillator II shape");
+        configParam<CVButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "CV mapping");
+        configParam<RatioButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Ratio set");
+        configParam<IIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Oscillator III shape");
         
-        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap Tempo");
+        configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
 
         configInput(A_INPUT, "Oscillator II level");
         configInput(B_INPUT, "Oscillator III level");

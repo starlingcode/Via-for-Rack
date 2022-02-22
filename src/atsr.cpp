@@ -1,5 +1,5 @@
 #include "atsr.hpp"
-#include "via_module.hpp"
+#include "via-module.hpp"
 
 #define ATSR_OVERSAMPLE_AMOUNT 1
 #define ATSR_OVERSAMPLE_QUALITY 1

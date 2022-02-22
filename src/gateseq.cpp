@@ -1,5 +1,5 @@
 #include "gateseq.hpp"
-#include "via_module.hpp"
+#include "via-module.hpp"
 #include "osdialog.h"
 
 #define GATESEQ_OVERSAMPLE_AMOUNT 1

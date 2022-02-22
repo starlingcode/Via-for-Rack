@@ -1,6 +1,5 @@
 #include "sync.hpp"
-#include "via_module.hpp"
-#include "sync_scale_key.hpp"
+#include "via-module.hpp"
 
 #define SYNC_OVERSAMPLE_AMOUNT 8
 #define SYNC_OVERSAMPLE_QUALITY 6
@@ -18,9 +17,6 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     struct SyncButtonQuantity;
     struct GroupButtonQuantity;
     struct TableButtonQuantity;
-
-    // not working, takes forever to compile
-    SyncScaleKey scaleKey;
 
     Sync() : Via() {
 
@@ -368,35 +364,36 @@ struct Sync::RatioXQuantity : ViaKnobQuantity {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
 
-        int group = syncModule->virtualModule.syncUI.button5Mode;
-        int scale = syncModule->virtualModule.syncUI.button2Mode;
         int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
-        int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
 
-        ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
-
-        ScaleRow row = grid[yIndex];
-
-        int numerator = row[0][xIndex][0];
-        int denominator = row[0][xIndex][1];
-
-        int xIndexCV = syncModule->virtualModule.lastRatioX;
-        int yIndexCV = syncModule->virtualModule.lastRatioY;
-
-        ScaleRow rowCV = grid[yIndexCV];
-
-        int numeratorCV = rowCV[0][xIndexCV][0];
-        int denominatorCV = rowCV[0][xIndexCV][1];
-
-        bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[Sync::CV2_INPUT].isConnected();
-        bool xMod = syncModule->inputs[Sync::CV1_INPUT].isConnected();
-
-        if (yMod || xMod) {
-            description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-            description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
-        } else {
-            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-        }
+//        int group = syncModule->virtualModule.syncUI.button5Mode;
+//        int scale = syncModule->virtualModule.syncUI.button2Mode;
+//        int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
+//
+//        ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
+//
+//        ScaleRow row = grid[yIndex];
+//
+//        int numerator = row[0][xIndex][0];
+//        int denominator = row[0][xIndex][1];
+//
+//        int xIndexCV = syncModule->virtualModule.lastRatioX;
+//        int yIndexCV = syncModule->virtualModule.lastRatioY;
+//
+//        ScaleRow rowCV = grid[yIndexCV];
+//
+//        int numeratorCV = rowCV[0][xIndexCV][0];
+//        int denominatorCV = rowCV[0][xIndexCV][1];
+//
+//        bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[Sync::CV2_INPUT].isConnected();
+//        bool xMod = syncModule->inputs[Sync::CV1_INPUT].isConnected();
+//
+//        if (yMod || xMod) {
+//            description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+//            description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
+//        } else {
+//            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+//        }
 
 
         return xIndex;         
@@ -418,35 +415,36 @@ struct Sync::RatioYQuantity : ViaKnobQuantity {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
 
-        int group = syncModule->virtualModule.syncUI.button5Mode;
-        int scale = syncModule->virtualModule.syncUI.button2Mode;
-        int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
         int yIndex = syncModule->virtualModule.controls.knob2Value >> syncModule->virtualModule.scale->t2Bitshift;
 
-        ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
-
-        ScaleRow row = grid[yIndex];
-
-        int numerator = row[0][xIndex][0];
-        int denominator = row[0][xIndex][1];
-
-        int xIndexCV = syncModule->virtualModule.lastRatioX;
-        int yIndexCV = syncModule->virtualModule.lastRatioY;
-
-        ScaleRow rowCV = grid[yIndexCV];
-
-        int numeratorCV = rowCV[0][xIndexCV][0];
-        int denominatorCV = rowCV[0][xIndexCV][1];
-
-        bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[Sync::CV2_INPUT].isConnected();
-        bool xMod = syncModule->inputs[Sync::CV1_INPUT].isConnected();
-
-        if (yMod || xMod) {
-            description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-            description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
-        } else {
-            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
-        }
+//        int group = syncModule->virtualModule.syncUI.button5Mode;
+//        int scale = syncModule->virtualModule.syncUI.button2Mode;
+//        int xIndex = syncModule->virtualModule.controls.knob1Value >> 5;
+//
+//        ScaleGrid grid = syncModule->scaleKey.scaleArray[group][scale];
+//
+//        ScaleRow row = grid[yIndex];
+//
+//        int numerator = row[0][xIndex][0];
+//        int denominator = row[0][xIndex][1];
+//
+//        int xIndexCV = syncModule->virtualModule.lastRatioX;
+//        int yIndexCV = syncModule->virtualModule.lastRatioY;
+//
+//        ScaleRow rowCV = grid[yIndexCV];
+//
+//        int numeratorCV = rowCV[0][xIndexCV][0];
+//        int denominatorCV = rowCV[0][xIndexCV][1];
+//
+//        bool yMod = (!syncModule->virtualModule.syncUI.button3Mode) && syncModule->inputs[Sync::CV2_INPUT].isConnected();
+//        bool xMod = syncModule->inputs[Sync::CV1_INPUT].isConnected();
+//
+//        if (yMod || xMod) {
+//            description = "Frequency ratio without CV: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+//            description += "Actual frequency ratio with CV: " + std::to_string(numeratorCV) + "/" + std::to_string(denominatorCV);
+//        } else {
+//            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
+//        }
 
         return yIndex;            
     

@@ -1,5 +1,5 @@
 #include "meta.hpp"
-#include "via_module.hpp"
+#include "via-module.hpp"
 
 #define META_OVERSAMPLE_AMOUNT 8
 #define META_OVERSAMPLE_QUALITY 6
@@ -36,7 +36,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         
         configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H");
         configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable");
-        configParam<FreqButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Frequency Range");
+        configParam<FreqButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Frequency range");
         configParam<TrigButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "TRIG response");
         configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Wavetable");
         configParam<LoopButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Loop");

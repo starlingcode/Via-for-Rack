@@ -1,9 +1,6 @@
 #include "sync3xl.hpp"
-#include "via_module.hpp"
-#include "polyblamp.hpp"
+#include "via-module.hpp"
 #include "osdialog.h"
-
-#include "trs.hpp"
 #include "sync3xlexpand.hpp"
 
 #define SYNC3_OVERSAMPLE_AMOUNT 24
