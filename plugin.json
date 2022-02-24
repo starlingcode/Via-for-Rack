@@ -10,7 +10,7 @@
   "manualUrl": "https://starling.space/via/platform-info#rack",
   "sourceUrl": "https://github.com/starlingcode/Via-for-Rack.git",
   "donateUrl": "https://paypal.me/ssttaarrlliinngg",
-  "changelogUrl": "https://github.com/starlingcode/Via-for-Rack/blob/v1/CHANGELOG.md",
+  "changelogUrl": "https://github.com/starlingcode/Via-for-Rack/blob/v2/CHANGELOG.md",
   "modules": [
     {
       "slug": "META",
@@ -101,7 +101,7 @@
     {
       "slug": "SYNC3XLLEVELS",
       "name": "Sync3XL Levels",
-      "description": "Sync3XL VCA expander",
+      "description": "SYNC3XL VCA expander",
       "tags": [
         "Expander"
       ]

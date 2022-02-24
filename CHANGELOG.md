@@ -1,3 +1,10 @@
+### 2.0.0 (2020-03-08)
+
+- Add SYNC3XL and expander
+- Update SYNC3 and GATESEQ to read binary resource files
+- Add jack tooltips
+- All tooltips to title-case, other minor edits
+
 ### 1.0.1 (2020-03-08)
 
 - Add OSC3 and SYNC3
