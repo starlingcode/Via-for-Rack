@@ -9,6 +9,7 @@ FLAGS += \
 	-I$(EXTERNAL_LIBRARY_DIR)Via/io/inc \
 	-I$(EXTERNAL_LIBRARY_DIR)Via/ui/inc \
 	-I./dep/starling-dsp \
+	-I./dep/starling-rack-ui \
 
 CFLAGS +=
 CXXFLAGS +=

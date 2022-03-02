@@ -155,13 +155,13 @@ struct ScannerWidget : ModuleWidget  {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Scanner::KNOB1_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Scanner::KNOB2_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Scanner::KNOB3_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Scanner::B_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM));
+        addParam(createParam<SifamBlack>(Vec(9.022 + .753, 30.90), module, Scanner::KNOB1_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 30.90), module, Scanner::KNOB2_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 169.89), module, Scanner::KNOB3_PARAM));
+        addParam(createParam<SifamGrey>(Vec(9.022 + .753, 169.89), module, Scanner::B_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM));
+        addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM));
         
         addParam(createParam<TransparentButton>(Vec(21 + .753, 105), module, Scanner::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Scanner::BUTTON2_PARAM));
@@ -173,18 +173,18 @@ struct ScannerWidget : ModuleWidget  {
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Scanner::TRIGBUTTON_PARAM));
 
 
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Scanner::A_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Scanner::B_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Scanner::MAIN_LOGIC_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Scanner::CV1_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Scanner::CV2_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Scanner::CV3_INPUT));
-        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Scanner::AUX_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Scanner::A_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 282.62), module, Scanner::B_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 324.02), module, Scanner::MAIN_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 241.12), module, Scanner::CV1_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 282.62), module, Scanner::CV2_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 324.02), module, Scanner::CV3_INPUT));
+        addInput(createInput<HexJack>(Vec(135 + 1.053, 282.62), module, Scanner::AUX_LOGIC_INPUT));
 
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Scanner::LOGICA_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Scanner::AUX_DAC_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Scanner::MAIN_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Scanner::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 241.12), module, Scanner::LOGICA_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 282.62), module, Scanner::AUX_DAC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 324.02), module, Scanner::MAIN_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(135 + 1.053, 241.12), module, Scanner::AUX_LOGIC_OUTPUT));
 
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Scanner::LED1_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Scanner::LED2_LIGHT));

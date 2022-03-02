@@ -18,7 +18,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
     struct CVButtonQuantity;
     struct IIIButtonQuantity;
     
-    Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/sync3scales.bin")) {
+    Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.sync3")) {
 
         virtualIO = &virtualModule;
 
@@ -380,13 +380,13 @@ struct Sync3Widget : ModuleWidget  {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Sync3::KNOB1_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Sync3::KNOB2_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Sync3::KNOB3_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Sync3::B_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Sync3::CV2AMT_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Sync3::A_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Sync3::CV3AMT_PARAM));
+        addParam(createParam<SifamBlack>(Vec(9.022 + .753, 30.90), module, Sync3::KNOB1_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 30.90), module, Sync3::KNOB2_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 169.89), module, Sync3::KNOB3_PARAM));
+        addParam(createParam<SifamGrey>(Vec(9.022 + .753, 169.89), module, Sync3::B_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Sync3::CV2AMT_PARAM));
+        addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Sync3::A_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Sync3::CV3AMT_PARAM));
         
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 83), module, Sync3::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 90), module, Sync3::BUTTON2_PARAM));
@@ -397,18 +397,18 @@ struct Sync3Widget : ModuleWidget  {
         
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Sync3::TRIGBUTTON_PARAM));
 
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Sync3::A_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Sync3::B_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Sync3::MAIN_LOGIC_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Sync3::CV1_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Sync3::CV2_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Sync3::CV3_INPUT));
-        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Sync3::AUX_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Sync3::A_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 282.62), module, Sync3::B_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 324.02), module, Sync3::MAIN_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 241.12), module, Sync3::CV1_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 282.62), module, Sync3::CV2_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 324.02), module, Sync3::CV3_INPUT));
+        addInput(createInput<HexJack>(Vec(135 + 1.053, 282.62), module, Sync3::AUX_LOGIC_INPUT));
 
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Sync3::LOGICA_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Sync3::AUX_DAC_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Sync3::MAIN_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Sync3::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 241.12), module, Sync3::LOGICA_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 282.62), module, Sync3::AUX_DAC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 324.02), module, Sync3::MAIN_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(135 + 1.053, 241.12), module, Sync3::AUX_LOGIC_OUTPUT));
 
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.9 + .753, 268.5), module, Sync3::LED1_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.8 + .753, 268.5), module, Sync3::LED2_LIGHT));

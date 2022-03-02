@@ -1,4 +1,5 @@
-#include "via-ui.hpp"
+#include "starling.hpp"
+#include "via-params.hpp"
 #include "sync3xlexpand.hpp"
 
 
@@ -115,15 +116,15 @@ struct Sync3XLLevelsWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(30.513, 19.562)), module, Sync3XLLevels::LVL1KNOB_PARAM));
-        addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(30.513, 47.062)), module, Sync3XLLevels::LVL2KNOB_PARAM));
-        addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(30.513, 74.562)), module, Sync3XLLevels::LVL3KNOB_PARAM));
-        addParam(createParamCentered<ViaSifamGrey>(mm2px(Vec(30.513, 102.062)), module, Sync3XLLevels::LVLMIXKNOB_PARAM));
+        addParam(createParamCentered<SifamGrey>(mm2px(Vec(30.513, 19.562)), module, Sync3XLLevels::LVL1KNOB_PARAM));
+        addParam(createParamCentered<SifamGrey>(mm2px(Vec(30.513, 47.062)), module, Sync3XLLevels::LVL2KNOB_PARAM));
+        addParam(createParamCentered<SifamGrey>(mm2px(Vec(30.513, 74.562)), module, Sync3XLLevels::LVL3KNOB_PARAM));
+        addParam(createParamCentered<SifamGrey>(mm2px(Vec(30.513, 102.062)), module, Sync3XLLevels::LVLMIXKNOB_PARAM));
 
-        addInput(createInputCentered<ViaJack>(mm2px(Vec(16.762, 26.438)), module, Sync3XLLevels::LVL1CV_INPUT));
-        addInput(createInputCentered<ViaJack>(mm2px(Vec(16.762, 53.938)), module, Sync3XLLevels::LVL2CV_INPUT));
-        addInput(createInputCentered<ViaJack>(mm2px(Vec(16.762, 81.438)), module, Sync3XLLevels::LVL3CV_INPUT));
-        addInput(createInputCentered<ViaJack>(mm2px(Vec(16.762, 108.938)), module, Sync3XLLevels::LVLMIXCV_INPUT));
+        addInput(createInputCentered<HexJack>(mm2px(Vec(16.762, 26.438)), module, Sync3XLLevels::LVL1CV_INPUT));
+        addInput(createInputCentered<HexJack>(mm2px(Vec(16.762, 53.938)), module, Sync3XLLevels::LVL2CV_INPUT));
+        addInput(createInputCentered<HexJack>(mm2px(Vec(16.762, 81.438)), module, Sync3XLLevels::LVL3CV_INPUT));
+        addInput(createInputCentered<HexJack>(mm2px(Vec(16.762, 108.938)), module, Sync3XLLevels::LVLMIXCV_INPUT));
 
         addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(6.45, 26.438)), module, Sync3XLLevels::LVL1LED_LIGHT));
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(6.45, 26.438)), module, Sync3XLLevels::LVL1LED__LIGHT));
