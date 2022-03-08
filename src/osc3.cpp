@@ -1,6 +1,7 @@
 #include "osc3.hpp"
 #include "via-module.hpp"
 #include "starling-dsp.hpp"
+#include "osdialog.h"
 
 #define OSC3_OVERSAMPLE_AMOUNT 32
 #define OSC3_OVERSAMPLE_QUALITY 6
@@ -17,7 +18,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
     float effectiveSR = 48000.0f;
  
-    Osc3() : Via() {
+    Osc3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.osc3")) {
 
         virtualIO = &virtualModule;
 
@@ -114,6 +115,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
         json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.osc3UI.modeStateBuffer));
         json_object_set_new(rootJ, "optimization", json_integer(optimize));
+        json_object_set_new(rootJ, "scale_file", json_string(scalePath.c_str()));
         
         return rootJ;
     }
@@ -128,7 +130,12 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         virtualModule.osc3UI.loadFromEEPROM(0);
         virtualModule.osc3UI.recallModuleState();
 
+        json_t *pathJ = json_object_get(rootJ, "scale_file");
+        scalePath = json_string_value(pathJ);
+        virtualModule.readScalesFromFile(scalePath);
     }
+
+    std::string scalePath = asset::plugin(pluginInstance, "res/original.osc3");
 
     int32_t optimize = 0;
 
@@ -586,6 +593,24 @@ struct Osc3Widget : ModuleWidget  {
             }
         };
 
+        struct ScaleSetHandler : MenuItem {
+            Osc3 *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readScalesFromFile(pathC);
+                module->scalePath = pathC;
+            }
+        };
+
         menu->addChild(new MenuEntry);
         menu->addChild(createMenuLabel("CPU Mode"));
         const std::string optimization[] = {
@@ -598,6 +623,9 @@ struct Osc3Widget : ModuleWidget  {
             menuItem->optimization = i;
             menu->addChild(menuItem);
         }
+        ScaleSetHandler *menuItem = createMenuItem<ScaleSetHandler>("Select Scale Set File");
+        menuItem->module = module;
+        menu->addChild(menuItem);
 
     }
     
@@ -774,9 +802,9 @@ struct Osc3::DetuneKnobQuantity: ViaKnobQuantity {
 
             chord >>= 12;
 
-            int32_t osc2Note = osc3Module->virtualModule.chords[chord][1];
+            int32_t osc2Note = osc3Module->virtualModule.chords[chord*2 + 1];
 
-            int32_t osc3Note = osc3Module->virtualModule.chords[chord][0];
+            int32_t osc3Note = osc3Module->virtualModule.chords[chord*2];
 
             return "+" + string::f("%d", osc2Note) + ", " + string::f("%d", osc3Note) + " ";
 

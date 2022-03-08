@@ -113,7 +113,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     }
 
-    std::string scalePath = asset::plugin(pluginInstance, "res/sync3scales.bin");
+    std::string scalePath = asset::plugin(pluginInstance, "res/original.sync3");
 
     int32_t optimize = 0;
 
