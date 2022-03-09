@@ -1,6 +1,6 @@
 [submodule "Via"]
 	path = Via
-	url = git@github.com:starlingcode/Via.git
+	url = https://github.com/starlingcode/Via.git
 [submodule "dep/starling-dsp"]
 	path = dep/starling-dsp
 	url = https://github.com/starlingcode/starling-dsp

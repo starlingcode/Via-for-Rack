@@ -125,7 +125,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
 
     }
     
-    std::string patternsPath = asset::plugin(pluginInstance, "res/gateseqpatterns.bin");
+    std::string patternsPath = asset::plugin(pluginInstance, "res/original.gateseq");
 };
 
 void Gateseq::process(const ProcessArgs &args) {
