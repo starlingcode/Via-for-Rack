@@ -1,5 +1,6 @@
 #include "meta.hpp"
 #include "via-module.hpp"
+#include "osdialog.h"
 
 #define META_OVERSAMPLE_AMOUNT 8
 #define META_OVERSAMPLE_QUALITY 6
@@ -19,7 +20,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     ExpoConverter expo;
 
-    Meta() : Via() {
+    Meta() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.meta")) {
         
         virtualIO = &virtualModule;
 
@@ -149,6 +150,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         
         // freq
         json_object_set_new(rootJ, "meta_modes", json_integer(virtualModule.metaUI.modeStateBuffer));
+        json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
 
         return rootJ;
     }
@@ -162,7 +164,12 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         virtualModule.metaUI.loadFromEEPROM(0);
         virtualModule.metaUI.recallModuleState();
 
+        json_t *pathJ = json_object_get(rootJ, "table_file");
+        tablePath = json_string_value(pathJ);
+        virtualModule.readTableSetFromFile(tablePath);
+
     }
+    std::string tablePath = asset::plugin(pluginInstance, "res/original.meta");
     
 };
 
@@ -385,6 +392,28 @@ struct MetaWidget : ModuleWidget  {
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
+        struct TableSetHandler : MenuItem {
+            Meta *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readTableSetFromFile(pathC);
+                module->tablePath = pathC;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        TableSetHandler *tableSetFile = createMenuItem<TableSetHandler>("Select wavetable set");
+        tableSetFile->module = module;
+        menu->addChild(tableSetFile);
     }
 
 };

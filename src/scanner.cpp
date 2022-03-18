@@ -1,5 +1,6 @@
 #include "scanner.hpp"
 #include "via-module.hpp"
+#include "osdialog.h"
 
 #define SCANNER_OVERSAMPLE_AMOUNT 8
 #define SCANNER_OVERSAMPLE_QUALITY 6
@@ -11,7 +12,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     struct MapQuantity;
     struct XWorldQuantity;
     
-    Scanner() : Via() {
+    Scanner() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.scanner")) {
 
         virtualIO = &virtualModule;
 
@@ -98,9 +99,12 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         json_t *rootJ = json_object();
 
         json_object_set_new(rootJ, "scanner_modes", json_integer(virtualModule.scannerUI.modeStateBuffer));
-        
+        json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
+
         return rootJ;
     }
+
+    int32_t testMode;
     
     void dataFromJson(json_t *rootJ) override {
 
@@ -109,8 +113,12 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         virtualModule.scannerUI.loadFromEEPROM(0);
         virtualModule.scannerUI.recallModuleState();
 
+        json_t *pathJ = json_object_get(rootJ, "table_file");
+        tablePath = json_string_value(pathJ);
+        virtualModule.readTableSetFromFile(tablePath);
 
     }
+    std::string tablePath = asset::plugin(pluginInstance, "res/original.scanner");
     
 };
 
@@ -235,6 +243,28 @@ struct ScannerWidget : ModuleWidget  {
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
+        struct TableSetHandler : MenuItem {
+            Scanner *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readTableSetFromFile(pathC);
+                module->tablePath = pathC;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        TableSetHandler *tableSetFile = createMenuItem<TableSetHandler>("Select wavetable set");
+        tableSetFile->module = module;
+        menu->addChild(tableSetFile);
     }
     
 };

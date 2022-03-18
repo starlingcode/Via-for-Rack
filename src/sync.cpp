@@ -1,5 +1,6 @@
 #include "sync.hpp"
 #include "via-module.hpp"
+#include "osdialog.h"
 
 #define SYNC_OVERSAMPLE_AMOUNT 8
 #define SYNC_OVERSAMPLE_QUALITY 6
@@ -18,7 +19,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     struct GroupButtonQuantity;
     struct TableButtonQuantity;
 
-    Sync() : Via() {
+    Sync() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.sync")) {
 
         virtualIO = &virtualModule;
 
@@ -110,6 +111,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         json_t *rootJ = json_object();
         
         json_object_set_new(rootJ, "sync_modes", json_integer(virtualModule.syncUI.modeStateBuffer));
+        json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
         
         return rootJ;
     }
@@ -121,8 +123,12 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         virtualModule.syncUI.loadFromEEPROM(0);
         virtualModule.syncUI.recallModuleState();
 
+        json_t *pathJ = json_object_get(rootJ, "table_file");
+        tablePath = json_string_value(pathJ);
+        virtualModule.readTableSetFromFile(tablePath);
 
     }
+    std::string tablePath = asset::plugin(pluginInstance, "res/original.sync");
 
     void process(const ProcessArgs &args) override {
 
@@ -348,6 +354,29 @@ struct Sync_Widget : ModuleWidget  {
         StockPresetItem *stockPresets = createMenuItem<StockPresetItem>("Stock presets");
         stockPresets->module = module;
         menu->addChild(stockPresets);
+
+        struct TableSetHandler : MenuItem {
+            Sync *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readTableSetFromFile(pathC);
+                module->tablePath = pathC;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        TableSetHandler *tableSetFile = createMenuItem<TableSetHandler>("Select wavetable set");
+        tableSetFile->module = module;
+        menu->addChild(tableSetFile);
 
     }
 
