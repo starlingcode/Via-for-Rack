@@ -17,7 +17,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
     struct CVButtonQuantity;
     struct IIIButtonQuantity;
 
-    Sync3XL() : Via(), virtualModule(asset::plugin(pluginInstance, "res/sync3scales.bin")) {
+    Sync3XL() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.sync3")) {
 
         virtualIO = &virtualModule;
 
@@ -205,7 +205,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     }
 
-    std::string scalePath = asset::plugin(pluginInstance, "res/sync3scales.bin");
+    std::string scalePath = asset::plugin(pluginInstance, "res/original.sync3");
 
     void updateSlowIO(void) override {
 
