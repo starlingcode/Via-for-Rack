@@ -119,14 +119,17 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "sync_modes");
-        virtualModule.syncUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.syncUI.loadFromEEPROM(0);
-        virtualModule.syncUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.syncUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.syncUI.loadFromEEPROM(0);
+            virtualModule.syncUI.recallModuleState();
+        }
 
         json_t *pathJ = json_object_get(rootJ, "table_file");
-        tablePath = json_string_value(pathJ);
-        virtualModule.readTableSetFromFile(tablePath);
-
+        if (pathJ) {
+            tablePath = json_string_value(pathJ);
+            virtualModule.readTableSetFromFile(tablePath);
+        }
     }
     std::string tablePath = asset::plugin(pluginInstance, "res/original.sync");
 

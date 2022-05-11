@@ -194,15 +194,18 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "osc_modes");
-        virtualModule.sync3UI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.sync3UI.loadFromEEPROM(0);
-        virtualModule.sync3UI.recallModuleState();
-        virtualModule.sync3UI.defaultEnterMenuCallback();
+        if (modesJ) {
+            virtualModule.sync3UI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.sync3UI.loadFromEEPROM(0);
+            virtualModule.sync3UI.recallModuleState();
+            virtualModule.sync3UI.defaultEnterMenuCallback();
+        }
 
         json_t *pathJ = json_object_get(rootJ, "scale_file");
-        scalePath = json_string_value(pathJ);
-        virtualModule.readScalesFromFile(scalePath);
-
+        if (pathJ) {
+            scalePath = json_string_value(pathJ);
+            virtualModule.readScalesFromFile(scalePath);
+        }
     }
 
     std::string scalePath = asset::plugin(pluginInstance, "res/original.sync3");

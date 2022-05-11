@@ -160,14 +160,17 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "meta_modes");
-        virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.metaUI.loadFromEEPROM(0);
-        virtualModule.metaUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.metaUI.loadFromEEPROM(0);
+            virtualModule.metaUI.recallModuleState();
+        }
 
         json_t *pathJ = json_object_get(rootJ, "table_file");
-        tablePath = json_string_value(pathJ);
-        virtualModule.readTableSetFromFile(tablePath);
-
+        if (pathJ) {
+            tablePath = json_string_value(pathJ);
+            virtualModule.readTableSetFromFile(tablePath);
+        }
     }
     std::string tablePath = asset::plugin(pluginInstance, "res/original.meta");
     

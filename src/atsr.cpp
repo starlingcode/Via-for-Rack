@@ -127,11 +127,11 @@ struct Atsr : Via<ATSR_OVERSAMPLE_AMOUNT, ATSR_OVERSAMPLE_QUALITY> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "atsr_modes");
-        virtualModule.atsrUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.atsrUI.loadFromEEPROM(0);
-        virtualModule.atsrUI.recallModuleState();
-
-
+        if (modesJ) {
+            virtualModule.atsrUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.atsrUI.loadFromEEPROM(0);
+            virtualModule.atsrUI.recallModuleState();
+        }
     }
 
     void process(const ProcessArgs &args) override;

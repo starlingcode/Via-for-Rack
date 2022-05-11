@@ -109,14 +109,17 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "scanner_modes");
-        virtualModule.scannerUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.scannerUI.loadFromEEPROM(0);
-        virtualModule.scannerUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.scannerUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.scannerUI.loadFromEEPROM(0);
+            virtualModule.scannerUI.recallModuleState();
+        }
 
         json_t *pathJ = json_object_get(rootJ, "table_file");
-        tablePath = json_string_value(pathJ);
-        virtualModule.readTableSetFromFile(tablePath);
-
+        if (pathJ) {
+            tablePath = json_string_value(pathJ);
+            virtualModule.readTableSetFromFile(tablePath);
+        }
     }
     std::string tablePath = asset::plugin(pluginInstance, "res/original.scanner");
     
