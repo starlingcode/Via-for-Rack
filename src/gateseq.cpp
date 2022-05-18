@@ -113,16 +113,19 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "gateseq_modes");
-        virtualModule.gateseqUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.gateseqUI.loadFromEEPROM(0);
-        virtualModule.gateseqUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.gateseqUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.gateseqUI.loadFromEEPROM(0);
+            virtualModule.gateseqUI.recallModuleState();
+        }
 
         json_t *pathJ = json_object_get(rootJ, "patterns_file");
-        patternsPath = json_string_value(pathJ);
-        virtualModule.readPatternsFromFile(patternsPath);
-        virtualModule.handleButton3ModeChange(virtualModule.gateseqUI.button3Mode);
-        virtualModule.handleButton6ModeChange(virtualModule.gateseqUI.button6Mode);
-
+        if (pathJ) {
+            patternsPath = json_string_value(pathJ);
+            virtualModule.readPatternsFromFile(patternsPath);
+            virtualModule.handleButton3ModeChange(virtualModule.gateseqUI.button3Mode);
+            virtualModule.handleButton6ModeChange(virtualModule.gateseqUI.button6Mode);
+        }
     }
     
     std::string patternsPath = asset::plugin(pluginInstance, "res/original.gateseq");

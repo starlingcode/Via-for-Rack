@@ -123,16 +123,22 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *opt = json_object_get(rootJ, "optimization");
-        optimize = json_integer_value(opt);
+        if (opt) {
+            optimize = json_integer_value(opt);            
+        }
 
         json_t *modesJ = json_object_get(rootJ, "osc_modes");
-        virtualModule.osc3UI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.osc3UI.loadFromEEPROM(0);
-        virtualModule.osc3UI.recallModuleState();
+        if (modesJ) {
+            virtualModule.osc3UI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.osc3UI.loadFromEEPROM(0);
+            virtualModule.osc3UI.recallModuleState();
+        }
 
         json_t *pathJ = json_object_get(rootJ, "scale_file");
-        scalePath = json_string_value(pathJ);
-        virtualModule.readScalesFromFile(scalePath);
+        if (pathJ) {
+            scalePath = json_string_value(pathJ);
+            virtualModule.readScalesFromFile(scalePath);
+        }
     }
 
     std::string scalePath = asset::plugin(pluginInstance, "res/original.osc3");
