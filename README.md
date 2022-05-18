@@ -26,7 +26,15 @@ Then, build the plugins:
 make
 ```
 
-## Contributing
+## Contributing / Authors
+
+Authors:
+- [Will Mitchell](github.com/liquidcitymotors)
+- [Jason Nanna](github.com/smrl)
+
+Contributors:
+- [Steve Russell](github.com/SteveRussell33)
+- [Adrian Likins](github.com/alikins)
 
 We welcome Issues and Pull Requests to this repository if you have suggestions for improvement.
 
