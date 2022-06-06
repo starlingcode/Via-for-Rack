@@ -1,12 +1,12 @@
 [submodule "Via"]
 	path = Via
 	url = https://github.com/starlingcode/Via.git
-[submodule "dep/starling-dsp"]
-	path = dep/starling-dsp
-	url = https://github.com/starlingcode/starling-dsp
-[submodule "dep/starling-rack-ui"]
-	path = dep/starling-rack-ui
-	url = https://github.com/starlingcode/starling-rack-ui
 [submodule "res/starling-rack-gfx"]
 	path = res/starling-rack-gfx
 	url = https://github.com/starlingcode/starling-rack-gfx
+[submodule "src/dep/starling-dsp"]
+	path = src/dep/starling-dsp
+	url = https://github.com/starlingcode/starling-dsp
+[submodule "src/dep/starling-rack-ui"]
+	path = src/dep/starling-rack-ui
+	url = https://github.com/starlingcode/starling-rack-ui
