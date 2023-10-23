@@ -7,7 +7,7 @@
 #define SYNC3_OVERSAMPLE_QUALITY 6
 
 struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
-    
+
     struct IRatioQuantity;
     struct IIRatioQuantity;
     struct IIIRatioQuantity;
@@ -28,14 +28,14 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         configParam(CV1AMT_PARAM, -1.f, 1.0, 1.0, "I CV Scale");
         configParam(CV2AMT_PARAM, -1.f, 1.0, 1.0, "II CV Scale");
         configParam(CV3AMT_PARAM, -1.f, 1.0, 1.0, "III CV Scale");
-        
+
         configParam<IButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Oscillator I Shape");
         configParam<RatioButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio Set");
         configParam<IIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Oscillator II Shape");
         configParam<CVButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "CV Mapping");
         configParam<RatioButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Ratio Set");
         configParam<IIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Oscillator III Shape");
-        
+
 		configParam(RES1_PARAM, -5.f, 5.f, 0.f, "I resonance");
 		configParam(FREQ1_PARAM, -5.f, 5.f, 0.f, "I frequency");
 		configParam(MODE1_PARAM, -5.f, 5.f, 0.f, "I filter type");
@@ -72,8 +72,8 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         onSampleRateChange();
         virtualModule.displayRatio();
 
-        rightExpander.producerMessage = new Sync3XLExpand; 
-        rightExpander.consumerMessage = new Sync3XLExpand; 
+        rightExpander.producerMessage = new Sync3XLExpand;
+        rightExpander.consumerMessage = new Sync3XLExpand;
 
     }
 
@@ -178,7 +178,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         } else if (sampleRate == 768000.0) {
             divideAmount = 16;
         }
-        
+
     }
 
     json_t *dataToJson() override {
@@ -187,10 +187,10 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
         json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.sync3UI.modeStateBuffer));
         json_object_set_new(rootJ, "scale_file", json_string(scalePath.c_str()));
-        
+
         return rootJ;
     }
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "osc_modes");
@@ -267,7 +267,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         } else if (!trigState && lastTrigState) {
             virtualIO->mainFallingEdgeCallback();
         }
-        lastTrigState = trigState; 
+        lastTrigState = trigState;
 
         lastLogicIn = thisLogicIn;
 
@@ -290,11 +290,11 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         }
 
         float_4 result = dacDecimator.process(dacDecimatorBuffer);
-        
+
         float dac1Sample = result[0];
         float dac2Sample = result[1];
         float dac3Sample = result[2];
-        
+
         virtualIO->halfTransferCallback();
 
         processOutputs(dac1Sample, dac2Sample, dac3Sample);
@@ -379,7 +379,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             float dac3Output = blampDelay3[0];
             blampDelay3[0] = blampDelay3[1];
             blampDelay3[1] = dac3Sample;
-            dac3Sample = dac3Output + dac3PolyBlamp.process(); 
+            dac3Sample = dac3Output + dac3PolyBlamp.process();
 
         }
 
@@ -427,7 +427,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             float dac1Output = blampDelay1[0];
             blampDelay1[0] = blampDelay1[1];
             blampDelay1[1] = dac1Sample;
-            dac1Sample = dac1Output + dac1PolyBlamp.process(); 
+            dac1Sample = dac1Output + dac1PolyBlamp.process();
 
         }
 
@@ -475,7 +475,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             float dac2Output = blampDelay2[0];
             blampDelay2[0] = blampDelay2[1];
             blampDelay2[1] = dac2Sample;
-            dac2Sample = dac2Output + dac2PolyBlamp.process(); 
+            dac2Sample = dac2Output + dac2PolyBlamp.process();
 
         }
 
@@ -483,7 +483,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         lastDac2Phase = virtualModule.phase4;
         lastDac3Phase = virtualModule.phase2;
 
-        
+
         virtualIO->halfTransferCallback();
 
         processOutputs(dac1Sample, dac2Sample, dac3Sample);
@@ -493,11 +493,11 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         clockDivider = 0;
 
     }
-    
+
     ZDFSVF<float> filters[3];
 
     bool subaudioFilter = 0;
-    
+
     float filterVoltageToCoeff(float voltage) {
 
         float ts = APP->engine->getSampleTime();
@@ -519,16 +519,16 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         return res;
     }
 
-    float processFilterOuts(float modeVoltage, int filterIndex) { 
+    float processFilterOuts(float modeVoltage, int filterIndex) {
         modeVoltage /= 5.f;
         float lpScale = clamp(-modeVoltage, 0.f, 1.f);
         float bpScale =  1.f - clamp(abs(modeVoltage), 0.f, 1.f);
         float hpScale = clamp(modeVoltage, 0.f, 1.f);
-        return filters[filterIndex].lpOut * lpScale + filters[filterIndex].bpOut * bpScale + filters[filterIndex].hpOut * hpScale; 
+        return filters[filterIndex].lpOut * lpScale + filters[filterIndex].bpOut * bpScale + filters[filterIndex].hpOut * hpScale;
     }
 
-    void processOutputs(float dac1, float dac2, float dac3) { 
- 
+    void processOutputs(float dac1, float dac2, float dac3) {
+
         dac1 /= 4095.f;
         dac1 *= 10.f;
         dac1 -= 5.f;
@@ -590,13 +590,13 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             rightExpander.module->leftExpander.messageFlipRequested = true;
         } else {
             outMix = (out1 + out2 + out3)/3;
-        } 
+        }
 
         outputs[OUT1_OUTPUT].setVoltage(out1);
         outputs[OUT2_OUTPUT].setVoltage(out2);
         outputs[OUT3_OUTPUT].setVoltage(out3);
         outputs[OUTMIX_OUTPUT].setVoltage(outMix);
- 
+
         logicOut1 = virtualIO->logicAState;
         logicOut2 = (virtualIO->redLevelOut == 4095);
         logicOut3 = (virtualIO->blueLevelOut == 4095);
@@ -609,7 +609,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
     bool expanderAttached = false;
 
-    void onExpanderChange(const ExpanderChangeEvent& e) override { 
+    void onExpanderChange(const ExpanderChangeEvent& e) override {
         if (rightExpander.module && (rightExpander.module->model == modelSync3XLLevels)) {
             expanderAttached = true;
         } else {
@@ -620,7 +620,7 @@ struct Sync3XL : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
     ~Sync3XL() {
         free(rightExpander.producerMessage);
         free(rightExpander.consumerMessage);
-    }   
+    }
 };
 
 void Sync3XL::process(const ProcessArgs &args) {
@@ -647,11 +647,11 @@ void Sync3XL::process(const ProcessArgs &args) {
         virtualModule.advanceMeasurementTimer();
         virtualModule.advanceTimer1();
         virtualModule.advanceTimer2();
-    
+
         clockDivider = 0;
 
     }
-    
+
 }
 
 
@@ -749,18 +749,28 @@ struct Sync3XLWidget : ModuleWidget {
         };
 
         struct ScaleSetHandler : MenuItem {
-            Sync3XL *module; 
+            Sync3XL *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Sync3XL* module = this->module;
+                async_dialog_filebrowser(false, nullptr, nullptr, "Load Scale", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Sync3XL* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readScalesFromFile(pathC);
                 module->scalePath = pathC;
             }
@@ -796,7 +806,7 @@ struct Sync3XL::IRatioQuantity : ViaKnobQuantity {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
 
-        return string::f("%d", sync3Module->virtualModule.numerator1Alt) + "/" + 
+        return string::f("%d", sync3Module->virtualModule.numerator1Alt) + "/" +
                     string::f("%d", sync3Module->virtualModule.denominator1Select);
 
     }
@@ -809,7 +819,7 @@ struct Sync3XL::IIRatioQuantity : ViaKnobQuantity {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
 
-        return string::f("%i", sync3Module->virtualModule.numerator2Alt) + "/" + 
+        return string::f("%i", sync3Module->virtualModule.numerator2Alt) + "/" +
                     string::f("%i", sync3Module->virtualModule.denominator2Select);
     }
 
@@ -821,7 +831,7 @@ struct Sync3XL::IIIRatioQuantity : ViaKnobQuantity {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
 
-        return string::f("%i", sync3Module->virtualModule.numerator3Alt) + "/" + 
+        return string::f("%i", sync3Module->virtualModule.numerator3Alt) + "/" +
                     string::f("%i", sync3Module->virtualModule.denominator3Select);
     }
 
@@ -836,7 +846,7 @@ struct Sync3XL::IButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
@@ -866,7 +876,7 @@ struct Sync3XL::RatioButtonQuantity : ViaButtonQuantity<8> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
@@ -896,7 +906,7 @@ struct Sync3XL::IIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
@@ -926,7 +936,7 @@ struct Sync3XL::CVButtonQuantity : ViaButtonQuantity<2> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
@@ -956,7 +966,7 @@ struct Sync3XL::IIIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3XL * sync3Module = dynamic_cast<Sync3XL *>(this->module);
@@ -976,4 +986,3 @@ struct Sync3XL::IIIButtonQuantity : ViaButtonQuantity<3> {
     }
 
 };
-
