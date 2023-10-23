@@ -17,7 +17,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
     struct DetuneButtonQuantity;
 
     float effectiveSR = 48000.0f;
- 
+
     Osc3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.osc3")) {
 
         virtualIO = &virtualModule;
@@ -30,14 +30,14 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "2 + 3 Phase CV scale");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator 2 level");
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Detune CV scale");
-        
+
         configParam<OctaveButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Octave offset");
         configParam<WaveshapeButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Waveshape");
         configParam<SHButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Osc1 -> 2 and 3 level SH");
         configParam<OctaveButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "Octave offset");
         configParam<QuantizationButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Quantization");
         configParam<DetuneButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Beat/detune mode");
-        
+
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unity");
 
         configInput(A_INPUT, "Oscillator 2 level");
@@ -106,7 +106,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
             effectiveSR = 48000.0;
             virtualModule.absoluteTune = 45729;
         }
-        
+
     }
 
     json_t *dataToJson() override {
@@ -116,15 +116,15 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.osc3UI.modeStateBuffer));
         json_object_set_new(rootJ, "optimization", json_integer(optimize));
         json_object_set_new(rootJ, "scale_file", json_string(scalePath.c_str()));
-        
+
         return rootJ;
     }
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *opt = json_object_get(rootJ, "optimization");
         if (opt) {
-            optimize = json_integer_value(opt);            
+            optimize = json_integer_value(opt);
         }
 
         json_t *modesJ = json_object_get(rootJ, "osc_modes");
@@ -386,9 +386,9 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
             blampDelay2[1] = dac2Sample;
             blampDelay3[1] = dac3Sample;
 
-            dac1Sample = dac1Output + dac1PolyBlamp.process(); 
-            dac2Sample = dac2Output + dac2PolyBlamp.process(); 
-            dac3Sample = dac3Output + dac3PolyBlamp.process(); 
+            dac1Sample = dac1Output + dac1PolyBlamp.process();
+            dac2Sample = dac2Output + dac2PolyBlamp.process();
+            dac3Sample = dac3Output + dac3PolyBlamp.process();
 
         } else if (virtualModule.osc3UI.button2Mode == 3) {
 
@@ -440,9 +440,9 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
             blampDelay2[1] = dac2Sample;
             blampDelay3[1] = dac3Sample;
 
-            dac1Sample = dac1Output + dac1PolyBlamp.process(); 
-            dac2Sample = dac2Output + dac2PolyBlamp.process(); 
-            dac3Sample = dac3Output + dac3PolyBlamp.process(); 
+            dac1Sample = dac1Output + dac1PolyBlamp.process();
+            dac2Sample = dac2Output + dac2PolyBlamp.process();
+            dac3Sample = dac3Output + dac3PolyBlamp.process();
 
         }
 
@@ -454,7 +454,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         // if (virtualModule.osc3UI.button2Mode == 0) {
         //     if (dac1Sample)
         // }
-        
+
         virtualIO->halfTransferCallback();
 
         // "model" the circuit
@@ -462,7 +462,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         float aIn = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
         float bIn = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : 5.0;
         bIn *= params[B_PARAM].getValue();
-        
+
         // sample and holds
         // get a new sample on the rising edge at the sh control output
         if (virtualIO->shAState > shALast) {
@@ -481,7 +481,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
 
         // VCA/mixing stage
         // normalize 12 bits to 0-1
-        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0));
         outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
         outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
         outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
@@ -491,7 +491,7 @@ struct Osc3 : Via<OSC3_OVERSAMPLE_AMOUNT, OSC3_OVERSAMPLE_AMOUNT> {
         clockDivider = 0;
 
     }
-    
+
 };
 
 void Osc3::process(const ProcessArgs &args) {
@@ -521,7 +521,7 @@ void Osc3::process(const ProcessArgs &args) {
         virtualModule.advanceMeasurementTimer();
 
     }
-    
+
 }
 
 struct Osc3Widget : ModuleWidget  {
@@ -546,14 +546,14 @@ struct Osc3Widget : ModuleWidget  {
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Osc3::CV2AMT_PARAM));
         addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Osc3::A_PARAM));
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Osc3::CV3AMT_PARAM));
-        
+
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 88), module, Osc3::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Osc3::BUTTON2_PARAM));
         addParam(createParam<TransparentButton>(Vec(85 + .753, 90), module, Osc3::BUTTON3_PARAM));
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 129), module, Osc3::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 133.5), module, Osc3::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(85 + .753, 129), module, Osc3::BUTTON6_PARAM));
-        
+
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Osc3::TRIGBUTTON_PARAM));
 
         addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Osc3::A_INPUT));
@@ -600,18 +600,28 @@ struct Osc3Widget : ModuleWidget  {
         };
 
         struct ScaleSetHandler : MenuItem {
-            Osc3 *module; 
+            Osc3 *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Osc3* module = this->module;
+                async_dialog_filebrowser(false, nullptr, nullptr, "Load Scale", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Osc3* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readScalesFromFile(pathC);
                 module->scalePath = pathC;
             }
@@ -634,7 +644,7 @@ struct Osc3Widget : ModuleWidget  {
         menu->addChild(menuItem);
 
     }
-    
+
 };
 
 Model *modelOsc3 = createModel<Osc3, Osc3Widget>("OSC3");
@@ -698,7 +708,7 @@ struct Osc3::FreqKnobQuantity: ViaKnobQuantity {
         rootIncrement >>= 3;
 
         if (osc3Module->virtualModule.osc3UI.button5Mode) {
-            rootIncrement &= 0xFE0; 
+            rootIncrement &= 0xFE0;
         }
 
         rootIncrement = osc3Module->virtualModule.expo.convert(rootIncrement) >> 3;
@@ -710,9 +720,9 @@ struct Osc3::FreqKnobQuantity: ViaKnobQuantity {
         float frequency = osc3Module->effectiveSR * 32 * (rootIncrement/4294967296.0f);
 
         frequency *= pow(2, osc3Module->virtualModule.octaveRange);
-       
-        return frequency;            
-    
+
+        return frequency;
+
     }
     void setDisplayValue(float input) override {
 
@@ -803,7 +813,7 @@ struct Osc3::DetuneKnobQuantity: ViaKnobQuantity {
 
             unit = "Notes";
 
-            int32_t chord = __USAT(((osc3Module->virtualModule.controls.knob3Value << 4)) + 
+            int32_t chord = __USAT(((osc3Module->virtualModule.controls.knob3Value << 4)) +
                 (int32_t) -osc3Module->virtualModule.inputs.cv3Samples[0], 16);
 
             chord >>= 12;
@@ -845,7 +855,7 @@ struct Osc3::OctaveButtonQuantity : ViaButtonQuantity<6> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
@@ -875,7 +885,7 @@ struct Osc3::WaveshapeButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
@@ -905,7 +915,7 @@ struct Osc3::SHButtonQuantity : ViaButtonQuantity<2> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
@@ -935,7 +945,7 @@ struct Osc3::QuantizationButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
@@ -965,7 +975,7 @@ struct Osc3::DetuneButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Osc3 * osc3Module = dynamic_cast<Osc3 *>(this->module);
