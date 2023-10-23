@@ -1,5 +1,6 @@
 #include "scanner.hpp"
 #include "via-module.hpp"
+#include "osdialog.h"
 
 #define SCANNER_OVERSAMPLE_AMOUNT 8
 #define SCANNER_OVERSAMPLE_QUALITY 6
@@ -11,7 +12,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     struct MapQuantity;
     struct XWorldQuantity;
     
-    Scanner() : Via() {
+    Scanner() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.scanner")) {
 
         virtualIO = &virtualModule;
 
@@ -98,19 +99,29 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         json_t *rootJ = json_object();
 
         json_object_set_new(rootJ, "scanner_modes", json_integer(virtualModule.scannerUI.modeStateBuffer));
-        
+        json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
+
         return rootJ;
     }
+
+    int32_t testMode;
     
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "scanner_modes");
-        virtualModule.scannerUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.scannerUI.loadFromEEPROM(0);
-        virtualModule.scannerUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.scannerUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.scannerUI.loadFromEEPROM(0);
+            virtualModule.scannerUI.recallModuleState();
+        }
 
-
+        json_t *pathJ = json_object_get(rootJ, "table_file");
+        if (pathJ) {
+            tablePath = json_string_value(pathJ);
+            virtualModule.readTableSetFromFile(tablePath);
+        }
     }
+    std::string tablePath = asset::plugin(pluginInstance, "res/original.scanner");
     
 };
 
@@ -155,13 +166,13 @@ struct ScannerWidget : ModuleWidget  {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Scanner::KNOB1_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Scanner::KNOB2_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Scanner::KNOB3_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Scanner::B_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM));
+        addParam(createParam<SifamBlack>(Vec(9.022 + .753, 30.90), module, Scanner::KNOB1_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 30.90), module, Scanner::KNOB2_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 169.89), module, Scanner::KNOB3_PARAM));
+        addParam(createParam<SifamGrey>(Vec(9.022 + .753, 169.89), module, Scanner::B_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM));
+        addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM));
         
         addParam(createParam<TransparentButton>(Vec(21 + .753, 105), module, Scanner::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Scanner::BUTTON2_PARAM));
@@ -173,18 +184,18 @@ struct ScannerWidget : ModuleWidget  {
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Scanner::TRIGBUTTON_PARAM));
 
 
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Scanner::A_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Scanner::B_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Scanner::MAIN_LOGIC_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Scanner::CV1_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Scanner::CV2_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Scanner::CV3_INPUT));
-        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Scanner::AUX_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Scanner::A_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 282.62), module, Scanner::B_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 324.02), module, Scanner::MAIN_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 241.12), module, Scanner::CV1_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 282.62), module, Scanner::CV2_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 324.02), module, Scanner::CV3_INPUT));
+        addInput(createInput<HexJack>(Vec(135 + 1.053, 282.62), module, Scanner::AUX_LOGIC_INPUT));
 
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Scanner::LOGICA_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Scanner::AUX_DAC_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Scanner::MAIN_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Scanner::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 241.12), module, Scanner::LOGICA_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 282.62), module, Scanner::AUX_DAC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 324.02), module, Scanner::MAIN_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(135 + 1.053, 241.12), module, Scanner::AUX_LOGIC_OUTPUT));
 
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Scanner::LED1_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Scanner::LED2_LIGHT));
@@ -235,6 +246,28 @@ struct ScannerWidget : ModuleWidget  {
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
+        struct TableSetHandler : MenuItem {
+            Scanner *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readTableSetFromFile(pathC);
+                module->tablePath = pathC;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        TableSetHandler *tableSetFile = createMenuItem<TableSetHandler>("Select wavetable set");
+        tableSetFile->module = module;
+        menu->addChild(tableSetFile);
     }
     
 };

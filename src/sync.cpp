@@ -1,5 +1,6 @@
 #include "sync.hpp"
 #include "via-module.hpp"
+#include "osdialog.h"
 
 #define SYNC_OVERSAMPLE_AMOUNT 8
 #define SYNC_OVERSAMPLE_QUALITY 6
@@ -18,7 +19,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     struct GroupButtonQuantity;
     struct TableButtonQuantity;
 
-    Sync() : Via() {
+    Sync() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.sync")) {
 
         virtualIO = &virtualModule;
 
@@ -110,6 +111,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         json_t *rootJ = json_object();
         
         json_object_set_new(rootJ, "sync_modes", json_integer(virtualModule.syncUI.modeStateBuffer));
+        json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
         
         return rootJ;
     }
@@ -117,12 +119,19 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "sync_modes");
-        virtualModule.syncUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.syncUI.loadFromEEPROM(0);
-        virtualModule.syncUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.syncUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.syncUI.loadFromEEPROM(0);
+            virtualModule.syncUI.recallModuleState();
+        }
 
-
+        json_t *pathJ = json_object_get(rootJ, "table_file");
+        if (pathJ) {
+            tablePath = json_string_value(pathJ);
+            virtualModule.readTableSetFromFile(tablePath);
+        }
     }
+    std::string tablePath = asset::plugin(pluginInstance, "res/original.sync");
 
     void process(const ProcessArgs &args) override {
 
@@ -177,13 +186,13 @@ struct Sync_Widget : ModuleWidget  {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Sync::KNOB1_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Sync::KNOB2_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Sync::KNOB3_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Sync::B_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Sync::CV2AMT_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Sync::A_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Sync::CV3AMT_PARAM));
+        addParam(createParam<SifamBlack>(Vec(9.022 + .753, 30.90), module, Sync::KNOB1_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 30.90), module, Sync::KNOB2_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 169.89), module, Sync::KNOB3_PARAM));
+        addParam(createParam<SifamGrey>(Vec(9.022 + .753, 169.89), module, Sync::B_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Sync::CV2AMT_PARAM));
+        addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Sync::A_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Sync::CV3AMT_PARAM));
         
         addParam(createParam<TransparentButton>(Vec(7 + .753, 82), module, Sync::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(48 + .753, 79.5), module, Sync::BUTTON2_PARAM));
@@ -194,18 +203,18 @@ struct Sync_Widget : ModuleWidget  {
         
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Sync::TRIGBUTTON_PARAM));
 
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Sync::A_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Sync::B_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Sync::MAIN_LOGIC_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Sync::CV1_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Sync::CV2_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Sync::CV3_INPUT));
-        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Sync::AUX_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Sync::A_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 282.62), module, Sync::B_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 324.02), module, Sync::MAIN_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 241.12), module, Sync::CV1_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 282.62), module, Sync::CV2_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 324.02), module, Sync::CV3_INPUT));
+        addInput(createInput<HexJack>(Vec(135 + 1.053, 282.62), module, Sync::AUX_LOGIC_INPUT));
 
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Sync::LOGICA_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Sync::AUX_DAC_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Sync::MAIN_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Sync::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 241.12), module, Sync::LOGICA_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 282.62), module, Sync::AUX_DAC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 324.02), module, Sync::MAIN_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(135 + 1.053, 241.12), module, Sync::AUX_LOGIC_OUTPUT));
 
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Sync::LED1_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.7 + .753, 268.5), module, Sync::LED2_LIGHT));
@@ -348,6 +357,29 @@ struct Sync_Widget : ModuleWidget  {
         StockPresetItem *stockPresets = createMenuItem<StockPresetItem>("Stock presets");
         stockPresets->module = module;
         menu->addChild(stockPresets);
+
+        struct TableSetHandler : MenuItem {
+            Sync *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readTableSetFromFile(pathC);
+                module->tablePath = pathC;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        TableSetHandler *tableSetFile = createMenuItem<TableSetHandler>("Select wavetable set");
+        tableSetFile->module = module;
+        menu->addChild(tableSetFile);
 
     }
 

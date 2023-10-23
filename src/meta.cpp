@@ -1,5 +1,6 @@
 #include "meta.hpp"
 #include "via-module.hpp"
+#include "osdialog.h"
 
 #define META_OVERSAMPLE_AMOUNT 8
 #define META_OVERSAMPLE_QUALITY 6
@@ -19,7 +20,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
 
     ExpoConverter expo;
 
-    Meta() : Via() {
+    Meta() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.meta")) {
         
         virtualIO = &virtualModule;
 
@@ -149,6 +150,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         
         // freq
         json_object_set_new(rootJ, "meta_modes", json_integer(virtualModule.metaUI.modeStateBuffer));
+        json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
 
         return rootJ;
     }
@@ -158,11 +160,19 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "meta_modes");
-        virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
-        virtualModule.metaUI.loadFromEEPROM(0);
-        virtualModule.metaUI.recallModuleState();
+        if (modesJ) {
+            virtualModule.metaUI.modeStateBuffer = json_integer_value(modesJ);
+            virtualModule.metaUI.loadFromEEPROM(0);
+            virtualModule.metaUI.recallModuleState();
+        }
 
+        json_t *pathJ = json_object_get(rootJ, "table_file");
+        if (pathJ) {
+            tablePath = json_string_value(pathJ);
+            virtualModule.readTableSetFromFile(tablePath);
+        }
     }
+    std::string tablePath = asset::plugin(pluginInstance, "res/original.meta");
     
 };
 
@@ -228,13 +238,13 @@ struct MetaWidget : ModuleWidget  {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParam<ViaSifamBlack>(Vec(9.022 + .753, 30.90), module, Meta::KNOB1_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 30.90), module, Meta::KNOB2_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(68.53 + .753, 169.89), module, Meta::KNOB3_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(9.022 + .753, 169.89), module, Meta::B_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 30.90), module, Meta::CV2AMT_PARAM));
-        addParam(createParam<ViaSifamGrey>(Vec(128.04 + .753, 100.4), module, Meta::A_PARAM));
-        addParam(createParam<ViaSifamBlack>(Vec(128.04 + .753, 169.89), module, Meta::CV3AMT_PARAM));
+        addParam(createParam<SifamBlack>(Vec(9.022 + .753, 30.90), module, Meta::KNOB1_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 30.90), module, Meta::KNOB2_PARAM));
+        addParam(createParam<SifamBlack>(Vec(68.53 + .753, 169.89), module, Meta::KNOB3_PARAM));
+        addParam(createParam<SifamGrey>(Vec(9.022 + .753, 169.89), module, Meta::B_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Meta::CV2AMT_PARAM));
+        addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Meta::A_PARAM));
+        addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Meta::CV3AMT_PARAM));
         
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 80), module, Meta::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Meta::BUTTON2_PARAM));
@@ -245,18 +255,18 @@ struct MetaWidget : ModuleWidget  {
         
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Meta::TRIGBUTTON_PARAM));
 
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 241.12), module, Meta::A_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 282.62), module, Meta::B_INPUT));
-        addInput(createInput<ViaJack>(Vec(8.07 + 1.053, 324.02), module, Meta::MAIN_LOGIC_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 241.12), module, Meta::CV1_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 282.62), module, Meta::CV2_INPUT));
-        addInput(createInput<ViaJack>(Vec(45.75 + 1.053, 324.02), module, Meta::CV3_INPUT));
-        addInput(createInput<ViaJack>(Vec(135 + 1.053, 282.62), module, Meta::AUX_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Meta::A_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 282.62), module, Meta::B_INPUT));
+        addInput(createInput<HexJack>(Vec(8.07 + 1.053, 324.02), module, Meta::MAIN_LOGIC_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 241.12), module, Meta::CV1_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 282.62), module, Meta::CV2_INPUT));
+        addInput(createInput<HexJack>(Vec(45.75 + 1.053, 324.02), module, Meta::CV3_INPUT));
+        addInput(createInput<HexJack>(Vec(135 + 1.053, 282.62), module, Meta::AUX_LOGIC_INPUT));
 
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 241.12), module, Meta::LOGICA_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 282.62), module, Meta::AUX_DAC_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(83.68 + 1.053, 324.02), module, Meta::MAIN_OUTPUT));
-        addOutput(createOutput<ViaJack>(Vec(135 + 1.053, 241.12), module, Meta::AUX_LOGIC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 241.12), module, Meta::LOGICA_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 282.62), module, Meta::AUX_DAC_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(83.68 + 1.053, 324.02), module, Meta::MAIN_OUTPUT));
+        addOutput(createOutput<HexJack>(Vec(135 + 1.053, 241.12), module, Meta::AUX_LOGIC_OUTPUT));
 
         addChild(createLight<MediumLight<WhiteLight>>(Vec(35.8 + .753, 268.5), module, Meta::LED1_LIGHT));
         addChild(createLight<MediumLight<WhiteLight>>(Vec(73.1 + .753, 268.5), module, Meta::LED2_LIGHT));
@@ -385,6 +395,28 @@ struct MetaWidget : ModuleWidget  {
         stockPresets->module = module;
         menu->addChild(stockPresets);
 
+        struct TableSetHandler : MenuItem {
+            Meta *module; 
+            void onAction(const event::Action &e) override {
+             
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
+                if (!pathC) { 
+                    // Fail silently 
+                    return; 
+                } 
+                DEFER({ 
+                    std::free(pathC); 
+                }); 
+             
+                module->virtualModule.readTableSetFromFile(pathC);
+                module->tablePath = pathC;
+            }
+        };
+
+        menu->addChild(new MenuEntry);
+        TableSetHandler *tableSetFile = createMenuItem<TableSetHandler>("Select wavetable set");
+        tableSetFile->module = module;
+        menu->addChild(tableSetFile);
     }
 
 };

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "via-ui.hpp"
+#include "starling.hpp"
+#include "via-params.hpp"
 #include "via-virtual-module.hpp"
 #include "starling-dsp.hpp"
 

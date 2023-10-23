@@ -1,4 +1,8 @@
-### 2.0.0 (2020-03-08)
+### 2.0.1 (2022-11-14)
+
+- Fix problem with resource file loading on Windows that was causing crashes
+
+### 2.0.0 (2022-06-19)
 
 - Add SYNC3XL and expander
 - Update SYNC3 and GATESEQ to read binary resource files
