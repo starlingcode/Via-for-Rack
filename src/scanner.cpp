@@ -11,7 +11,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     struct YWorldQuantity;
     struct MapQuantity;
     struct XWorldQuantity;
-    
+
     Scanner() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.scanner")) {
 
         virtualIO = &virtualModule;
@@ -26,14 +26,14 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "A level");
         paramQuantities[A_PARAM]->description = "Main scan out is bounded between A and B levels";
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Y input attenuation");
-        
+
         configParam<JumpQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "JUMP input response");
         configParam<YWorldQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Y scan world");
         configParam<MapQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Map creation function");
         configParam<XWorldQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "X scan world");
         configParam<YWorldQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Y scan world");
         configParam<XWorldQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "X scan world");
-        
+
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Unused");
 
         configInput(A_INPUT, "A");
@@ -59,7 +59,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         presetData[3] = virtualModule.scannerUI.stockPreset4;
         presetData[4] = virtualModule.scannerUI.stockPreset5;
         presetData[5] = virtualModule.scannerUI.stockPreset6;
-        
+
     }
     void step() override;
 
@@ -69,7 +69,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         float sampleRate = APP->engine->getSampleRate();
 
         ledDecay = 16.0/sampleRate;
-        
+
         if (sampleRate == 44100.0) {
             divideAmount = 1;
         } else if (sampleRate == 48000.0) {
@@ -91,7 +91,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         } else if (sampleRate == 768000.0) {
             divideAmount = 16;
         }
-        
+
     }
 
     json_t *dataToJson() override {
@@ -105,7 +105,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
     }
 
     int32_t testMode;
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "scanner_modes");
@@ -122,7 +122,7 @@ struct Scanner : Via<SCANNER_OVERSAMPLE_AMOUNT, SCANNER_OVERSAMPLE_QUALITY> {
         }
     }
     std::string tablePath = asset::plugin(pluginInstance, "res/original.scanner");
-    
+
 };
 
 void Scanner::step() {
@@ -147,7 +147,7 @@ void Scanner::step() {
 
         updateAudioRate();
     }
-    
+
 }
 
 struct ScannerWidget : ModuleWidget  {
@@ -173,14 +173,14 @@ struct ScannerWidget : ModuleWidget  {
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Scanner::CV2AMT_PARAM));
         addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Scanner::A_PARAM));
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Scanner::CV3AMT_PARAM));
-        
+
         addParam(createParam<TransparentButton>(Vec(21 + .753, 105), module, Scanner::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Scanner::BUTTON2_PARAM));
         addParam(createParam<TransparentButton>(Vec(75 + .753, 105), module, Scanner::BUTTON6_PARAM));
         addParam(createParam<TransparentButton>(Vec(7 + .753, 142), module, Scanner::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 131.5), module, Scanner::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(89 + .753, 142), module, Scanner::BUTTON3_PARAM));
-        
+
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Scanner::TRIGBUTTON_PARAM));
 
 
@@ -247,18 +247,28 @@ struct ScannerWidget : ModuleWidget  {
         menu->addChild(stockPresets);
 
         struct TableSetHandler : MenuItem {
-            Scanner *module; 
+            Scanner *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Scanner* module = this->module;
+                async_dialog_filebrowser(false, NULL, NULL, "Load Wavetable", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Scanner* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readTableSetFromFile(pathC);
                 module->tablePath = pathC;
             }
@@ -269,7 +279,7 @@ struct ScannerWidget : ModuleWidget  {
         tableSetFile->module = module;
         menu->addChild(tableSetFile);
     }
-    
+
 };
 
 Model *modelScanner = createModel<Scanner, ScannerWidget>("SCANNER");
@@ -285,7 +295,7 @@ struct Scanner::JumpQuantity : ViaButtonQuantity<2> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
@@ -326,7 +336,7 @@ struct Scanner::YWorldQuantity : ViaButtonQuantity<8> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
@@ -360,7 +370,7 @@ struct Scanner::MapQuantity : ViaButtonQuantity<8> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);
@@ -401,7 +411,7 @@ struct Scanner::XWorldQuantity : ViaButtonQuantity<8> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Scanner * scannerModule = dynamic_cast<Scanner *>(this->module);

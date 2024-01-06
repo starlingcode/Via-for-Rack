@@ -19,7 +19,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
     struct ModulationQuantity;
     struct ModulationCVQuantity;
     struct ButtonQuantity;
-    
+
     Gateseq() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.gateseq")) {
 
         virtualIO = &virtualModule;
@@ -32,14 +32,14 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "Pattern I modulation CV amount");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Pattern I gate level");
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Pattern II density CV amount");
-        
+
         configParam<SHIButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I S+H control");
         configParam<GateIButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "A channel/ PTN I gate control");
         configParam<SeqIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Pattern I mode");
         configParam<SHIIButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II S+H control");
         configParam<GateIIButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "B channel/ PTN II gate control");
         configParam<SeqIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Pattern II patterns");
-        
+
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Pattern reset");
 
         configInput(A_INPUT, "A");
@@ -64,7 +64,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         presetData[4] = virtualModule.gateseqUI.stockPreset5;
         presetData[5] = virtualModule.gateseqUI.stockPreset6;
     }
-    
+
     void process(const ProcessArgs &args) override;
 
     ViaGateseq virtualModule;
@@ -96,20 +96,20 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
         } else if (sampleRate == 768000.0) {
             virtualModule.sequencer.virtualTimer4Overflow = 768;
         }
-        
+
     }
 
     json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
-        
+
         json_object_set_new(rootJ, "gateseq_modes", json_integer(virtualModule.gateseqUI.modeStateBuffer));
         json_object_set_new(rootJ, "logic_mode", json_integer((int) virtualModule.gateseqUI.aux2Mode));
-     
+
         json_object_set_new(rootJ, "patterns_file", json_string(patternsPath.c_str()));
         return rootJ;
     }
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "gateseq_modes");
@@ -127,7 +127,7 @@ struct Gateseq : Via<GATESEQ_OVERSAMPLE_AMOUNT, GATESEQ_OVERSAMPLE_QUALITY>  {
             virtualModule.handleButton6ModeChange(virtualModule.gateseqUI.button6Mode);
         }
     }
-    
+
     std::string patternsPath = asset::plugin(pluginInstance, "res/original.gateseq");
 };
 
@@ -180,7 +180,7 @@ void Gateseq::process(const ProcessArgs &args) {
     // A and B inputs with normalled reference voltages
     float aIn = inputs[A_INPUT].getVoltage() + (!inputs[A_INPUT].isConnected()) * params[A_PARAM].getValue();
     float bIn = (inputs[B_INPUT].isConnected()) * ((inputs[B_INPUT].getVoltage()) * (params[B_PARAM].getValue())) + (!inputs[B_INPUT].isConnected()) * (5* (params[B_PARAM].getValue()));
-    
+
     // sample and holds
     // get a new sample on the rising edge at the sh control output
     if (virtualIO->shAState > shALast) {
@@ -199,13 +199,13 @@ void Gateseq::process(const ProcessArgs &args) {
 
     // VCA/mixing stage
     // normalize 12 bits to 0-1
-    outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+    outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0));
     outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
     outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
     outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
 
     clockDivider = 0;
-    
+
 }
 
 struct GateseqWidget : ModuleWidget  {
@@ -230,14 +230,14 @@ struct GateseqWidget : ModuleWidget  {
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Gateseq::CV2AMT_PARAM));
         addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Gateseq::A_PARAM));
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Gateseq::CV3AMT_PARAM));
-        
+
         addParam(createParam<TransparentButton>(Vec(8 + .753, 85), module, Gateseq::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(48 + .753, 85), module, Gateseq::BUTTON2_PARAM));
         addParam(createParam<TransparentButton>(Vec(86 + .753, 85), module, Gateseq::BUTTON3_PARAM));
         addParam(createParam<TransparentButton>(Vec(8 + .753, 139), module, Gateseq::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(48 + .753, 139), module, Gateseq::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(86 + .753, 139), module, Gateseq::BUTTON6_PARAM));
-        
+
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Gateseq::TRIGBUTTON_PARAM));
 
         addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Gateseq::A_INPUT));
@@ -329,18 +329,28 @@ struct GateseqWidget : ModuleWidget  {
         menu->addChild(stockPresets);
 
         struct ScaleSetHandler : MenuItem {
-            Gateseq *module; 
+            Gateseq *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Gateseq* module = this->module;
+                async_dialog_filebrowser(false, NULL, NULL, "Load Bank", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Gateseq* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readPatternsFromFile(pathC);
                 module->virtualModule.handleButton3ModeChange(module->virtualModule.gateseqUI.button3Mode);
                 module->virtualModule.handleButton6ModeChange(module->virtualModule.gateseqUI.button6Mode);
@@ -376,8 +386,8 @@ struct Gateseq::PatternIQuantity : ViaKnobQuantity {
             }
         }
 
-        return 1 + (gateseqModule->virtualModule.controls.knob1Value >> 8);            
-    
+        return 1 + (gateseqModule->virtualModule.controls.knob1Value >> 8);
+
     }
     float translateInput(float userInput) override {
 
@@ -407,8 +417,8 @@ struct Gateseq::PatternIModQuantity : ViaKnobQuantity {
             return ((swing/65535.0) + 0.25) * 100.0;
         } else {
             return gateseqModule->virtualModule.controls.knob2Value >> 9;
-        }            
-    
+        }
+
     }
     float translateInput(float userInput) override {
 
@@ -476,8 +486,8 @@ struct Gateseq::PatternIIQuantity : ViaKnobQuantity {
             }
         }
 
-        return 1 + (gateseqModule->virtualModule.controls.knob3Value >> 8);            
-    
+        return 1 + (gateseqModule->virtualModule.controls.knob3Value >> 8);
+
     }
     float translateInput(float userInput) override {
 
@@ -496,7 +506,7 @@ struct Gateseq::SHIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
@@ -526,7 +536,7 @@ struct Gateseq::GateIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
@@ -556,7 +566,7 @@ struct Gateseq::SeqIButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
@@ -580,13 +590,13 @@ struct Gateseq::SeqIButtonQuantity : ViaButtonQuantity<4> {
 struct Gateseq::SHIIButtonQuantity : ViaButtonQuantity<3> {
 
     std::string buttonModes[3] = {"Off", "Sample and hold during gate", "Resample on rising edge"};
-    
+
     SHIIButtonQuantity() {
         for (int i = 0; i < 3; i++) {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
@@ -616,7 +626,7 @@ struct Gateseq::GateIIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
@@ -646,7 +656,7 @@ struct Gateseq::SeqIIButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Gateseq * gateseqModule = dynamic_cast<Gateseq *>(this->module);
@@ -675,7 +685,7 @@ struct Gateseq::ModulationQuantity : ParamQuantity {
 
         Gateseq * gateseqModule = (Gateseq *) module;
 
-        return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];                
+        return modes[gateseqModule->virtualModule.gateseqUI.button3Mode];
 
     }
 

@@ -33,7 +33,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, -5.0, "Manual A input");
         paramQuantities[A_PARAM]->description = "Main output is bounded between A and B levels";
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV amount");
-        
+
         configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H at A and B inputs");
         configParam<ScaleButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio grid");
         configParam<ModButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "MOD CV destination");
@@ -41,7 +41,7 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         configParam<GroupButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Group");
         paramQuantities[BUTTON5_PARAM]->description = "Purpose specific set of scales and waves";
         configParam<TableButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Wavetable");
-        
+
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
 
         configInput(A_INPUT, "A");
@@ -109,13 +109,13 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
     json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
-        
+
         json_object_set_new(rootJ, "sync_modes", json_integer(virtualModule.syncUI.modeStateBuffer));
         json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
-        
+
         return rootJ;
     }
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "sync_modes");
@@ -166,9 +166,9 @@ struct Sync : Via<SYNC_OVERSAMPLE_AMOUNT, SYNC_OVERSAMPLE_QUALITY> {
         virtualModule.advanceMeasurementTimer();
 
         }
-    
+
     }
-    
+
 };
 
 struct Sync_Widget : ModuleWidget  {
@@ -193,14 +193,14 @@ struct Sync_Widget : ModuleWidget  {
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Sync::CV2AMT_PARAM));
         addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Sync::A_PARAM));
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Sync::CV3AMT_PARAM));
-        
+
         addParam(createParam<TransparentButton>(Vec(7 + .753, 82), module, Sync::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(48 + .753, 79.5), module, Sync::BUTTON2_PARAM));
         addParam(createParam<TransparentButton>(Vec(88.5 + .753, 82), module, Sync::BUTTON3_PARAM));
         addParam(createParam<TransparentButton>(Vec(7 + .753, 136.5), module, Sync::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(48 + .753, 135.5), module, Sync::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(88.5 + .753, 136.5), module, Sync::BUTTON6_PARAM));
-        
+
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Sync::TRIGBUTTON_PARAM));
 
         addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Sync::A_INPUT));
@@ -320,7 +320,7 @@ struct Sync_Widget : ModuleWidget  {
             aux4Item->mode = i;
             menu->addChild(aux4Item);
         }
-        
+
         struct PresetRecallItem : MenuItem {
             Sync *module;
             int preset;
@@ -359,18 +359,28 @@ struct Sync_Widget : ModuleWidget  {
         menu->addChild(stockPresets);
 
         struct TableSetHandler : MenuItem {
-            Sync *module; 
+            Sync *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Sync* module = this->module;
+                async_dialog_filebrowser(false, NULL, NULL, "Load Wavetable", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Sync* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readTableSetFromFile(pathC);
                 module->tablePath = pathC;
             }
@@ -391,7 +401,7 @@ Model *modelSync = createModel<Sync, Sync_Widget>("SYNC");
 // Tooltip definitions
 
 struct Sync::RatioXQuantity : ViaKnobQuantity {
-    
+
     float translateParameter(float value) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -428,8 +438,8 @@ struct Sync::RatioXQuantity : ViaKnobQuantity {
 //        }
 
 
-        return xIndex;         
-    
+        return xIndex;
+
     }
     float translateInput(float userInput) override {
 
@@ -442,7 +452,7 @@ struct Sync::RatioXQuantity : ViaKnobQuantity {
 };
 
 struct Sync::RatioYQuantity : ViaKnobQuantity {
-    
+
     float translateParameter(float value) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -478,8 +488,8 @@ struct Sync::RatioYQuantity : ViaKnobQuantity {
 //            description = "Frequency ratio: " + std::to_string(numerator) + "/" + std::to_string(denominator) + "\n";
 //        }
 
-        return yIndex;            
-    
+        return yIndex;
+
     }
     float translateInput(float userInput) override {
 
@@ -492,13 +502,13 @@ struct Sync::RatioYQuantity : ViaKnobQuantity {
 };
 
 struct Sync::WaveshapeQuantity : ViaKnobQuantity {
-    
+
     float translateParameter(float value) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
 
-        return syncModule->virtualModule.syncWavetable.tableSize * value/4095.0;            
-    
+        return syncModule->virtualModule.syncWavetable.tableSize * value/4095.0;
+
     }
     float translateInput(float userInput) override {
 
@@ -529,7 +539,7 @@ struct Sync::SHButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -562,7 +572,7 @@ struct Sync::ScaleButtonQuantity : ViaComplexButtonQuantity {
         modes = buttonModes[0];
         numModes = 4;
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -602,7 +612,7 @@ struct Sync::ModButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -632,7 +642,7 @@ struct Sync::SyncButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -667,7 +677,7 @@ struct Sync::GroupButtonQuantity : ViaButtonQuantity<4> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);
@@ -705,7 +715,7 @@ struct Sync::TableButtonQuantity : ViaComplexButtonQuantity {
         modes = buttonModes[0];
         numModes = 4;
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync * syncModule = dynamic_cast<Sync *>(this->module);

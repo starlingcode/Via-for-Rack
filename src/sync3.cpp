@@ -17,7 +17,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
     struct IIButtonQuantity;
     struct CVButtonQuantity;
     struct IIIButtonQuantity;
-    
+
     Sync3() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.sync3")) {
 
         virtualIO = &virtualModule;
@@ -30,14 +30,14 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         configParam<CV2ScaleQuantity>(CV2AMT_PARAM, 0, 1.0, 1.0, "II CV scale");
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, 5.0, "Oscillator II level", "V");
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "III CV scale");
-        
+
         configParam<IButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "Oscillator I shape");
         configParam<RatioButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Ratio set");
         configParam<IIButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Oscillator II shape");
         configParam<CVButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "CV mapping");
         configParam<RatioButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Ratio set");
         configParam<IIIButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Oscillator III shape");
-        
+
         configParam(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Tap tempo");
 
         configInput(A_INPUT, "Oscillator II level");
@@ -86,7 +86,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         } else if (sampleRate == 768000.0) {
             divideAmount = 16;
         }
-        
+
     }
 
     json_t *dataToJson() override {
@@ -95,10 +95,10 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
         json_object_set_new(rootJ, "osc_modes", json_integer(virtualModule.sync3UI.modeStateBuffer));
         json_object_set_new(rootJ, "scale_file", json_string(scalePath.c_str()));
-        
+
         return rootJ;
     }
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "osc_modes");
@@ -194,7 +194,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             float dac3Output = blampDelay3[0];
             blampDelay3[0] = blampDelay3[1];
             blampDelay3[1] = dac3Sample;
-            dac3Sample = dac3Output + dac3PolyBlamp.process(); 
+            dac3Sample = dac3Output + dac3PolyBlamp.process();
 
         }
 
@@ -242,7 +242,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             float dac1Output = blampDelay1[0];
             blampDelay1[0] = blampDelay1[1];
             blampDelay1[1] = dac1Sample;
-            dac1Sample = dac1Output + dac1PolyBlamp.process(); 
+            dac1Sample = dac1Output + dac1PolyBlamp.process();
 
         }
 
@@ -290,7 +290,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
             float dac2Output = blampDelay2[0];
             blampDelay2[0] = blampDelay2[1];
             blampDelay2[1] = dac2Sample;
-            dac2Sample = dac2Output + dac2PolyBlamp.process(); 
+            dac2Sample = dac2Output + dac2PolyBlamp.process();
 
         }
 
@@ -298,7 +298,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         lastDac2Phase = virtualModule.phase4;
         lastDac3Phase = virtualModule.phase2;
 
-        
+
         virtualIO->halfTransferCallback();
 
         // "model" the circuit
@@ -306,7 +306,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         float aIn = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
         float bIn = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : 5.0;
         bIn *= params[B_PARAM].getValue();
-        
+
         // sample and holds
         // get a new sample on the rising edge at the sh control output
         if (virtualIO->shAState > shALast) {
@@ -325,7 +325,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
 
         // VCA/mixing stage
         // normalize 12 bits to 0-1
-        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0)); 
+        outputs[MAIN_OUTPUT].setVoltage(bIn*(dac2Sample/4095.0) + aIn*(dac1Sample/4095.0));
         outputs[AUX_DAC_OUTPUT].setVoltage((dac3Sample/4095.0 - .5) * -10.666666666);
         outputs[LOGICA_OUTPUT].setVoltage(virtualIO->logicAState * 5.0);
         outputs[AUX_LOGIC_OUTPUT].setVoltage(virtualIO->auxLogicState * 5.0);
@@ -335,7 +335,7 @@ struct Sync3 : Via<SYNC3_OVERSAMPLE_AMOUNT, SYNC3_OVERSAMPLE_AMOUNT> {
         clockDivider = 0;
 
     }
-    
+
 };
 
 void Sync3::process(const ProcessArgs &args) {
@@ -365,7 +365,7 @@ void Sync3::process(const ProcessArgs &args) {
         virtualModule.advanceTimer2();
 
     }
-    
+
 }
 
 struct Sync3Widget : ModuleWidget  {
@@ -390,14 +390,14 @@ struct Sync3Widget : ModuleWidget  {
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Sync3::CV2AMT_PARAM));
         addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Sync3::A_PARAM));
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Sync3::CV3AMT_PARAM));
-        
+
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 83), module, Sync3::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 90), module, Sync3::BUTTON2_PARAM));
         addParam(createParam<TransparentButton>(Vec(83 + .753, 83), module, Sync3::BUTTON3_PARAM));
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 133), module, Sync3::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 129.5), module, Sync3::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(83 + .753, 133), module, Sync3::BUTTON6_PARAM));
-        
+
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Sync3::TRIGBUTTON_PARAM));
 
         addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Sync3::A_INPUT));
@@ -444,18 +444,28 @@ struct Sync3Widget : ModuleWidget  {
         };
 
         struct ScaleSetHandler : MenuItem {
-            Sync3 *module; 
+            Sync3 *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Sync3* module = this->module;
+                async_dialog_filebrowser(false, NULL, NULL, "Load Scale", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Sync3* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readScalesFromFile(pathC);
                 module->scalePath = pathC;
             }
@@ -477,7 +487,7 @@ struct Sync3Widget : ModuleWidget  {
         menu->addChild(menuItem);
 
     }
-    
+
 };
 
 Model *modelSync3 = createModel<Sync3, Sync3Widget>("SYNC3");
@@ -490,7 +500,7 @@ struct Sync3::IRatioQuantity : ViaKnobQuantity {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
 
-        return string::f("%d", sync3Module->virtualModule.numerator1Alt) + "/" + 
+        return string::f("%d", sync3Module->virtualModule.numerator1Alt) + "/" +
                     string::f("%d", sync3Module->virtualModule.denominator1Select);
 
     }
@@ -503,7 +513,7 @@ struct Sync3::IIRatioQuantity : ViaKnobQuantity {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
 
-        return string::f("%i", sync3Module->virtualModule.numerator2Alt) + "/" + 
+        return string::f("%i", sync3Module->virtualModule.numerator2Alt) + "/" +
                     string::f("%i", sync3Module->virtualModule.denominator2Select);
     }
 
@@ -515,7 +525,7 @@ struct Sync3::IIIRatioQuantity : ViaKnobQuantity {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
 
-        return string::f("%i", sync3Module->virtualModule.numerator3Alt) + "/" + 
+        return string::f("%i", sync3Module->virtualModule.numerator3Alt) + "/" +
                     string::f("%i", sync3Module->virtualModule.denominator3Select);
     }
 
@@ -530,7 +540,7 @@ struct Sync3::IButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
@@ -560,7 +570,7 @@ struct Sync3::RatioButtonQuantity : ViaButtonQuantity<8> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
@@ -590,7 +600,7 @@ struct Sync3::IIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
@@ -620,7 +630,7 @@ struct Sync3::CVButtonQuantity : ViaButtonQuantity<2> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);
@@ -650,7 +660,7 @@ struct Sync3::IIIButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Sync3 * sync3Module = dynamic_cast<Sync3 *>(this->module);

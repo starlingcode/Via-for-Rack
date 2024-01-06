@@ -21,7 +21,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     ExpoConverter expo;
 
     Meta() : Via(), virtualModule(asset::plugin(pluginInstance, "res/original.meta")) {
-        
+
         virtualIO = &virtualModule;
 
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -34,14 +34,14 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         configParam<ANormalQuantity>(A_PARAM, -5.0, 5.0, -5.0, "A level");
         paramQuantities[A_PARAM]->description = "Main output is bounded between A and B levels";
         configParam<CV3ScaleQuantity>(CV3AMT_PARAM, 0, 1.0, 1.0, "Wave shape CV scale");
-        
+
         configParam<SHButtonQuantity>(BUTTON1_PARAM, 0.0, 1.0, 0.0, "S+H");
         configParam<TableButtonQuantity>(BUTTON2_PARAM, 0.0, 1.0, 0.0, "Wavetable");
         configParam<FreqButtonQuantity>(BUTTON3_PARAM, 0.0, 1.0, 0.0, "Frequency range");
         configParam<TrigButtonQuantity>(BUTTON4_PARAM, 0.0, 1.0, 0.0, "TRIG response");
         configParam<TableButtonQuantity>(BUTTON5_PARAM, 0.0, 1.0, 0.0, "Wavetable");
         configParam<LoopButtonQuantity>(BUTTON6_PARAM, 0.0, 1.0, 0.0, "Loop");
-        
+
         configParam<ButtonQuantity>(TRIGBUTTON_PARAM, 0.0, 5.0, 0.0, "Manual Trigger");
 
         configInput(A_INPUT, "A");
@@ -64,7 +64,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         presetData[3] = virtualModule.metaUI.stockPreset4;
         presetData[4] = virtualModule.metaUI.stockPreset5;
         presetData[5] = virtualModule.metaUI.stockPreset6;
-    
+
     }
 
     void process(const ProcessArgs &args) override;
@@ -141,13 +141,13 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         }
 
         sampleRateStore = sampleRate/(float)divideAmount;
-        
+
     }
 
     json_t *dataToJson() override {
 
         json_t *rootJ = json_object();
-        
+
         // freq
         json_object_set_new(rootJ, "meta_modes", json_integer(virtualModule.metaUI.modeStateBuffer));
         json_object_set_new(rootJ, "table_file", json_string(tablePath.c_str()));
@@ -156,7 +156,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
     }
 
     int32_t testMode;
-    
+
     void dataFromJson(json_t *rootJ) override {
 
         json_t *modesJ = json_object_get(rootJ, "meta_modes");
@@ -173,7 +173,7 @@ struct Meta : Via<META_OVERSAMPLE_AMOUNT, META_OVERSAMPLE_QUALITY> {
         }
     }
     std::string tablePath = asset::plugin(pluginInstance, "res/original.meta");
-    
+
 };
 
 void Meta::process(const ProcessArgs &args) {
@@ -191,9 +191,9 @@ void Meta::process(const ProcessArgs &args) {
             virtualModule.slowConversionCallback();
             virtualModule.ui_dispatch(SENSOR_EVENT_SIG);
             virtualModule.metaUI.incrementTimer();
-            
+
             processTriggerButton();
-            
+
             virtualModule.blinkTimerCount += virtualModule.blinkTimerEnable;
             virtualModule.blankTimerCount += virtualModule.blankTimerEnable;
             if (virtualModule.blinkTimerCount > virtualModule.blinkTimerOverflow) {
@@ -215,7 +215,7 @@ void Meta::process(const ProcessArgs &args) {
         updateAudioRate();
 
     }
-    
+
 }
 
 // Custom parameter widgets
@@ -245,14 +245,14 @@ struct MetaWidget : ModuleWidget  {
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 30.90), module, Meta::CV2AMT_PARAM));
         addParam(createParam<SifamGrey>(Vec(128.04 + .753, 100.4), module, Meta::A_PARAM));
         addParam(createParam<SifamBlack>(Vec(128.04 + .753, 169.89), module, Meta::CV3AMT_PARAM));
-        
+
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 80), module, Meta::BUTTON1_PARAM));
         addParam(createParam<TransparentButton>(Vec(47 + .753, 77.5), module, Meta::BUTTON2_PARAM));
         addParam(createParam<TransparentButton>(Vec(85 + .753, 80), module, Meta::BUTTON3_PARAM));
         addParam(createParam<TransparentButton>(Vec(10.5 + .753, 129), module, Meta::BUTTON4_PARAM));
         addParam(createParam<TransparentButton>(Vec(46 + .753, 131.5), module, Meta::BUTTON5_PARAM));
         addParam(createParam<TransparentButton>(Vec(85 + .753, 129), module, Meta::BUTTON6_PARAM));
-        
+
         addParam(createParam<ViaPushButton>(Vec(132.7 + .753, 320), module, Meta::TRIGBUTTON_PARAM));
 
         addInput(createInput<HexJack>(Vec(8.07 + 1.053, 241.12), module, Meta::A_INPUT));
@@ -396,18 +396,28 @@ struct MetaWidget : ModuleWidget  {
         menu->addChild(stockPresets);
 
         struct TableSetHandler : MenuItem {
-            Meta *module; 
+            Meta *module;
             void onAction(const event::Action &e) override {
-             
-                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL); 
-                if (!pathC) { 
-                    // Fail silently 
-                    return; 
-                } 
-                DEFER({ 
-                    std::free(pathC); 
-                }); 
-             
+#ifdef USING_CARDINAL_NOT_RACK
+                Meta* module = this->module;
+                async_dialog_filebrowser(false, NULL, NULL, "Load Wavetable", [module](char* pathC) {
+                    pathSelected(module, pathC);
+                });
+#else
+                char* pathC = osdialog_file(OSDIALOG_OPEN, NULL, NULL, NULL);
+                pathSelected(module, pathC);
+#endif
+            }
+
+            static void pathSelected(Meta* module, char* pathC) {
+                if (!pathC) {
+                    // Fail silently
+                    return;
+                }
+                DEFER({
+                    std::free(pathC);
+                });
+
                 module->virtualModule.readTableSetFromFile(pathC);
                 module->tablePath = pathC;
             }
@@ -501,7 +511,7 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
                 timeBase1 *= 3.0;
             }
 
-            return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;  
+            return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;
 
         } else if (freqMode == 0) {
 
@@ -512,7 +522,7 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
 
             timeBase1 /= 4.0;
 
-            return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;       
+            return timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;
 
         } else if (freqMode == 1) {
 
@@ -527,8 +537,8 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
                 metaModule->expo.convert(1024) >> 9);
 
             return 1.0/(timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore);
-        }        
-    
+        }
+
     }
 
     float translateInput(float userInput) override {
@@ -547,7 +557,7 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
 
             if (drumType < 2) {
 
-                targetScale = userInput/21.797;                    
+                targetScale = userInput/21.797;
 
             } else {
 
@@ -555,17 +565,17 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
 
             }
 
-            targetScale = log2(targetScale * 2.0);                
+            targetScale = log2(targetScale * 2.0);
 
             float time1 = roundf(targetScale * 384.0 * (8.0/3.0)) - 1024.0;
-           
-            return time1;  
+
+            return time1;
 
         } else if (freqMode == 0) {
 
             float targetScale = userInput/16.34;
 
-            targetScale = log2(targetScale);                
+            targetScale = log2(targetScale);
 
             float time1 = targetScale * 384.0 * (4.0/3.0);
 
@@ -577,9 +587,9 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
 
             timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;
 
-            metaModule->paramQuantities[Meta::KNOB2_PARAM]->setValue((userInput/timeBase1 - 1.0) * 4095.0); 
-           
-            return time1;     
+            metaModule->paramQuantities[Meta::KNOB2_PARAM]->setValue((userInput/timeBase1 - 1.0) * 4095.0);
+
+            return time1;
 
         } else if (freqMode == 1) {
 
@@ -601,7 +611,7 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
 
             return (4095.0 - (metaModule->reverseExpo(desiredIncrement)) * 384.0);
 
-        }  
+        }
 
     };
     void setLabel(void) override {
@@ -614,7 +624,7 @@ struct Meta::Time1Quantity : ViaKnobQuantity {
     }
     int getDisplayPrecision(void) override {
         return 3;
-    } 
+    }
 
 };
 
@@ -696,7 +706,7 @@ struct Meta::Time2Quantity : ViaKnobQuantity {
 
             timeBase1 /= 4.0;
 
-            return timeBase1/META_WAVETABLE_LENGTH *  metaModule->sampleRateStore;       
+            return timeBase1/META_WAVETABLE_LENGTH *  metaModule->sampleRateStore;
 
         } else if (freqMode == 1) {
 
@@ -710,8 +720,8 @@ struct Meta::Time2Quantity : ViaKnobQuantity {
             return (((float) metaModule->virtualModule.controls.knob2Value) / 4095.0) * 60.0 + 20.0;
 
         }
-                     
-    
+
+
     }
 
     float translateInput(float userInput) override {
@@ -737,7 +747,7 @@ struct Meta::Time2Quantity : ViaKnobQuantity {
 
             float targetScale = userInput/16.34;
 
-            targetScale = log2(targetScale);                
+            targetScale = log2(targetScale);
 
             float time1 = targetScale * 384.0 * (4.0/3.0);
 
@@ -749,9 +759,9 @@ struct Meta::Time2Quantity : ViaKnobQuantity {
 
             timeBase1 /= 4.0;
 
-            timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore; 
-           
-            return (userInput/timeBase1 - 1.0) * 4095.0;     
+            timeBase1 = timeBase1/META_WAVETABLE_LENGTH * metaModule->sampleRateStore;
+
+            return (userInput/timeBase1 - 1.0) * 4095.0;
 
         } else if (freqMode == 1) {
 
@@ -767,7 +777,7 @@ struct Meta::Time2Quantity : ViaKnobQuantity {
 
             return ((userInput - 20.0)/60.0) * 4095.0;
 
-        }  
+        }
 
     };
 
@@ -798,8 +808,8 @@ struct Meta::WaveshapeQuantity : ViaKnobQuantity {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
 
-        return metaModule->virtualModule.metaWavetable.tableSize * value/4095.0;            
-    
+        return metaModule->virtualModule.metaWavetable.tableSize * value/4095.0;
+
     }
     float translateInput(float userInput) override {
 
@@ -828,7 +838,7 @@ struct Meta::SHButtonQuantity : ViaButtonQuantity<6> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
@@ -859,7 +869,7 @@ struct Meta::TableButtonQuantity : ViaComplexButtonQuantity {
         modes = buttonModes[0];
         numModes = 8;
     }
-    
+
     int getModeEnumeration(void) override {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
@@ -899,7 +909,7 @@ struct Meta::FreqButtonQuantity : ViaButtonQuantity<3> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
@@ -929,7 +939,7 @@ struct Meta::TrigButtonQuantity : ViaComplexButtonQuantity {
         modes = trigModes;
         numModes = 0;
     }
-    
+
     int getModeEnumeration(void) override {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
@@ -989,7 +999,7 @@ struct Meta::LoopButtonQuantity : ViaButtonQuantity<2> {
             modes[i] = buttonModes[i];
         }
     }
-    
+
     int getModeEnumeration(void) override {
 
         Meta * metaModule = dynamic_cast<Meta *>(this->module);
