@@ -251,7 +251,7 @@ struct ScannerWidget : ModuleWidget  {
             void onAction(const event::Action &e) override {
 #ifdef USING_CARDINAL_NOT_RACK
                 Scanner* module = this->module;
-                async_dialog_filebrowser(false, nullptr, nullptr, "Load Wavetable", [module](char* pathC) {
+                async_dialog_filebrowser(false, NULL, NULL, "Load Wavetable", [module](char* pathC) {
                     pathSelected(module, pathC);
                 });
 #else

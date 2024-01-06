@@ -448,7 +448,7 @@ struct Sync3Widget : ModuleWidget  {
             void onAction(const event::Action &e) override {
 #ifdef USING_CARDINAL_NOT_RACK
                 Sync3* module = this->module;
-                async_dialog_filebrowser(false, nullptr, nullptr, "Load Scale", [module](char* pathC) {
+                async_dialog_filebrowser(false, NULL, NULL, "Load Scale", [module](char* pathC) {
                     pathSelected(module, pathC);
                 });
 #else
